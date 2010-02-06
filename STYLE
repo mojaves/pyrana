@@ -1,0 +1,396 @@
+Pyrana coding style guidelines
+===============================
+
+Python side
+-----------
+
+PEP8 guidelines applies everywhere. That's all, folks. :)
+
+C side
+------
+
+In a nutshell:
+
+- Types coded in C should be presented to Python layer in conformancy of
+  PEP8 as well.
+- When feasible, use the same conventions used in coding Python
+  in C as well (es: line length, spacing...).
+- When in doubt, consult this document first, PEP8 then.
+- If still in doubt, choose simpler code.
+- If still in doubt, choose the code that follows existing conventions.
+- If still in doubt, mail us.
+and last but not least
+- If you find a contraddiction between the code and this document,
+  fix the document, fix the code or fix both, but don't let the
+  problem survive!
+
+
+Syntax
+------
+
+* Lines must not be longer than 79 columns, and should be kept to 75
+  columns or less when feasible.
+
+* The basic indentation unit is four columns.
+
+* Tab characters (ASCII 0x09) must not be used for indentation or alignment
+  of source code, and should be avoided in other cases (such as in strings)
+  where possible.  Tabs should not be assumed to have any particular width.
+
+* Comments should use standard C style (/*...*/); C++ style (//)
+  is permissible for inline comments (comments placed on the same line as
+  code). Align vertically comments wherever is feasible.
+  ALWAYS set begin (/*) and end (*/) markers on they own lines, except for
+  one-liners. Examples.
+
+      /*
+       * This is a lengthy multiline comment, perhaps a function header,
+       * with the comment delimiters placed on their own lines.
+       */
+      void myfunction()
+      {
+          int var1;          // Inline comment about var1
+          double variable2;  // Inline comment about var2
+
+          /*
+           * This is a shorter multiline comment about what the next bit of
+           * code will do.
+           */
+          first();
+          /* This is a single-line comment */
+          second();
+      }
+
+* Every function should be preceded by a header in Doxygen-compatible format
+  which describes the purpose of the function.
+
+* Only one statement is allowed per line.  Statements (including the empty
+  statement ";") may not be written on the same line as a control keyword
+  (if, for, or while).
+
+* Spaces are placed between binary operators and their operands, except for
+  the member-reference operators "->" and "."; spaces are not placed
+  between unary operators and their operands.
+  Examples:
+
+      i = j * 2;
+      structure->field++;
+      result += i * 60 + (j + 59) / 60;
+
+* Parentheses are required when && and || (or two or more of &, |, and ^)
+  are used in the same expression to explicitly indicate the order of
+  evaluation; do not rely on the default order of evaluation.
+
+* Parentheses following the control statements "if", "for", and "while" are
+  preceded by a space.  Parentheses following function or macro calls are
+  not preceded by a space.  Example:
+
+      if (flag)
+          function();
+
+* Spaces are placed after the comma of each parameter to a function or
+  macro; spaces are also placed after the semicolons in a for statement.
+  Spaces are not placed after the opening parenthesis or before the 
+  closing parenthesis of a function/macro call or control statement.
+  Examples:
+
+      function(param1, param2);
+      function(param1, strchr(string, '/'), param3);
+      for (i = 0; i < count; i++) ...
+
+* Opening braces of control statement blocks go on the same line as the
+  control statement (if, for, etc.) associated with the block; function
+  blocks and "naked blocks" (those not associated with any control
+  statement or function) have the opening brace alone on a line, indented
+  to the same level as the surrounding code.  Closing braces are indented
+  to the same level as the line containing the opening brace.  Examples:
+
+      if (flag) {
+          /* indented code goes here */
+          ...
+      }
+
+      int function(int param1, char *param2)
+      {
+          /* indented code goes here */
+          ...
+          /* start of a naked block */
+          {
+              int foo;
+              ...
+          }
+      }
+
+* If an if statement is longer than one line, it should be broken at
+  logical operators (&& or ||); the operator should be placed at the
+  beginning of the next line, and should be indented to show which term the
+  operator belongs with.  The closing parenthesis for the if statement and
+  the subsequent open brace should be alone on a line, aligned with the
+  first line of the if statement.  (Braces are required in this case.)
+  Conditions for for and while statements should never span multiple lines,
+  though a for statement may be broken at the semicolons if necessary.
+  Examples:
+
+      if (ok && (strcmp(option, "option-name-1") == 0
+                 || strcmp(option, "option-name-2") == 0)
+      ) {
+          ...
+      }
+
+      if (!init_first()
+       || !init_second()
+       || !init_third()
+       || !init_fourth()
+      ) {
+          /* This example outdents the || by three spaces
+           * to make the terms line up. */
+          ...
+      }
+
+      for (node = first_node(list, LISTTYPE_MYLIST); node != NULL;
+           node = next_node(list, LISTTYPE_MYLIST))
+      ) {
+          ...
+      }
+
+* An else followed by an if is considered to be a single keyword, "else if".
+  The if part should always be placed on the same line as and immediately
+  following the else; the else if should never be split up onto two lines,
+  nor should braces be used around the if block.  The exception to this is
+  when the else and if refer to two conceptually distinct sets of
+  conditions, in which case the if block should be enclosed by braces and
+  indented.  Example:
+
+      res = check_password( /* ... */ );
+      if (res == 0) {
+          ...
+      } else if (res == 1) {
+          /* "else if" on a single line */
+          ...
+      } else {
+          if (otherflag) {
+              /* "if" condition is different from "else"
+               * condition, thus separate */
+              ...
+          }
+      }
+
+* Braces are always placed around the body of a control statement (if, for,
+  etc.).  The only one exception, is the case of else if mentioned
+  above. Examples:
+
+      for (i = 0; i < count; i++) {
+          function(i);
+      }
+
+      while (!done) {
+          if (do_stuff()) {
+              done = 1;
+          }
+      }
+
+      if (state == 0) {
+          a = b;
+      } else if (state == 1) {
+          /* Every if/else body gets braces because this body
+           * has two statements */
+          b += a;
+          a = 0;
+      } else {
+          state = 0;
+      }
+
+* Case labels for a switch should be indented half of a normal indentation
+  unit (two columns) from the line containing the switch with which they
+  are associated; statements associated with a case should be indented a
+  full unit from the line containing the switch (half a unit from the
+  case).  If a case requires its own block, such as when it declares its
+  own local variables, the opening brace is placed after the colon on the
+  case line.  Example:
+      switch (variable) {
+        case 123: {
+          int foo;
+          ...
+          break;
+        }  /* case 123 */
+        default:
+          ...
+          return -1;
+      }
+
+* When a case in a switch block does not contain a break (or return)
+  statement and deliberately "falls through" to the next case, a comment to
+  this effect should be made at the bottom of the case.  Example:
+      switch (state) {
+        case 0:
+          ...
+          /* fall through */
+        case 1:
+          ...
+          break;
+      }
+
+* Structured type initializers should avoid C99-style named initializers,
+  following the Python C-code convention.
+
+Semantics
+---------
+
+* Functions should not be overly long or complex; as a rule of thumb, if a
+  function has more than four levels of indentation then it should probably
+  be broken up into separate functions.
+
+* Do not use binary operators to perform arithmetic operations.  In
+  particular, never use bit-shift operators in place of multiplication or
+  division by powers of two.  (Modern compilers are smart enough to convert
+  arithmetic expressions like "x/2" to a bit-shift operation; moreover,
+  right shift and division give different results on negative numbers.)
+  Binary operators should only be used when operating on bitmasks or other
+  values where there is a need to extract or modify particular bits,
+  independent of the value of the variable as a whole.
+
+* Always use the increment and decrement operators (++ and --) as postfix
+  operators, except in expressions that require prefix usage.
+
+* Avoid nesting assignment expressions (including increment and decrement
+  operations) within other expressions, to the extent that extracting the
+  assignment operation would not unduly complicate the code.  In the
+  following example, separating the strtok() call and its comparison would
+  require changing the structure of the loop completely, so the example is
+  acceptable as is:
+
+      while ((s = strtok(NULL, " \t\r\n")) != NULL) {
+          ...
+      }
+
+* Do not use an assignment expression as the condition in an "if", "while",
+  or "for" test; explicitly compare the result of the assignment against 0
+  or NULL, as appropriate.
+
+* Do not use the result of a logical expression (operators &&, ||, ==,
+  etc.) as an operand in an arithmetic or binary expression.
+
+* Always use NULL, not 0, in pointer comparisons.  For character
+  comparisons, use 0 when checking for the null terminator at the end of a
+  string; use '\0' only if the intent is to check for the ASCII character
+  NUL as part of a string.  Do not use '\0' with variables declared as type
+  int8_t or uint8_t, even though these types are usually equivalent to char
+  and unsigned char.
+
+* The construct "!!expression" should not be used.  Use "expression != 0"
+  (for characters or integers) or "expression != NULL" (for pointers)
+  instead.
+
+* All exported functions must be prototyped in a header file.
+
+* When declaring a function that takes no parameters, use "(void)" instead
+  of "()", since the latter does not declare a prototype in C.  Example:
+
+      int function(void)  /* Function that takes no parameters */
+      {
+          ...
+      }
+
+* Do not use the "inline" keyword.  Most compilers can determine
+  automatically when inlining a function will be beneficial, and will do
+  so (if told to optimize) even without the "inline"; older compilers may
+  not understand "inline" at all.
+
+* Functions should check all parameters for validity.  However, in cases
+  where it is clear that a parameter is valid (for example, because the
+  function is only called by one other function under specific
+  circumstances), it is acceptable to assume the parameter is valid if that
+  assumption is listed as a precondition in the function's header.
+
+* Variables should be declared in the innermost block which completely
+  encloses all uses of the variable.  However, a loop counter in a nested
+  loop may be declared at a higher level if there are no other loop-local
+  variables at the appropriate level.  Examples:
+
+      int function(int limit)
+      {
+          int foo = 0;  /* used throughout the function */
+          int i;        /* used in a top-level loop */
+          int j;        /* used in a nested loop, no other locals */
+
+          for (i = 0; i < limit; i++) {
+              /* No loop-local variables here, so j is declared above */
+              for (j = 0; j < 3; j++) {
+                  int x, y;  /* only used inside the loop body */
+                  otherfunction(i, j, &x, &y);
+                  foo += x * y;
+              }
+          }
+          return foo;
+      }
+
+* The goto statement should not be used except in error handling situations
+  where it will help avoid multiple levels of if nesting or other awkward
+  code.  Labels for goto should be outdented half of an indentation unit
+  from the surrounding code (i.e., indented two columns less than the
+  surrounding code).
+
+* assert() must not be used.  If a sanity check fails, the program should
+  either recover as best it can or, if recovery is impossible, print a
+  meaningful error message and exit gracefully.
+
+
+Naming rules
+------------
+
+* Golden rule: the Pyrana public API should mimic as close as possible the
+  official C-python API.
+
+* The public identifiers must use the MixedCase, with the only partial exception
+  of preprocessor defines.
+
+* Every public symbol (functions, constancts, structures, types, preprocessor define)
+  must have the `Pyr' prefix.
+
+* Public functions which constitutes the API of a new Type must have the following
+  format:
+
+        PyrFoo_OperationName(...)
+
+  Where Foo is the Type which we are talking about, and OperationName is the real
+  name of the function.
+  
+* Object naming must have the following format:
+
+        PyrBarObject;
+
+  Where `Bar' is the real name of the object.
+
+* Functions that not are part of an Object API but are part of Pyrana public API
+  must have the following format:
+
+        Pyr_FunctionName(...)
+
+* Private functions have no constraint about their naming; however, is strongly
+  encouraged to
+  - use lowercase naming like (dosomething())
+  - use the object prefix (like PyrBaz_dostuff()).
+
+* Names should be descriptive.  For global variables, preprocessor macros
+  and constants, type names, and structure names, names should generally
+  consist of one or more full words.  For local variables, short names and
+  abbreviations are permitted as long as it is clear what the variables are
+  used for.  In general, one-letter local variable names should not be used
+  other than the following:
+      * c: character
+      * f: file pointer (FILE *)
+      * i, j, k: integers (usually counters)
+      * n, p, q: integers (p may also be a pointer variable)
+      * s: string
+      * t: string or temporary variable
+      * x, y, z: integers (usually position variables)
+
+
+
+Thanks
+------
+
+This document is a stripped-down and tuned derivative of transcode style
+guidelines. Thanks to Andrew Church which has written most of the original
+document.
+
