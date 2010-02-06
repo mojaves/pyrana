@@ -45,6 +45,7 @@ initpyrana(void)
         avcodec_register_all();
         av_register_all();
 
+        PyModule_AddStringConstant(m, "VERSION", PYRANA_VERSION_STRING);
         PyModule_AddIntConstant(m, "TS_NULL", AV_NOPTS_VALUE);
 
         PyrErrors_Setup(m);

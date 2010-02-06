@@ -1,5 +1,34 @@
-from distutils.core import setup, Extension
+from distutils.core import setup
+from distutils.core import Extension
+
 import commands
+import shutil
+import os
+import os.path
+
+def pkginfo():
+    info = {}
+    f = open("PKG-INFO")
+    for line in f:
+        try:
+            k, v = line.strip().split(':')
+            info[k.strip()] = v.strip()
+        except ValueError:
+            continue
+    return info
+
+def quote(s):
+    return "\"%s\"" %s    
+
+def version(info={}):
+    if not info:
+        info = pkginfo()
+    ver = "UNKNOWN"
+    try:
+         ver = info["Version"]
+    except KeyError:
+        pass
+    return quote(ver)
 
 
 # courtesy of http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/502261
@@ -11,7 +40,7 @@ def pkgconfig(*packages, **kw):
         kw.setdefault(flag_map.get(token[:2]), []).append(token[2:])
     return kw
 
-
+info = pkginfo()
 lavu = pkgconfig("libavutil") 
 lavc = pkgconfig("libavcodec") 
 lavf = pkgconfig("libavformat") 
@@ -24,7 +53,9 @@ pyrana_ext = Extension('pyrana',
                        ['pyrana/errors.c', 'pyrana/pyrana.c'],
                        include_dirs=inc_dirs,
                        library_dirs=lib_dirs,
-                       libraries=extra_libs)
+                       libraries=extra_libs,
+                       define_macros=[('PYRANA_VERSION_STRING', version(info)),]
+                      )
 
 setup(name='pyrana',
       version='0.0.1',
