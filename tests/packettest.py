@@ -1,43 +1,43 @@
 #!/usr/bin/python
 
-import pymedia
+import pyrana
 import unittest
 
 class FrameTestCase(unittest.TestCase):
     def test00_NewFromString(self):
         try:
-            f = pymedia.format.Packet(0, "a")
+            f = pyrana.format.Packet(0, "a")
         except Exception, x:
             self.fail("failed creation from simple string: %s" %str(x))
     def test01_NewFromStringHuge(self):
         try:
-            f = pymedia.format.Packet(0, "a" * 1024 * 1024 * 32)
+            f = pyrana.format.Packet(0, "a" * 1024 * 1024 * 32)
         except:
             self.fail("failed creation from huge string")
     def test02_NewFromFrame(self):
         try:
-            f = pymedia.format.Packet(0, "a")
-            g = pymedia.format.Packet(1, f)
+            f = pyrana.format.Packet(0, "a")
+            g = pyrana.format.Packet(1, f)
         except:
             self.fail("failed creation from another frame")
     def test03_DataValues(self):
-        f = pymedia.format.Packet(0, "a")
+        f = pyrana.format.Packet(0, "a")
         assert(f.data == "a")
         assert(f.size == 1)
     def test04_DefaultValues(self):
-        f = pymedia.format.Packet(0, "a")
+        f = pyrana.format.Packet(0, "a")
         assert(not f.isKey)
-        assert(f.pts == pymedia.TS_NULL)
-        assert(f.dts == pymedia.TS_NULL)
+        assert(f.pts == pyrana.TS_NULL)
+        assert(f.dts == pyrana.TS_NULL)
         assert(f.idx  == 0)
     def test05_InitValues(self):
-        f = pymedia.format.Packet(3, "abracadabra", 200, 300, True)
+        f = pyrana.format.Packet(3, "abracadabra", 200, 300, True)
         assert(f.idx == 3)
         assert(f.isKey)
         assert(f.pts == 200)
         assert(f.dts == 300)
     def test06_ResetStreamIndex(self):
-        f = pymedia.format.Packet(0, "gammaray")
+        f = pyrana.format.Packet(0, "gammaray")
         assert(f.idx == 0)
         try:
             f.idx = 1
@@ -45,7 +45,7 @@ class FrameTestCase(unittest.TestCase):
             self.fail("failed to set stream index")
         assert(f.idx == 1)
     def test07_ResetIsKey(self):
-        f = pymedia.format.Packet(0, "gammaray")
+        f = pyrana.format.Packet(0, "gammaray")
         assert(not f.isKey)
         try:
             f.isKey = True
@@ -53,30 +53,30 @@ class FrameTestCase(unittest.TestCase):
             self.fail("failed to set isKey")
         assert(f.isKey)
     def test08_ResetPTS(self):
-        f = pymedia.format.Packet(0, "R'Yleh")
-        assert(f.dts == pymedia.TS_NULL)
-        assert(f.pts == pymedia.TS_NULL)
+        f = pyrana.format.Packet(0, "R'Yleh")
+        assert(f.dts == pyrana.TS_NULL)
+        assert(f.pts == pyrana.TS_NULL)
         try:
             f.pts = 4242
         except:
             self.fail("failed to set pts")
         assert(f.pts == 4242)
-        assert(f.dts == pymedia.TS_NULL)
+        assert(f.dts == pyrana.TS_NULL)
     def test09_ResetDTS(self):
-        f = pymedia.format.Packet(0, "R'Yleh")
-        assert(f.pts == pymedia.TS_NULL)
-        assert(f.dts == pymedia.TS_NULL)
+        f = pyrana.format.Packet(0, "R'Yleh")
+        assert(f.pts == pyrana.TS_NULL)
+        assert(f.dts == pyrana.TS_NULL)
         try:
             f.dts = 4242
         except:
             self.fail("failed to set dts")
         assert(f.dts == 4242)
-        assert(f.pts == pymedia.TS_NULL)
+        assert(f.pts == pyrana.TS_NULL)
     def test10_CannotResetData(self):
-        f = pymedia.format.Packet(0, "O RLY?!?")
+        f = pyrana.format.Packet(0, "O RLY?!?")
         self.assertRaises(AttributeError, setattr, f, "data", "YA, RLY")
     def test11_CannotResetSize(self):
-        f = pymedia.format.Packet(0, "YA, RLY!")
+        f = pyrana.format.Packet(0, "YA, RLY!")
         self.assertRaises(AttributeError, setattr, f, "size", len("YA, RLY"))
 
 

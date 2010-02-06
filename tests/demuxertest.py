@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-import pymedia
+import pyrana
 import unittest
 
 import helper
@@ -15,7 +15,7 @@ def prepareSource():
 
 def wrapOpen(fmt):
     f = prepareSource()
-    dmx = pymedia.format.Demuxer(f, fmt)
+    dmx = pyrana.format.Demuxer(f, fmt)
 
 class DemuxerTestCase(unittest.TestCase):
     def failUnlessEqualStreams(self, got, expected):
@@ -30,41 +30,41 @@ class DemuxerTestCase(unittest.TestCase):
                                      %(k, ex[k], st[k]))
     def test00_CreateDemuxer(self):
         f = prepareSource()
-        dmx = pymedia.format.Demuxer(f)
+        dmx = pyrana.format.Demuxer(f)
         assert(dmx)
     def test01_HasStreams(self):
         f = prepareSource()
-        dmx = pymedia.format.Demuxer(f)
+        dmx = pyrana.format.Demuxer(f)
         assert(len(dmx.streams) == 2)
     def test02_StreamsAreCorrect(self):
         f = prepareSource()
-        dmx = pymedia.format.Demuxer(f)
+        dmx = pyrana.format.Demuxer(f)
         self.failUnlessEqualStreams(dmx.streams, st_info["OGG_AV"])
     def test03_IsValidIdx(self):
         f = prepareSource()
-        dmx = pymedia.format.Demuxer(f)
+        dmx = pyrana.format.Demuxer(f)
         assert(dmx.streams)
         F = dmx.readFrame()
         assert F.idx in range(len(dmx.streams))
     def test04_StreamsObjSurvives(self):
         def getStreams():
             f = prepareSource()
-            dmx = pymedia.format.Demuxer(f)
+            dmx = pyrana.format.Demuxer(f)
             return dmx.streams
         streams = getStreams()
         self.failUnlessEqualStreams(streams, st_info["OGG_AV"])
     def test06_ForceRightFormat(self):
         f = prepareSource()
-        dmx = pymedia.format.Demuxer(f, "ogg")
+        dmx = pyrana.format.Demuxer(f, "ogg")
     def test07_ForceInexistentFormat(self):
-        self.assertRaises(pymedia.UnsupportedError, wrapOpen, "ZAPZAPZAP")
+        self.assertRaises(pyrana.UnsupportedError, wrapOpen, "ZAPZAPZAP")
     def test08_ForceWrongFormat(self):
-        self.assertRaises(pymedia.SetupError, wrapOpen, "yuv4mpegpipe")
+        self.assertRaises(pyrana.SetupError, wrapOpen, "yuv4mpegpipe")
     def test09_DirectOpen(self):
-        dmx = pymedia.format.Demuxer(open(samples["OGG_AV"], "rb"))
+        dmx = pyrana.format.Demuxer(open(samples["OGG_AV"], "rb"))
         self.failUnlessEqualStreams(dmx.streams, st_info["OGG_AV"])
     def test10_OpenDecoder(self):
-        dmx = pymedia.format.Demuxer(open(samples["OGG_AV"], "rb"))
+        dmx = pyrana.format.Demuxer(open(samples["OGG_AV"], "rb"))
         dec = dmx.openDecoder(0)
         assert(dec)
         assert(hasattr(dec, "decode"))

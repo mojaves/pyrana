@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-import pymedia
+import pyrana
 import time
 import sys
 
@@ -10,14 +10,14 @@ if len(args) != 1:
     sys.exit(1)
 
 f = open(args[0], "rb")
-dmx = pymedia.format.Demuxer(f)
+dmx = pyrana.format.Demuxer(f)
 
 frames = 0
 hasData = True
 while hasData:
     try:
         Fr = dmx.readFrame()
-    except pymedia.EOSError:
+    except pyrana.EOSError:
         sys.stdout.write("\nmaster stream ends here!\n")
         hasData = False
     sys.stdout.write("elapsed frames: %i\r" %(frames))

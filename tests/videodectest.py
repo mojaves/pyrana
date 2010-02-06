@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-import pymedia
+import pyrana
 import unittest
 
 import helper
@@ -27,42 +27,42 @@ class VideoDecTestCase(unittest.TestCase):
                 self.assertFrameValid(frm)
 
     def test00_CreateVideoDec(self):
-        dec = pymedia.video.Decoder("mpeg1video")
+        dec = pyrana.video.Decoder("mpeg1video")
         assert(dec)
 #    def test01_SpawnVideoDecXData(self):
-#        dmx = pymedia.format.Demuxer(open(samples["OGG_A"], "rb"))
+#        dmx = pyrana.format.Demuxer(open(samples["OGG_A"], "rb"))
 #        assert(len(dmx.streams) == 1)
 #        dec = dmx.openDecoder(0)
 #        assert(dec)
 #        assert(hasattr(dec, "decode"))
 #    def test02_SpawnVideoDecNOXData(self):
-#        dmx = pymedia.format.Demuxer(open(samples["MP3_A"], "rb"))
+#        dmx = pyrana.format.Demuxer(open(samples["MP3_A"], "rb"))
 #        assert(len(dmx.streams) == 1)
 #        dec = dmx.openDecoder(0)
 #        assert(dec)
 #        assert(hasattr(dec, "decode"))
 #    def test03_DecodeOneFrameNOXData(self):
-#        dmx = pymedia.format.Demuxer(open(samples["MP3_A"], "rb"))
+#        dmx = pyrana.format.Demuxer(open(samples["MP3_A"], "rb"))
 #        dec = dmx.openDecoder(0)
 #        self._decodeHelper(dmx, dec, 1)
 #    def test04_DecodeTwoFramesNOXData(self):
 #        # testing internal buffering
-#        dmx = pymedia.format.Demuxer(open(samples["MP3_A"], "rb"))
+#        dmx = pyrana.format.Demuxer(open(samples["MP3_A"], "rb"))
 #        dec = dmx.openDecoder(0)
 #        self._decodeHelper(dmx, dec, 2)
 #    def test05_DecodeOneFrameAndFlushNOXData(self):
-#        dmx = pymedia.format.Demuxer(open(samples["MP3_A"], "rb"))
+#        dmx = pyrana.format.Demuxer(open(samples["MP3_A"], "rb"))
 #        dec = dmx.openDecoder(0)
 #        self._decodeHelper(dmx, dec, 1)
 #        Fr = dec.flush()
 #        self.assertFrameValidEmpty(Fr)
 #    def test07_DecodeOneFrameAndFlush(self):
-#        dmx    = pymedia.format.Demuxer(open(samples["OGG_A"], "rb"))
+#        dmx    = pyrana.format.Demuxer(open(samples["OGG_A"], "rb"))
 #        params = dmx.streams[0]
 #        assert(params)
 #        name   = params.pop('name')
 #        assert(params["extradata"])
-#        dec    = pymedia.video.Decoder(name, params)
+#        dec    = pyrana.video.Decoder(name, params)
 #        self._decodeHelper(dmx, dec, 1, True)
 #        Fr     = dec.flush()
 #        self.assertFrameValidEmpty(Fr)
