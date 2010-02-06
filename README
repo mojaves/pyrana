@@ -10,7 +10,7 @@ Overview
 Pyrana is a python package designed to provides simple access to
 multimedia files. Pyrana is based on the FFmpeg[1] libraries, but
 provides an independent API. Wherever practical, Pyrana aims to
-be as much backward compatible to the Pymedia package[2].
+be as much backward compatible as is possible to the Pymedia package[2].
 
 
 License Notice
@@ -25,7 +25,7 @@ Requirements
 ------------
 
 python >= 2.5
-FFmpeg >= 0.50 (last SVN/Git it's usually fine).
+FFmpeg >= 0.50 (the last SVN/GIT snapshot is usually fine).
 
 
 References
