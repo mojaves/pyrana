@@ -56,10 +56,10 @@ class Demuxer(object):
         Demuxer(file-like, name="")
         Initialize a new demuxer for the file type `name' (use "" (empty) for auto probing)
         A Demuxer needs a file-like as a source of data. The file-like object must be
-        already open; the Demuxer guarantes to call ONLY the read() method. No seek.
+        already open.
         """   
         pass
-    def readFrame(self, streamid=Demuxer.ANY):
+    def readFrame(self, streamid=pyrana.format.STREAM_ANY):
         """
         readFrame(streamid=ANY) -> Packet Object
         reads and returns a new complete encoded frame (enclosed in a Packet) from the demuxer.
@@ -99,6 +99,10 @@ class Muxer(object): # (XXX!)
     def __init__(self, f, name):
         pass
     def addStream(self, streamid, params={}):
+        pass
+    def writeHeader(self):
+        pass
+    def writeTrailer(self):
         pass
     def writeFrame(self, Packet):
         """requires an encoded frame enclosed in a Packet!"""
