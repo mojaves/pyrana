@@ -21,6 +21,14 @@ the package needs the FFmpeg libraries, which have different licenses
 (most notably LGPL and GPL) depending on the configuration.
 
 
+API Stability
+-------------
+
+The API is unstable (= free to change without notice) until the
+stable milestone is reached. The API WILL BE maintained stable 
+in every major release.
+
+
 Requirements
 ------------
 
