@@ -7,14 +7,14 @@ function die()
 }
 
 if [ ! -h pyrana ]; then
-	[ -d ../build/lib*/pyrana/ ] || die "build pyrana first!"
-	ln -s ../build/lib*/pyrana/ .
+	[ -f ../build/lib*/pyrana.so ] || die "build pyrana first!"
+	ln -s ../build/lib*/pyrana.so .
 fi
 
 export PATH=".:$PATH"
 eval $@
 
-if [ -h pyrana/ ]; then
-	rm -f pyrana/
+if [ -h pyrana.so ]; then
+	rm -f pyrana.so
 fi
 
