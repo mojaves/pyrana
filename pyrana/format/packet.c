@@ -25,6 +25,11 @@
 
 #include "packet.h"
 
+/* TODO:
+ * - move pts, dts, isKey as kwds?
+ */
+
+
 #define PACKET_NAME "Packet"
 PyDoc_STRVAR(Packet_doc,
 PACKET_NAME" - is an object to represent a packet.\n"

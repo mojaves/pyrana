@@ -29,6 +29,8 @@
 
 #include "pyfileproto.h"
 #include "packet.h"
+#include "demuxer.h"
+
 
 #define SUB_MODULE_PYDOC "Not yet"
 
@@ -38,6 +40,8 @@
 PyDoc_STRVAR(is_streaming_doc,
 IS_STREAMING_NAME"(name) - returns a boolean telling if format name is streamable"
 );
+
+#define PYRANA_STREAM_ANY       (-1)
 
 
 static PyObject *InputFormats = NULL;
@@ -49,9 +53,9 @@ static PyObject *
 BuildFormatNamesInput(void)
 {
     PyObject *names = PyList_New(0);
-    AVInputFormat *fmt;
+    AVInputFormat *fmt = av_iformat_next(NULL);
 
-    for (fmt = first_iformat; fmt != NULL; fmt = fmt->next) {
+    for (; fmt != NULL; fmt = av_iformat_next(fmt)) {
         PyObject *name = PyString_FromString(fmt->name);
         int err = PyList_Append(names, name);
         if (err) {
@@ -66,9 +70,9 @@ static PyObject *
 BuildFormatNamesOutput(void)
 {
     PyObject *names = PyList_New(0);
-    AVOutputFormat *fmt;
+    AVOutputFormat *fmt = av_oformat_next(NULL);
 
-    for (fmt = first_oformat; fmt != NULL; fmt = fmt->next) {
+    for (; fmt != NULL; fmt = av_oformat_next(fmt)) {
         PyObject *name = PyString_FromString(fmt->name);
         int err = PyList_Append(names, name);
         if (err) {
@@ -117,7 +121,7 @@ is_streaming(PyObject *self, PyObject *args)
     long res = 0;
 
     if (PyArg_ParseTuple(args, "s", &name)) {
-        res = !PyrFormat_NeedSeeking(name);
+        res = PyrFormat_NeedSeeking(name);
     }
     if (res) {
         Py_RETURN_TRUE;
@@ -150,10 +154,12 @@ PyrFormat_Setup(PyObject *m)
         InputFormats  = BuildFormatNamesInput();
         OutputFormats = BuildFormatNamesOutput();
 
+        PyModule_AddIntConstant(sm, "STREAM_ANY", PYRANA_STREAM_ANY);
         PyModule_AddObject(sm, "input_formats",  InputFormats);
 	    PyModule_AddObject(sm, "output_formats", OutputFormats);
 
         PyrPacket_Setup(sm);
+        PyrDemuxer_Setup(sm);
 
         PyModule_AddObject(m, "format", sm);
         ret = 0;
