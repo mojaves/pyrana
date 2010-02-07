@@ -32,7 +32,7 @@ in every major release.
 Requirements
 ------------
 
-python >= 2.5
+python >= 2.6
 FFmpeg >= 0.50 (the last SVN/GIT snapshot is usually fine).
 
 
