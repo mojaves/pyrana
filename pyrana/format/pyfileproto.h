@@ -23,38 +23,22 @@
  * distribution.
  */ 
 
-#include "pyrana.h"
+#ifndef PYRANA_FILE_PROTO_H
+#define PYRANA_FILE_PROTO_H
 
-#include "errors.h"
+#include "format.h"
 
-#include "format/format.h"
+#define Pyr_FILE_KEY_LEN	(64)
 
+/* returns a NEW reference */
+PyObject *PyrFileProto_GetMappedFile(const char *filename);
+/* returns a NEW reference */
+PyObject *PyrFileProto_GetFileKey(void);
 
-PyDoc_STRVAR(Pyrana_doc,
-"Pyrana is a python package designed to provides simple access to multimedia "
-"files. Pyrana is based on the FFmpeg libraries, but "
-"provides an independent API. Wherever practical, Pyrana aims to "
-"be as much backward compatible as is possible to the Pyredia package.");
+int PyrFileProto_AddMappedFile(PyObject *key, PyObject *obj);
+int PyrFileProto_DelMappedFile(PyObject *key);
 
+int PyrFileProto_Setup(void);
 
-PyMODINIT_FUNC
-initpyrana(void)
-{
-    PyObject *m = Py_InitModule3(MODULE_NAME, NULL, Pyrana_doc);
-    if (m) {
-        avcodec_init();
-        avcodec_register_all();
-        av_register_all();
-
-        PyModule_AddStringConstant(m, "VERSION", PYRANA_VERSION_STRING);
-        PyModule_AddIntConstant(m, "TS_NULL", AV_NOPTS_VALUE);
-
-        PyrErrors_Setup(m);
-        PyrFormat_Setup(m);
-    }
-    return;
-}
-
-
-/* vim: set ts=4 sw=4 et */
+#endif /* PYRANA_FILE_PROTO_H */
 

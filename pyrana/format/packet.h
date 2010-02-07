@@ -23,38 +23,30 @@
  * distribution.
  */ 
 
-#include "pyrana.h"
 
-#include "errors.h"
+#ifndef PYRANA_PACKET_H
+#define PYRANA_PACKET_H
 
-#include "format/format.h"
+#define PYRANA_MAX_PACKET_SIZE  (8*1024)
 
+#include "format.h"
 
-PyDoc_STRVAR(Pyrana_doc,
-"Pyrana is a python package designed to provides simple access to multimedia "
-"files. Pyrana is based on the FFmpeg libraries, but "
-"provides an independent API. Wherever practical, Pyrana aims to "
-"be as much backward compatible as is possible to the Pyredia package.");
+#include <libavformat/avformat.h>
 
 
-PyMODINIT_FUNC
-initpyrana(void)
-{
-    PyObject *m = Py_InitModule3(MODULE_NAME, NULL, Pyrana_doc);
-    if (m) {
-        avcodec_init();
-        avcodec_register_all();
-        av_register_all();
-
-        PyModule_AddStringConstant(m, "VERSION", PYRANA_VERSION_STRING);
-        PyModule_AddIntConstant(m, "TS_NULL", AV_NOPTS_VALUE);
-
-        PyrErrors_Setup(m);
-        PyrFormat_Setup(m);
-    }
-    return;
-}
+typedef struct {
+    PyObject_HEAD
+    AVPacket pkt;
+    int      len; /* effective size of the data */
+} PyrPacketObject;
 
 
-/* vim: set ts=4 sw=4 et */
+PyrPacketObject *PyrPacket_NewFromAVPacket(AVPacket *pkt);
+PyrPacketObject *PyrPacket_NewFromData(const uint8_t *data, int size);
+PyrPacketObject *PyrPacket_NewEmpty(int size);
+int PyrPacket_Check(PyObject *o);
+
+int PyrPacket_Setup(PyObject *m);
+
+#endif /* PYRANA_PACKET_H */
 
