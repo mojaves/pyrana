@@ -37,14 +37,17 @@ def is_streaming(name) # (XXX!!!)
 
 class Packet(object):
     def __init__(self, idx, data, pts, dts, isKey):
-        """not yet decided"""
+        """
+        a Packet object represents an immutable, encoded packet of a
+        multimedia stream.
+        """
         pass
     idx
     pts
     dts
     isKey
-    size [RO]
-    data [RO]
+    size
+    data
 
 
 class Demuxer(object):

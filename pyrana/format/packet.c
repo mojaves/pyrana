@@ -29,7 +29,8 @@
 PyDoc_STRVAR(Packet_doc,
 PACKET_NAME" - is an object to represent a packet.\n"
 "It stores the raw packed data, and it has convertion\n"
-"routines to/from regular Python strings");
+"routines to/from regular Python strings.\n"
+"Packet objects are immutable.");
 
 
 static PyTypeObject PacketType;
@@ -168,15 +169,6 @@ static PyBufferProcs Packet_as_buffer = {
 };
 
 
-static PyMemberDef Packet_members[] = {
-    /* common params */
-    { "idx",   T_INT,      offsetof(PyrPacketObject, pkt.stream_index), 0, "packet stream index." },
-    { "pts",   T_LONGLONG, offsetof(PyrPacketObject, pkt.pts),          0, "packet presentation timestamp." },
-    { "dts",   T_LONGLONG, offsetof(PyrPacketObject, pkt.dts),          0, "packet decoding timestamp." },
-    /* data and size needs a getter */
-    { NULL } /* Sentinel */
-};
-
 
 static PyObject *
 PyrPacket_getdata(PyrPacketObject *self)
@@ -202,34 +194,33 @@ PyrPacket_getkey(PyrPacketObject *self)
     return PyInt_FromLong(isKey);
 }
 
-
-static int
-PyrPacket_setkey(PyrPacketObject *self, PyObject *value, void *closure)
+static PyObject *
+PyrPacket_getidx(PyrPacketObject *self)
 {
-    if (value == NULL) {
-        PyErr_SetString(PyExc_TypeError, "Cannot delete the isKey attribute");
-        return -1;
-    }
-  
-    if (!PyBool_Check(value)) {
-        PyErr_SetString(PyExc_TypeError, 
-                        "The isKey attribute value must be a Bool");
-        return -1;
-    }
-    
-    if (PyInt_AsLong(value)) {
-        self->pkt.flags |= PKT_FLAG_KEY;
-    }
+    return PyInt_FromLong(self->pkt.stream_index);
+}
 
-    return 0;
+static PyObject *
+PyrPacket_getpts(PyrPacketObject *self)
+{
+    return PyLong_FromLongLong(self->pkt.pts);
+}
+
+static PyObject *
+PyrPacket_getdts(PyrPacketObject *self)
+{
+    return PyLong_FromLongLong(self->pkt.dts);
 }
 
 
 static PyGetSetDef Packet_getsetlist[] =
 {
-    { "data",  (getter)PyrPacket_getdata, NULL,                    "packet data as binary string." },
-    { "size",  (getter)PyrPacket_getsize, NULL,                    "packet data length." },
-    { "isKey", (getter)PyrPacket_getkey,  (setter)PyrPacket_setkey, "it's a reference packet?" },
+    { "data",  (getter)PyrPacket_getdata, NULL, "packet data as binary string."  },
+    { "size",  (getter)PyrPacket_getsize, NULL, "packet data length."            },
+    { "isKey", (getter)PyrPacket_getkey,  NULL, "it's a reference packet?"       },
+    { "idx",   (getter)PyrPacket_getidx,  NULL, "packet stream index,"           },
+    { "pts",   (getter)PyrPacket_getpts,  NULL, "packet presentation timestamp." },
+    { "dts",   (getter)PyrPacket_getdts,  NULL, "packet decoding timestamp."     },
     { NULL }, /* Sentinel */
 };
 
@@ -272,7 +263,7 @@ static PyTypeObject PacketType =
     0,                                      /* tp_iter */
     0,                                      /* tp_iternext */
     0,                                      /* tp_methods */
-    Packet_members,                         /* tp_members */
+    0,                                      /* tp_members */
     Packet_getsetlist,                      /* tp_getset */
     0,                                      /* tp_base */
     0,                                      /* tp_dict */
