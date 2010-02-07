@@ -28,42 +28,42 @@ class DemuxerTestCase(unittest.TestCase):
                 self.failUnlessEqual(ex[k], st[k],
                                      "'%s' is different: ref='%s' got='%s'" \
                                      %(k, ex[k], st[k]))
-    def test00_CreateDemuxer(self):
+    def test_CreateDemuxer(self):
         f = prepareSource()
         dmx = pyrana.format.Demuxer(f)
         assert(dmx)
-    def test01_HasStreams(self):
+    def test_HasStreams(self):
         f = prepareSource()
         dmx = pyrana.format.Demuxer(f)
         assert(len(dmx.streams) == 2)
-    def test02_StreamsAreCorrect(self):
+    def test_StreamsAreCorrect(self):
         f = prepareSource()
         dmx = pyrana.format.Demuxer(f)
         self.failUnlessEqualStreams(dmx.streams, st_info["OGG_AV"])
-    def test03_IsValidIdx(self):
+    def test_IsValidIdx(self):
         f = prepareSource()
         dmx = pyrana.format.Demuxer(f)
         assert(dmx.streams)
         F = dmx.readFrame()
         assert F.idx in range(len(dmx.streams))
-    def test04_StreamsObjSurvives(self):
+    def test_StreamsObjSurvives(self):
         def getStreams():
             f = prepareSource()
             dmx = pyrana.format.Demuxer(f)
             return dmx.streams
         streams = getStreams()
         self.failUnlessEqualStreams(streams, st_info["OGG_AV"])
-    def test06_ForceRightFormat(self):
+    def test_ForceRightFormat(self):
         f = prepareSource()
         dmx = pyrana.format.Demuxer(f, "ogg")
-    def test07_ForceInexistentFormat(self):
+    def test_ForceInexistentFormat(self):
         self.assertRaises(pyrana.UnsupportedError, wrapOpen, "ZAPZAPZAP")
-    def test08_ForceWrongFormat(self):
+    def test_ForceWrongFormat(self):
         self.assertRaises(pyrana.SetupError, wrapOpen, "yuv4mpegpipe")
-    def test09_DirectOpen(self):
+    def test_DirectOpen(self):
         dmx = pyrana.format.Demuxer(open(samples["OGG_AV"], "rb"))
         self.failUnlessEqualStreams(dmx.streams, st_info["OGG_AV"])
-    def test10_OpenDecoder(self):
+    def test_OpenDecoder(self):
         dmx = pyrana.format.Demuxer(open(samples["OGG_AV"], "rb"))
         dec = dmx.openDecoder(0)
         assert(dec)
