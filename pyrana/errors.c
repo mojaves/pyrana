@@ -23,7 +23,7 @@
  * distribution.
  */ 
 
-#include "errors.h"
+#include "pyrana/errors.h"
  
 PyObject *PyrExc_PyranaError      = NULL;
 PyObject *PyrExc_EOSError         = NULL;

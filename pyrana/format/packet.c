@@ -23,7 +23,7 @@
  * distribution.
  */ 
 
-#include "packet.h"
+#include "pyrana/format/packet.h"
 
 /* TODO:
  * - move pts, dts, isKey as kwds?

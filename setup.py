@@ -45,7 +45,8 @@ lavu = pkgconfig("libavutil")
 lavc = pkgconfig("libavcodec") 
 lavf = pkgconfig("libavformat") 
 
-inc_dirs   = list(set(lavu["include_dirs"] + lavc["include_dirs"] + lavf["include_dirs"]))
+inc_dirs   = [ "." ] # FIXME feels hacky, need to figure out a better way
+inc_dirs  += list(set(lavu["include_dirs"] + lavc["include_dirs"] + lavf["include_dirs"]))
 lib_dirs   = list(set(lavu["library_dirs"] + lavc["library_dirs"] + lavf["library_dirs"]))
 extra_libs = list(set(lavu["libraries"] + lavc["libraries"] + lavf["libraries"]))
 

@@ -25,11 +25,11 @@
 
 
 
-#include "format.h"
+#include "pyrana/format/format.h"
 
-#include "pyfileproto.h"
-#include "packet.h"
-#include "demuxer.h"
+#include "pyrana/format/pyfileproto.h"
+#include "pyrana/format/packet.h"
+#include "pyrana/format/demuxer.h"
 
 
 #define SUB_MODULE_PYDOC "Not yet"

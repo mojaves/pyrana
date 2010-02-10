@@ -24,10 +24,10 @@
  */ 
 
 
-#include "demuxer.h"
-#include "packet.h"
+#include "pyrana/format/demuxer.h"
+#include "pyrana/format/packet.h"
 
-#include "pyfileproto.h"
+#include "pyrana/format/pyfileproto.h"
 
 
 #define DEMUXER_NAME "Demuxer"

@@ -23,11 +23,11 @@
  * distribution.
  */ 
 
-#include "pyrana.h"
+#include "pyrana/pyrana.h"
 
-#include "errors.h"
+#include "pyrana/errors.h"
 
-#include "format/format.h"
+#include "pyrana/format/format.h"
 
 
 PyDoc_STRVAR(Pyrana_doc,
