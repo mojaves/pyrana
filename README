@@ -32,8 +32,23 @@ in every major release.
 Requirements
 ------------
 
-python >= 2.6
+python >= 2.6 (don't forget the development package)
 FFmpeg >= 0.50 (the last SVN/GIT snapshot is usually fine).
+The usual build toolchain (gcc, make, development packages - install
+`build-essential' on ubuntu/debian)
+
+
+Getting started
+---------------
+To build the extension, just run
+
+python setup.py build
+
+to install it
+
+python setup.py install
+
+see http://docs.python.org/install/index.html for details.
 
 
 References
