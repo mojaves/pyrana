@@ -23,42 +23,12 @@
  * distribution.
  */ 
 
-#include "pyrana/pyrana.h"
+#ifndef PYRANA_VIDEO_H
+#define PYRANA_VIDEO_H
 
-#include "pyrana/errors.h"
+// FIXME
+#include "../pyrana.h"
 
-#include "pyrana/format/format.h"
-#include "pyrana/video/video.h"
-#include "pyrana/audio/audio.h"
+int PyrVideo_Setup(PyObject *m);
 
-
-PyDoc_STRVAR(Pyrana_doc,
-"Pyrana is a python package designed to provides simple access to multimedia "
-"files. Pyrana is based on the FFmpeg libraries, but "
-"provides an independent API. Wherever practical, Pyrana aims to "
-"be as much backward compatible as is possible to the Pyredia package.");
-
-
-PyMODINIT_FUNC
-initpyrana(void)
-{
-    PyObject *m = Py_InitModule3(MODULE_NAME, NULL, Pyrana_doc);
-    if (m) {
-        avcodec_init();
-        avcodec_register_all();
-        av_register_all();
-
-        PyModule_AddStringConstant(m, "VERSION", PYRANA_VERSION_STRING);
-        PyModule_AddIntConstant(m, "TS_NULL", AV_NOPTS_VALUE);
-
-        PyrErrors_Setup(m);
-        PyrFormat_Setup(m);
-        PyrVideo_Setup(m);
-        PyrAudio_Setup(m);
-    }
-    return;
-}
-
-
-/* vim: set ts=4 sw=4 et */
-
+#endif /* PYRANA_VIDEO_H */

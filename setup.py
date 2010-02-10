@@ -51,9 +51,13 @@ lib_dirs   = list(set(lavu["library_dirs"] + lavc["library_dirs"] + lavf["librar
 extra_libs = list(set(lavu["libraries"] + lavc["libraries"] + lavf["libraries"]))
 
 pyrana_ext = Extension('pyrana',
-                       ['pyrana/errors.c', 'pyrana/pyrana.c',
+                       [
+                        'pyrana/errors.c', 'pyrana/pyrana.c',
                         'pyrana/format/format.c', 'pyrana/format/pyfileproto.c',
-                        'pyrana/format/packet.c', 'pyrana/format/demuxer.c'],
+                        'pyrana/format/packet.c', 'pyrana/format/demuxer.c',
+                        'pyrana/video/video.c',
+                        'pyrana/audio/audio.c'
+                       ],
                        include_dirs=inc_dirs,
                        library_dirs=lib_dirs,
                        libraries=extra_libs,

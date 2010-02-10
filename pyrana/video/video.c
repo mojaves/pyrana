@@ -23,42 +23,46 @@
  * distribution.
  */ 
 
-#include "pyrana/pyrana.h"
-
-#include "pyrana/errors.h"
-
-#include "pyrana/format/format.h"
 #include "pyrana/video/video.h"
-#include "pyrana/audio/audio.h"
 
 
-PyDoc_STRVAR(Pyrana_doc,
-"Pyrana is a python package designed to provides simple access to multimedia "
-"files. Pyrana is based on the FFmpeg libraries, but "
-"provides an independent API. Wherever practical, Pyrana aims to "
-"be as much backward compatible as is possible to the Pyredia package.");
+#define SUB_MODULE_PYDOC "Not yet"
 
+#define SUB_MODULE_NAME MODULE_NAME".video"
 
-PyMODINIT_FUNC
-initpyrana(void)
+/*************************************************************************/
+
+static PyObject *
+BuildCodecNamesInput(void)
 {
-    PyObject *m = Py_InitModule3(MODULE_NAME, NULL, Pyrana_doc);
-    if (m) {
-        avcodec_init();
-        avcodec_register_all();
-        av_register_all();
-
-        PyModule_AddStringConstant(m, "VERSION", PYRANA_VERSION_STRING);
-        PyModule_AddIntConstant(m, "TS_NULL", AV_NOPTS_VALUE);
-
-        PyrErrors_Setup(m);
-        PyrFormat_Setup(m);
-        PyrVideo_Setup(m);
-        PyrAudio_Setup(m);
-    }
-    return;
+    PyObject *names = PyList_New(0);
+    return names;
 }
 
+static PyObject *
+BuildCodecNamesOutput(void)
+{
+    PyObject *names = PyList_New(0);
+    return names;
+}
+
+
+int
+PyrVideo_Setup(PyObject *m)
+{
+    int ret = -1;
+    PyObject *sm = Py_InitModule3(SUB_MODULE_NAME,
+                                  NULL,
+                                  SUB_MODULE_PYDOC);
+    if (sm) {
+        PyModule_AddObject(sm, "input_codecs",  BuildCodecNamesInput());
+	    PyModule_AddObject(sm, "output_codecs", BuildCodecNamesOutput());
+
+        PyModule_AddObject(m, "video", sm);
+        ret = 0;
+    }
+    return ret;
+}
 
 /* vim: set ts=4 sw=4 et */
 
