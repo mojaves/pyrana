@@ -24,7 +24,7 @@
  */ 
 
 
-#include "pyfileproto.h"
+#include "pyrana/format/pyfileproto.h"
 
 #include <libavutil/avstring.h>
 #include <libavformat/avio.h>
@@ -82,7 +82,7 @@ PyrFileProto_DelMappedFile(PyObject *key)
 
 
 static int 
-pypipe_open(URLContext *h, const char *filename, int flags)
+PyrPipe_Open(URLContext *h, const char *filename, int flags)
 {
     av_strstart(filename, "pypipe://", &filename);
     PyObject *obj = PyrFileProto_GetMappedFile(filename);
@@ -96,7 +96,7 @@ pypipe_open(URLContext *h, const char *filename, int flags)
 }
 
 static int 
-pypipe_read(URLContext *h, unsigned char *buf, int size)
+PyrPipe_Read(URLContext *h, unsigned char *buf, int size)
 {
     FILE *f = PyFile_AsFile(h->priv_data);
     size_t r = fread(buf, 1, size, f);
@@ -104,7 +104,7 @@ pypipe_read(URLContext *h, unsigned char *buf, int size)
 }
 
 static int 
-pypipe_write(URLContext *h, unsigned char *buf, int size)
+PyrPipe_Write(URLContext *h, unsigned char *buf, int size)
 {
     FILE *f = PyFile_AsFile(h->priv_data);
     size_t w = fwrite(buf, 1, size, f);
@@ -112,7 +112,7 @@ pypipe_write(URLContext *h, unsigned char *buf, int size)
 }
 
 static int 
-pypipe_close(URLContext *h)
+PyrPipe_Close(URLContext *h)
 {
     PyObject *obj = h->priv_data;
     Py_XDECREF(obj); /* XDECREF: paranoia */
@@ -120,22 +120,22 @@ pypipe_close(URLContext *h)
 }
 
 static int64_t
-pypipe_seek(URLContext *h, int64_t pos, int whence)
+PyrPipe_Seek(URLContext *h, int64_t pos, int whence)
 {
     return -1;
 }
 
-static URLProtocol pypipe_protocol = {
-    "pypipe",
-    pypipe_open,
-    pypipe_read,
-    pypipe_write,
-    pypipe_seek,
-    pypipe_close,
+static URLProtocol PyrPipe_Protocol = {
+    "PyrPipe",
+    PyrPipe_Open,
+    PyrPipe_Read,
+    PyrPipe_Write,
+    PyrPipe_Seek,
+    PyrPipe_Close,
 };
 
 static int 
-pyfile_open(URLContext *h, const char *filename, int flags)
+PyrFile_Open(URLContext *h, const char *filename, int flags)
 {
     av_strstart(filename, "pyfile://", &filename);
     PyObject *obj = PyrFileProto_GetMappedFile(filename);
@@ -150,19 +150,19 @@ pyfile_open(URLContext *h, const char *filename, int flags)
 
 /* XXX: use llseek? */
 static int64_t
-pyfile_seek(URLContext *h, int64_t pos, int whence)
+PyrFile_Seek(URLContext *h, int64_t pos, int whence)
 {
     FILE *f = PyFile_AsFile(h->priv_data);
     return fseek(f, pos, whence);
 }
 
-static URLProtocol pyfile_protocol = {
-    "pyfile",
-    pyfile_open,
-    pypipe_read,
-    pypipe_write,
-    pyfile_seek,
-    pypipe_close,
+static URLProtocol PyrFile_Protocol = {
+    "PyrFile",
+    PyrFile_Open,
+    PyrPipe_Read,
+    PyrPipe_Write,
+    PyrFile_Seek,
+    PyrPipe_Close,
 };
 
 
@@ -174,8 +174,8 @@ PyrFileProto_Setup(void)
     int ret = -1;
     FileMap = PyDict_New();
     if (FileMap) {
-        av_register_protocol(&pyfile_protocol);
-        av_register_protocol(&pypipe_protocol);
+        av_register_protocol(&PyrFile_Protocol);
+        av_register_protocol(&PyrPipe_Protocol);
         ret = 0;
     }
     return ret;
