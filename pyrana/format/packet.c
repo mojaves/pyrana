@@ -178,6 +178,7 @@ static PyBufferProcs Packet_as_buffer = {
 static PyObject *
 PyrPacket_getdata(PyrPacketObject *self)
 {
+    /* FIXME: is that correct? */
     return PyString_FromStringAndSize((char *)self->pkt.data, self->pkt.size);
 }
 
@@ -231,9 +232,12 @@ static PyGetSetDef Packet_getsetlist[] =
 
 
 static PyObject *
-Packet_str(PyrPacketObject *self)
+Packet_repr(PyrPacketObject *self)
 {
-    return PyrPacket_getdata(self);
+    return PyString_FromFormat("<Packet idx=%i key=%s size=%i>",
+                               self->pkt.stream_index,
+                               (self->pkt.flags & PKT_FLAG_KEY) ?"T" :"F",
+                               self->pkt.size);
 } 
 
 
@@ -249,13 +253,13 @@ static PyTypeObject PacketType =
     0,                                      /* tp_getattr */
     0,                                      /* tp_setattr */
     0,                                      /* tp_compare */
-    0,                                      /* tp_repr */
+    (reprfunc)Packet_repr,                  /* tp_repr */
     0,                                      /* tp_as_number */
     0,                                      /* tp_as_sequence */
     0,                                      /* tp_as_mapping */
     0,                                      /* tp_hash */
     0,                                      /* tp_call */
-    (reprfunc)Packet_str,                   /* tp_str */
+    0,                                      /* tp_str */
     0,                                      /* tp_getattro */
     0,                                      /* tp_setattro */
     &Packet_as_buffer,                      /* tp_as_buffer */
