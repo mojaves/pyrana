@@ -119,21 +119,31 @@ input_codecs   = []
 output_codecs  = []
 pixel_formats  = []
 
-class Frame(object):
-    def __init__(self, data[4], pts, dts, isKey, isInterlaced, topFieldFirst):
+class Image(object):
+    def __init__(self, width, height, pixFmt, data[4]):
         """not yet decided"""
         pass
-    pts
-    dts
-    isKey
-    isInterlaced
+    stride
+    width
+    height
     sizes[4]  [RO]
     planes[4] [RO]
     pixFmt
+
+
+class Frame(object):
+    def __init__(self, image, pts, dts, isKey, isInterlaced, topFieldFirst):
+        """not yet decided"""
+        pass
+    image
+    pts
+    dts
+    isKey
+    topFieldFirst
+    isInterlaced
     picType
     codedNum
     displayNum
-    topFieldFirst
 
 
 class ImageConverter(object):
