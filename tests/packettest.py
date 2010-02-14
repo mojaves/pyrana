@@ -7,7 +7,7 @@ class PacketTestCase(unittest.TestCase):
     def test_NewFromString(self):
         try:
             f = pyrana.format.Packet(0, "a")
-        except Exception, x:
+        except pyrana.PyranaError, x:
             self.fail("failed creation from simple string: %s" %str(x))
     def test_NewFromStringHuge(self):
         try:

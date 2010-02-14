@@ -20,7 +20,7 @@ def wrapOpen(fmt):
 class DemuxerTestCase(unittest.TestCase):
     def failUnlessEqualStreams(self, got, expected):
         for st, ex in zip(got, expected):
-            assert(len(st) == len(ex))
+            self.assertTrue(len(st) == len(ex))
             for k in ex:
                 if k == 'extradata':
                     # we can't compare extradata (yet)
@@ -31,11 +31,11 @@ class DemuxerTestCase(unittest.TestCase):
     def test_CreateDemuxer(self):
         f = prepareSource()
         dmx = pyrana.format.Demuxer(f)
-        assert(dmx)
+        self.assertTrue(dmx)
     def test_HasStreams(self):
         f = prepareSource()
         dmx = pyrana.format.Demuxer(f)
-        assert(len(dmx.streams) == 2)
+        self.assertTrue(len(dmx.streams) == 2)
     def test_StreamsAreCorrect(self):
         f = prepareSource()
         dmx = pyrana.format.Demuxer(f)
@@ -43,9 +43,9 @@ class DemuxerTestCase(unittest.TestCase):
     def test_IsValidIdx(self):
         f = prepareSource()
         dmx = pyrana.format.Demuxer(f)
-        assert(dmx.streams)
+        self.assertTrue(dmx.streams)
         F = dmx.readFrame()
-        assert F.idx in range(len(dmx.streams))
+        self.assertTrue(F.idx in range(len(dmx.streams)))
     def test_StreamsObjSurvives(self):
         def getStreams():
             f = prepareSource()
@@ -66,8 +66,8 @@ class DemuxerTestCase(unittest.TestCase):
     def test_OpenDecoder(self):
         dmx = pyrana.format.Demuxer(open(samples["OGG_AV"], "rb"))
         dec = dmx.openDecoder(0)
-        assert(dec)
-        assert(hasattr(dec, "decode"))
+        self.assertTrue(dec)
+        self.assertTrue(hasattr(dec, "decode"))
        
 
 
