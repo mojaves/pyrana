@@ -126,8 +126,8 @@ class Image(object):
     stride
     width
     height
-    sizes[4]  [RO]
-    planes[4] [RO]
+    sizes[4]
+    planes[4]
     pixFmt
 
 

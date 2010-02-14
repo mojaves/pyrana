@@ -1,6 +1,7 @@
 * general
 ~~~~~~~~~
 - TESTS!
+- publish version strings.
 
 * format submodule
 ~~~~~~~~~~~~~~~~~~
@@ -11,6 +12,5 @@
 
 * video submodule
 ~~~~~~~~~~~~~~~~~
-- actually fill the lists
 - ImageConverter is clumsy. Maybe another sub-sub-module?
 
