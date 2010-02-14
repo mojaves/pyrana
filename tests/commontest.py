@@ -4,27 +4,30 @@ import pyrana
 import unittest
 
 class GlobalsTestCase(unittest.TestCase):
-    def test00_InputFormats(self):
-        assert(len(pyrana.input_formats) > 0)
-    def test01_OutputFormats(self):
-        assert(len(pyrana.output_formats) > 0)
-    def test02_InputCodecs(self):
-        assert(len(pyrana.input_codecs) > 0)
-    def test03_OutputFormats(self):
-        assert(len(pyrana.output_codecs) > 0)
-    def test04_ValidInputFormats(self):
-        assert(all(len(name) > 0 for name in pyrana.input_formats))
-    def test05_ValidInputFormats(self):
-        assert(all(len(name) > 0 for name in pyrana.output_formats))
-    def test06_ValidInputCodecs(self):
-        assert(all(len(name) > 0 for name in pyrana.input_codecs))
-    def test07_ValidOutputCodecs(self):
-        assert(all(len(name) > 0 for name in pyrana.output_codecs))
-    def test08_IsStreaming(self):
-        fmts = {}
-        assert(all(pyrana.is_streaming(name) == streamed \
-                   for name, streamed in fmts.items()))
-        self.fail("WRITEME!")
+    def test_InputFormats(self):
+        assert(len(pyrana.format.input_formats) > 0)
+    def test_OutputFormats(self):
+        assert(len(pyrana.format.output_formats) > 0)
+    def test_InputVideoCodecs(self):
+        assert(len(pyrana.video.input_codecs) > 0)
+    def test_OutputVideoCodecs(self):
+        assert(len(pyrana.video.output_codecs) > 0)
+    def test_InputAudioCodecs(self):
+        assert(len(pyrana.audio.input_codecs) > 0)
+    def test_OutputAudioCodecs(self):
+        assert(len(pyrana.audio.output_codecs) > 0)
+    def test_ValidInputFormats(self):
+        assert(all(len(name) > 0 for name in pyrana.format.input_formats))
+    def test_ValidInputFormats(self):
+        assert(all(len(name) > 0 for name in pyrana.format.output_formats))
+    def test_ValidInputVideoCodecs(self):
+        assert(all(len(name) > 0 for name in pyrana.video.input_codecs))
+    def test_ValidOutputVideoCodecs(self):
+        assert(all(len(name) > 0 for name in pyrana.video.output_codecs))
+    def test_ValidInputAudioCodecs(self):
+        assert(all(len(name) > 0 for name in pyrana.audio.input_codecs))
+    def test_ValidOutputAudioCodecs(self):
+        assert(all(len(name) > 0 for name in pyrana.audio.output_codecs))
 
 
 if __name__ == "__main__":
