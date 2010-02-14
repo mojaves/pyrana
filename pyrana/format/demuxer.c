@@ -328,7 +328,9 @@ Demuxer_init(PyrDemuxerObject *self, PyObject *args, PyObject *kwds)
 
     ret = av_open_input_file(&(self->ic), filebuf, ifmt, 0, NULL);
     if (ret != 0) {
-        PyErr_Format(PyrExc_SetupError, "libavformat error (at open)");
+        PyErr_Format(PyrExc_SetupError,
+                    "libavformat error (at open=%i, filebuf=%s)",
+                    ret, filebuf);
         return -1;
     }
 
