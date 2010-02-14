@@ -36,6 +36,19 @@ static PyObject *
 BuildCodecNamesInput(void)
 {
     PyObject *names = PyList_New(0);
+    AVCodec *codec = av_codec_next(NULL);
+
+    for (; codec != NULL; codec = av_codec_next(codec)) {
+        if (codec->type == CODEC_TYPE_AUDIO && codec->decode != NULL) {
+            PyObject *name = PyString_FromString(codec->name);
+            int err = PyList_Append(names, name);
+            if (err) {
+                Py_DECREF(names);
+                return NULL;
+            }
+        }
+    }
+
     return names;
 }
 
@@ -43,6 +56,19 @@ static PyObject *
 BuildCodecNamesOutput(void)
 {
     PyObject *names = PyList_New(0);
+    AVCodec *codec = av_codec_next(NULL);
+
+    for (; codec != NULL; codec = av_codec_next(codec)) {
+        if (codec->type == CODEC_TYPE_AUDIO && codec->encode != NULL) {
+            PyObject *name = PyString_FromString(codec->name);
+            int err = PyList_Append(names, name);
+            if (err) {
+                Py_DECREF(names);
+                return NULL;
+            }
+        }
+    }
+
     return names;
 }
 
