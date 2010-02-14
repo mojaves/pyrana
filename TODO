@@ -8,7 +8,6 @@
 - {in,out}put_formats: a set() maybe?
 - why there are duplicates in the former list?
 - is_streaming broken
-- Packet str() and repr() are conceptually wrong.
 
 * video submodule
 ~~~~~~~~~~~~~~~~~
