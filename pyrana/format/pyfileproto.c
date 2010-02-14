@@ -126,7 +126,7 @@ PyrPipe_Seek(URLContext *h, int64_t pos, int whence)
 }
 
 static URLProtocol PyrPipe_Protocol = {
-    "PyrPipe",
+    "pypipe",
     PyrPipe_Open,
     PyrPipe_Read,
     PyrPipe_Write,
@@ -157,7 +157,7 @@ PyrFile_Seek(URLContext *h, int64_t pos, int whence)
 }
 
 static URLProtocol PyrFile_Protocol = {
-    "PyrFile",
+    "pyfile",
     PyrFile_Open,
     PyrPipe_Read,
     PyrPipe_Write,
