@@ -64,12 +64,6 @@ PyDoc_STRVAR(Demuxer_doc,
 DEMUXER_NAME"(file [, name]) -> demuxer\n"
 "Returns demuxer objecte.");
 
-/* 
- * TODO:
- * - add support for frame iterator:
- *   for frame in demuxer:
- *      doSomething(frame)
- */
 
 
 
@@ -200,7 +194,7 @@ Demuxer_NextPacket(PyrDemuxerObject *self, int streamid, AVPacket *pkt)
         if (ret < 0) {
             break;
         }
-        if (streamid == -1 || (pkt->stream_index == streamid)) {
+        if (streamid == PYRANA_STREAM_ANY || (pkt->stream_index == streamid)) {
             break;
         }
 
@@ -213,7 +207,7 @@ Demuxer_NextPacket(PyrDemuxerObject *self, int streamid, AVPacket *pkt)
 static PyObject *
 Demuxer_ReadFrame(PyrDemuxerObject *self, PyObject *args)
 {
-    int streamid = -1, ret = 0;
+    int streamid = PYRANA_STREAM_ANY, ret = 0;
     PyrPacketObject *pkt = NULL;
     AVPacket packet;
 
@@ -221,7 +215,8 @@ Demuxer_ReadFrame(PyrDemuxerObject *self, PyObject *args)
         return NULL;
     }
 
-    if (streamid != -1 && (streamid < 0 ||  streamid > self->ic->nb_streams)) {
+    if (streamid != PYRANA_STREAM_ANY
+     && (streamid < 0 ||  streamid > self->ic->nb_streams)) {
         PyErr_Format(PyrExc_EOSError,
                      "Invalid stream index (%i)", streamid);
         return NULL;
@@ -238,6 +233,32 @@ Demuxer_ReadFrame(PyrDemuxerObject *self, PyObject *args)
 }
 
 /* ---------------------------------------------------------------------- */
+
+static PyObject *
+Demuxer_GetIter(PyrDemuxerObject *self)
+{
+    Py_INCREF(self);
+    return (PyObject *)self;
+}
+
+static PyObject *
+Demuxer_Next(PyrDemuxerObject *self)
+{
+    PyrPacketObject *pkt = NULL;
+    AVPacket packet;
+
+    int ret = Demuxer_NextPacket(self, PYRANA_STREAM_ANY, &packet);
+
+    if (ret < 0) {
+        PyErr_Format(PyExc_StopIteration, "Stream end reached");
+    } else {
+        pkt = PyrPacket_NewFromAVPacket(&packet);
+    }
+    return (PyObject *)pkt;
+}
+
+/* ---------------------------------------------------------------------- */
+
 static PyMethodDef Demuxer_methods[] =
 {
     {
@@ -380,8 +401,8 @@ static PyTypeObject DemuxerType =
     0,                                      /* tp_clear */
     0,                                      /* tp_richcompare */
     0,                                      /* tp_weaklistoffset */
-    0,                                      /* tp_iter */
-    0,                                      /* tp_iternext */
+    (getiterfunc)Demuxer_GetIter,           /* tp_iter */
+    (iternextfunc)Demuxer_Next,             /* tp_iternext */
     Demuxer_methods,                        /* tp_methods */
     0,                                      /* tp_members */
     Demuxer_getsetlist,                     /* tp_getset */

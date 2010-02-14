@@ -41,7 +41,6 @@ PyDoc_STRVAR(is_streaming_doc,
 IS_STREAMING_NAME"(name) - returns a boolean telling if format name is streamable"
 );
 
-#define PYRANA_STREAM_ANY       (-1)
 
 
 static PyObject *InputFormats = NULL;
