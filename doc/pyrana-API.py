@@ -11,6 +11,10 @@ class EOSError(PyranaError):
     "End Of Stream"
     pass
 
+class NeedFeedError(PyranaError):
+    "More data is needed"
+    pass
+
 class ProcessingError(PyranaError):
     pass
 
@@ -119,16 +123,28 @@ input_codecs   = []
 output_codecs  = []
 pixel_formats  = []
 
+
+class Plane(object):
+    # no constructor, can be generated only by Images
+    planeId
+    stride
+    width
+    height
+    pixFmt
+    data
+    size
+
 class Image(object):
     def __init__(self, width, height, pixFmt, data[4]):
         """not yet decided"""
         pass
-    stride
     width
     height
-    sizes[4]
-    planes[4]
     pixFmt
+    def plane(self, num):
+        return Plane # FIXME
+    def convert(self, ...):
+        return Image # ...
 
 
 class Frame(object):
@@ -146,13 +162,6 @@ class Frame(object):
     displayNum
 
 
-class ImageConverter(object):
-     def __init__(self, icsp, ocsp, iw, ih, ow, oh):
-         pass
-     def convert(self, vframe):
-        "vframe -> vframe"
-         pass
-
 
 class Decoder(object):
     """
@@ -165,10 +174,10 @@ class Decoder(object):
         pass
     def decode(self, Packet):
         """decode(Packet) -> Frame"""
-        pass
+        return Frame # ...
     def flush(self):
         """flush() -> encdata [str]"""
-        pass
+        return Frame # ...
     params
         """dict, read-only"""
 
@@ -184,10 +193,10 @@ class Encoder(object):
         pass
     def encode(self, Frame):
         """encode(Frame) -> Packet"""
-        pass
+        return Packet # ...
     def flush(self):
         """flush() -> encdata [str]"""
-        pass
+        return Packet # ...
     params
         """dict, read-only"""
 
