@@ -148,12 +148,11 @@ class Image(object):
 
 
 class Frame(object):
-    def __init__(self, image, pts, dts, isKey, isInterlaced, topFieldFirst):
+    def __init__(self, image, pts, isKey, isInterlaced, topFieldFirst):
         """not yet decided"""
         pass
     image
     pts
-    dts
     isKey
     topFieldFirst
     isInterlaced

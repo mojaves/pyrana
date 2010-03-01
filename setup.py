@@ -55,7 +55,7 @@ pyrana_ext = Extension('pyrana',
                         'pyrana/errors.c', 'pyrana/pyrana.c',
                         'pyrana/format/format.c', 'pyrana/format/pyfileproto.c',
                         'pyrana/format/packet.c', 'pyrana/format/demuxer.c',
-                        'pyrana/video/video.c',
+                        'pyrana/video/video.c', 'pyrana/video/picture.c',
                         'pyrana/audio/audio.c'
                        ],
                        include_dirs=inc_dirs,

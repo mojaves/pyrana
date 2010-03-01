@@ -26,8 +26,7 @@
 #ifndef PYRANA_AUDIO_H
 #define PYRANA_AUDIO_H
 
-// FIXME
-#include "../pyrana.h"
+#include "pyrana/pyrana.h"
 
 int PyrAudio_Setup(PyObject *m);
 

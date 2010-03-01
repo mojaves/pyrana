@@ -24,29 +24,60 @@
  */ 
 
 
-#ifndef PYRANA_PACKET_H
-#define PYRANA_PACKET_H
+#ifndef PYRANA_PICTURE_H
+#define PYRANA_PICTURE_H
 
-#define PYRANA_MAX_PACKET_SIZE  (8*1024)
+#include "pyrana/video/video.h"
 
-#include "pyrana/format/format.h"
+#include <libavcodec/avcodec.h>
 
-#include <libavformat/avformat.h>
+
+
+
+const char *PyrVideo_GetPixFmtName(enum PixelFormat fmt);
+
+PyObject *PyrVideo_NewPixelFormatList(void);
+
+
+typedef struct pyrimageobject_ PyrImageObject;
+typedef struct pyrvframeobject_ PyrVFrameObject;
 
 
 typedef struct {
+    uint8_t *data[4];
+    int stride[4];
+    int width;
+    int height;
+    enum PixelFormat pixFmt;
+} PyrImage;
+
+struct pyrimageobject_ {
     PyObject_HEAD
-    AVPacket pkt;
-    int      len; /* effective size of the data */
-} PyrPacketObject;
+    PyrVFrameObject *parent; /* could be NULL */
+    PyrImage img;
+};
 
 
-PyrPacketObject *PyrPacket_NewFromAVPacket(AVPacket *pkt);
-PyrPacketObject *PyrPacket_NewFromData(const uint8_t *data, int size);
-PyrPacketObject *PyrPacket_NewEmpty(int size);
-int PyrPacket_Check(PyObject *o);
 
-int PyrPacket_Setup(PyObject *m);
+PyrImageObject *PyrImage_NewFromImage(const PyrImage *image);
+PyrImageObject *PyrImage_NewFromFrame(PyrVFrameObject *frame);
+int PyrImage_Check(PyObject *o);
 
-#endif /* PYRANA_PACKET_H */
+int PyrImage_Setup(PyObject *m);
+
+struct pyrvframeobject_ {
+    PyObject_HEAD
+    PyrImageObject *image;
+    AVFrame frame;
+    int ref_image; /* if != 0, image is a soft-ref to frame */
+};
+
+
+PyrVFrameObject *PyrVFrame_NewFromAVFrame(AVFrame *frame);
+int PyrVFrame_Check(PyObject *o);
+
+int PyrVFrame_Setup(PyObject *m);
+
+
+#endif /* PYRANA_PICTURE_H */
 

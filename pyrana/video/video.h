@@ -26,8 +26,8 @@
 #ifndef PYRANA_VIDEO_H
 #define PYRANA_VIDEO_H
 
-// FIXME
-#include "../pyrana.h"
+#include "pyrana/pyrana.h"
+
 
 int PyrVideo_Setup(PyObject *m);
 

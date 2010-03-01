@@ -27,8 +27,7 @@
 #ifndef PYRANA_MODULE_FORMAT_H
 #define PYRANA_MODULE_FORMAT_H
 
-// FIXME
-#include "../pyrana.h"
+#include "pyrana/pyrana.h"
 
 int PyrFormat_NeedSeeking(const char *fmt);
 int PyrFormat_IsInput(const char *fmt);

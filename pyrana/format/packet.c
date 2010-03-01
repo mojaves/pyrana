@@ -223,7 +223,7 @@ static PyGetSetDef Packet_getsetlist[] =
 {
     { "data",  (getter)PyrPacket_getdata, NULL, "packet data as binary string."  },
     { "size",  (getter)PyrPacket_getsize, NULL, "packet data length."            },
-    { "isKey", (getter)PyrPacket_getkey,  NULL, "it's a reference packet?"       },
+    { "isKey", (getter)PyrPacket_getkey,  NULL, "is it a reference packet?"      },
     { "idx",   (getter)PyrPacket_getidx,  NULL, "packet stream index,"           },
     { "pts",   (getter)PyrPacket_getpts,  NULL, "packet presentation timestamp." },
     { "dts",   (getter)PyrPacket_getdts,  NULL, "packet decoding timestamp."     },
