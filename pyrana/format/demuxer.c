@@ -178,6 +178,7 @@ Demuxer_OpenDecoder(PyrDemuxerObject *self, PyObject *args)
         return NULL;
     }
  
+    PyErr_Format(PyExc_NotImplementedError, "not yet");
     return NULL;
 //    not yet
 //    return (PyObject *)PyrDecoder_NewFromDemuxer(self, streamid, params);

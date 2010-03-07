@@ -51,35 +51,43 @@ static PyObject *OutputFormats = NULL;
 static PyObject *
 BuildFormatNamesInput(void)
 {
-    PyObject *names = PyList_New(0);
+    PyObject *ret = NULL;
+    PyObject *names = PySet_New(NULL);
     AVInputFormat *fmt = av_iformat_next(NULL);
 
     for (; fmt != NULL; fmt = av_iformat_next(fmt)) {
         PyObject *name = PyString_FromString(fmt->name);
-        int err = PyList_Append(names, name);
+        int err = PySet_Add(names, name);
         if (err) {
             Py_DECREF(names);
             return NULL;
         }
     }
-    return names;
+
+    ret = PyFrozenSet_New(names);
+    Py_DECREF(names);
+    return ret;
 }
 
 static PyObject *
 BuildFormatNamesOutput(void)
 {
-    PyObject *names = PyList_New(0);
+    PyObject *ret = NULL;
+    PyObject *names = PySet_New(NULL);
     AVOutputFormat *fmt = av_oformat_next(NULL);
 
     for (; fmt != NULL; fmt = av_oformat_next(fmt)) {
         PyObject *name = PyString_FromString(fmt->name);
-        int err = PyList_Append(names, name);
+        int err = PySet_Add(names, name);
         if (err) {
             Py_DECREF(names);
             return NULL;
         }
     }
-    return names;
+
+    ret = PyFrozenSet_New(names);
+    Py_DECREF(names);
+    return ret;
 }
 
 

@@ -137,13 +137,14 @@ PyrVideo_GetPixFmtName(enum PixelFormat fmt)
 
 
 PyObject *
-PyrVideo_NewPixelFormatList(void)
+PyrVideo_NewPixelFormats(void)
 {
-    PyObject *names = PyList_New(0);
+    PyObject *ret = NULL;
+    PyObject *names = PySet_New(NULL);
     int i = 0;
     /* PIX_FMT_NONE deserves a special treatment */
     PyObject *fmt_none = PyString_FromString("none");
-    int err = PyList_Append(names, fmt_none);
+    int err = PySet_Add(names, fmt_none);
     if (err) {
         Py_DECREF(names);
         return NULL;
@@ -152,14 +153,16 @@ PyrVideo_NewPixelFormatList(void)
     for (i = 1; !err && Pyr_PixFmts[i] != PIX_FMT_NB; i++) { /* FIXME */
         const char *fmt_name = avcodec_get_pix_fmt_name(Pyr_PixFmts[i]);
         PyObject *name = PyString_FromString(fmt_name);
-        err = PyList_Append(names, name);
+        err = PySet_Add(names, name);
         if (err) {
             Py_DECREF(names);
             return NULL;
         }
     }
  
-    return names;
+    ret = PyFrozenSet_New(names);
+    Py_DECREF(names);
+    return ret;
 }
 
 

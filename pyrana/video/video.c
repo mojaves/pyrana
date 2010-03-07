@@ -38,13 +38,14 @@
 static PyObject *
 BuildCodecNamesInput(void)
 {
-    PyObject *names = PyList_New(0);
+    PyObject *ret = NULL;
+    PyObject *names = PySet_New(NULL);
     AVCodec *codec = av_codec_next(NULL);
 
     for (; codec != NULL; codec = av_codec_next(codec)) {
         if (codec->type == CODEC_TYPE_VIDEO && codec->decode != NULL) {
             PyObject *name = PyString_FromString(codec->name);
-            int err = PyList_Append(names, name);
+            int err = PySet_Add(names, name);
             if (err) {
                 Py_DECREF(names);
                 return NULL;
@@ -52,19 +53,22 @@ BuildCodecNamesInput(void)
         }
     }
 
-    return names;
+    ret = PyFrozenSet_New(names);
+    Py_DECREF(names);
+    return ret;
 }
 
 static PyObject *
 BuildCodecNamesOutput(void)
 {
-    PyObject *names = PyList_New(0);
+    PyObject *ret = NULL;
+    PyObject *names = PySet_New(NULL);
     AVCodec *codec = av_codec_next(NULL);
 
     for (; codec != NULL; codec = av_codec_next(codec)) {
         if (codec->type == CODEC_TYPE_VIDEO && codec->encode != NULL) {
             PyObject *name = PyString_FromString(codec->name);
-            int err = PyList_Append(names, name);
+            int err = PySet_Add(names, name);
             if (err) {
                 Py_DECREF(names);
                 return NULL;
@@ -72,7 +76,9 @@ BuildCodecNamesOutput(void)
         }
     }
 
-    return names;
+    ret = PyFrozenSet_New(names);
+    Py_DECREF(names);
+    return ret;
 }
 
 
@@ -86,16 +92,15 @@ PyrVideo_Setup(PyObject *m)
     if (sm) {
         PyModule_AddObject(sm, "input_codecs",  BuildCodecNamesInput());
         PyModule_AddObject(sm, "output_codecs", BuildCodecNamesOutput());
-        PyModule_AddObject(sm, "pixel_formats",
-                           PyrVideo_NewPixelFormatList());
+        PyModule_AddObject(sm, "pixel_formats", PyrVideo_NewPixelFormats());
 
         /* FIXME:
          * smells wrong, need to figure something better (more coherent?)
          */
-        PyModule_AddIntConstant(sm, "PICT_I_TYPE", FF_I_TYPE);
-        PyModule_AddIntConstant(sm, "PICT_P_TYPE", FF_P_TYPE);
-        PyModule_AddIntConstant(sm, "PICT_B_TYPE", FF_B_TYPE);
-        PyModule_AddIntConstant(sm, "PICT_S_TYPE", FF_S_TYPE);
+        PyModule_AddIntConstant(sm, "PICT_I_TYPE",  FF_I_TYPE);
+        PyModule_AddIntConstant(sm, "PICT_P_TYPE",  FF_P_TYPE);
+        PyModule_AddIntConstant(sm, "PICT_B_TYPE",  FF_B_TYPE);
+        PyModule_AddIntConstant(sm, "PICT_S_TYPE",  FF_S_TYPE);
         PyModule_AddIntConstant(sm, "PICT_SI_TYPE", FF_SI_TYPE);
         PyModule_AddIntConstant(sm, "PICT_SP_TYPE", FF_SP_TYPE);
         PyModule_AddIntConstant(sm, "PICT_BI_TYPE", FF_BI_TYPE);

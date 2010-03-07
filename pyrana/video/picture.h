@@ -36,7 +36,7 @@
 
 const char *PyrVideo_GetPixFmtName(enum PixelFormat fmt);
 
-PyObject *PyrVideo_NewPixelFormatList(void);
+PyObject *PyrVideo_NewPixelFormats(void);
 
 
 typedef struct pyrimageobject_ PyrImageObject;

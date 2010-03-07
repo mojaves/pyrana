@@ -35,13 +35,14 @@
 static PyObject *
 BuildCodecNamesInput(void)
 {
-    PyObject *names = PyList_New(0);
+    PyObject *ret = NULL;
+    PyObject *names = PySet_New(NULL);
     AVCodec *codec = av_codec_next(NULL);
 
     for (; codec != NULL; codec = av_codec_next(codec)) {
         if (codec->type == CODEC_TYPE_AUDIO && codec->decode != NULL) {
             PyObject *name = PyString_FromString(codec->name);
-            int err = PyList_Append(names, name);
+            int err = PySet_Add(names, name);
             if (err) {
                 Py_DECREF(names);
                 return NULL;
@@ -49,19 +50,22 @@ BuildCodecNamesInput(void)
         }
     }
 
-    return names;
+    ret = PyFrozenSet_New(names);
+    Py_DECREF(names);
+    return ret;
 }
 
 static PyObject *
 BuildCodecNamesOutput(void)
 {
-    PyObject *names = PyList_New(0);
+    PyObject *ret = NULL;
+    PyObject *names = PySet_New(NULL);
     AVCodec *codec = av_codec_next(NULL);
 
     for (; codec != NULL; codec = av_codec_next(codec)) {
         if (codec->type == CODEC_TYPE_AUDIO && codec->encode != NULL) {
             PyObject *name = PyString_FromString(codec->name);
-            int err = PyList_Append(names, name);
+            int err = PySet_Add(names, name);
             if (err) {
                 Py_DECREF(names);
                 return NULL;
@@ -69,7 +73,9 @@ BuildCodecNamesOutput(void)
         }
     }
 
-    return names;
+    ret = PyFrozenSet_New(names);
+    Py_DECREF(names);
+    return ret;
 }
 
 
