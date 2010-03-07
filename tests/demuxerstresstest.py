@@ -35,7 +35,6 @@ def stressIter(name):
     sys.stdout.write("stressIter()\n")
     frames = 0
     for Fr in dmx:
-        print Fr
         sys.stdout.write("elapsed frames: %i\r" %(frames))
         frames += 1
     sys.stdout.write("\nmaster stream ends here!\n")

@@ -18,7 +18,7 @@ class PacketTestCase(unittest.TestCase):
         try:
             f = pyrana.format.Packet(0, "a")
             g = pyrana.format.Packet(1, f)
-        except:
+        except pyrana.PyranaError, x:
             self.fail("failed creation from another packet")
     def test_DataValuesMatches(self):
         f = pyrana.format.Packet(0, "a")

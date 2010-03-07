@@ -29,6 +29,7 @@
 
 #include "pyrana/format/format.h"
 #include "pyrana/video/video.h"
+#include "pyrana/audio/audio.h"
 
 
 PyDoc_STRVAR(Pyrana_doc,
