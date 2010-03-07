@@ -131,13 +131,13 @@ is_streaming(PyObject *self, PyObject *args)
 /*************************************************************************/
 static PyMethodDef format_functions[] =
 {
-	{
-		IS_STREAMING_NAME,
-		(PyCFunction)is_streaming,
-		METH_VARARGS,
+    {
+        IS_STREAMING_NAME,
+        (PyCFunction)is_streaming,
+        METH_VARARGS,
         is_streaming_doc
-	},
-	{ NULL, NULL },
+    },
+    { NULL, NULL },
 };
 
 int
@@ -155,7 +155,7 @@ PyrFormat_Setup(PyObject *m)
 
         PyModule_AddIntConstant(sm, "STREAM_ANY", PYRANA_STREAM_ANY);
         PyModule_AddObject(sm, "input_formats",  InputFormats);
-	    PyModule_AddObject(sm, "output_formats", OutputFormats);
+        PyModule_AddObject(sm, "output_formats", OutputFormats);
 
         PyrPacket_Setup(sm);
         PyrDemuxer_Setup(sm);

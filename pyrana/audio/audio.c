@@ -82,7 +82,7 @@ PyrAudio_Setup(PyObject *m)
                                   SUB_MODULE_PYDOC);
     if (sm) {
         PyModule_AddObject(sm, "input_codecs",  BuildCodecNamesInput());
-	    PyModule_AddObject(sm, "output_codecs", BuildCodecNamesOutput());
+        PyModule_AddObject(sm, "output_codecs", BuildCodecNamesOutput());
 
         PyModule_AddObject(m, "audio", sm);
         ret = 0;
