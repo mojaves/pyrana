@@ -169,13 +169,13 @@ class Decoder(object):
     - no conversion/scaling will be performed
     - add flush() operation
     """
-    def __init__(self, name, params={}):
+    def __init__(self, input_codec, params={}):
         pass
     def decode(self, Packet):
         """decode(Packet) -> Frame"""
         return Frame # ...
     def flush(self):
-        """flush() -> encdata [str]"""
+        """flush() -> Frame"""
         return Frame # ...
     params
         """dict, read-only"""
@@ -188,13 +188,13 @@ class Encoder(object):
     - no conversion/scaling will be performed
     - add flush() operation
     """
-    def __init__(self, name, params={}):
+    def __init__(self, output_codec, params={}):
         pass
     def encode(self, Frame):
         """encode(Frame) -> Packet"""
         return Packet # ...
     def flush(self):
-        """flush() -> encdata [str]"""
+        """flush() -> Packet"""
         return Packet # ...
     params
         """dict, read-only"""
