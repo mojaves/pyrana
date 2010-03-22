@@ -146,8 +146,8 @@ Packet_getbuf(PyrPacketObject *self, Py_ssize_t segment, void **ptrptr)
 {
     Py_ssize_t ret = -1;
     if (segment != 0) {
-        PyErr_SetString(PyExc_SystemError,
-                        "accessing non-existent string segment");
+        PyErr_Format(PyExc_SystemError,
+                     "accessing non-existent string segment");
     } else {
         *ptrptr = self->pkt.data;
         ret     = self->pkt.size;

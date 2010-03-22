@@ -27,8 +27,8 @@ class UnsupportedError(PyranaError):
 
 # pyrana.format (V)
 
-input_formats  = []
-output_formats = []
+input_formats  = frozenset()
+output_formats = frozenset()
 
 
 def is_streaming(name) # (XXX!!!)
@@ -119,9 +119,10 @@ class Muxer(object): # (XXX!)
 
 #pyrana.video
 
-input_codecs   = []
-output_codecs  = []
-pixel_formats  = []
+input_codecs   = frozenset()
+output_codecs  = frozenset()
+pixel_formats  = frozenset()
+user_pixel_formats = frozenset()
 
 
 class Plane(object):
@@ -202,8 +203,8 @@ class Encoder(object):
 
 #pyrana.audio
 
-input_codecs   = []
-output_codecs  = []
+input_codecs   = frozenset()
+output_codecs  = frozenset()
 
 class Frame(object): # (V)
     def __init__(self, data, pts=0, dts=0):
