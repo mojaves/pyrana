@@ -33,19 +33,31 @@
 
 
 
+enum {
+    PYR_PLANES_NUM  = 4
+};
+
 
 const char *PyrVideo_GetPixFmtName(enum PixelFormat fmt);
 
 PyObject *PyrVideo_NewPixelFormats(void);
+PyObject *PyrVideo_NewUserPixelFormats(void);
 
 
 typedef struct pyrimageobject_ PyrImageObject;
 typedef struct pyrvframeobject_ PyrVFrameObject;
 
+typedef struct {
+    int planeNum;
+    struct {
+        int width;
+        int height;
+        int size;
+    } infos[PYR_PLANES_NUM]; 
+} PyrPlaneInfo;
 
 typedef struct {
-    uint8_t *data[4];
-    int stride[4];
+    AVPicture picture;
     int width;
     int height;
     enum PixelFormat pixFmt;
@@ -54,7 +66,7 @@ typedef struct {
 struct pyrimageobject_ {
     PyObject_HEAD
     PyrVFrameObject *parent; /* could be NULL */
-    PyrImage img;
+    PyrImage image;
 };
 
 
