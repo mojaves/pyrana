@@ -136,7 +136,7 @@ class Plane(object):
     size
 
 class Image(object):
-    def __init__(self, width, height, pixFmt, data[4]):
+    def __init__(self, width, height, pixFmt, data):
         """not yet decided"""
         pass
     width

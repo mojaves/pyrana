@@ -321,22 +321,6 @@ typedef int (*Pyr_PlaneWorker)(PyrImageObject *self,
                                Py_buffer *planeView,
                                void *userData);
 
-static int
-Image_IsValidPlane(PyrImageObject *self,
-                   int i,
-                   const PyrPlaneInfo *planeInfo,
-                   Py_buffer *planeView,
-                   void *userData)
-{
-    int err = 0;
-    if (planeView->len == planeInfo->infos[i].size) {
-        PyErr_Format(PyrExc_SetupError,
-                    "data size mismatch on plane #%i (found=%ld expected=%i)",
-                    i, planeView->len, planeInfo->infos[i].size);
-        err = -1;
-    }
-    return err;
-}
 
 static int
 Image_FillPlane(PyrImageObject *self,
@@ -346,15 +330,24 @@ Image_FillPlane(PyrImageObject *self,
                 void *userData)
 {
     int err = 0;
+    if (planeView->len == planeInfo->infos[i].size) {
+        PyErr_Format(PyrExc_ProcessingError,
+                    "data size mismatch on plane #%i (found=%i expected=%ld)",
+                    i, planeInfo->infos[i].size, planeView->len);
+        err = -1;
+    } else {
+        PyErr_Format(PyExc_NotImplementedError, "Not yet");
+        err = -1;
+    }
     return err;
 }
 
 static int
-Image_DataForeachPlaneDo(PyrImageObject *self,
-                         const PyrPlaneInfo *planeInfo,
-                         PyObject *dataObj,
-                         Pyr_PlaneWorker planeWorker,
-                         void *userData)
+Image_DataForeachPlane(PyrImageObject *self,
+                       const PyrPlaneInfo *planeInfo,
+                       PyObject *dataObj,
+                       Pyr_PlaneWorker planeWorker,
+                       void *userData)
 {
     int i, err = 0;
 
@@ -379,34 +372,6 @@ Image_DataForeachPlaneDo(PyrImageObject *self,
 
 
 static int
-Image_DataForeachPlane(PyrImageObject *self,
-                       PyObject *dataObj,
-                       Pyr_PlaneWorker planeWorker,
-                       void *userData)
-{
-    PyrPlaneInfo planeInfo;
-    int err = Pyr_GetPlanesInfo(self->image.pixFmt,
-                                self->image.width, self->image.height,
-                                &planeInfo);
- 
-    if (err) {
-        PyErr_Format(PyrExc_UnsupportedError, "unknown Pixel Format");
-    } else if (!PySequence_Check(dataObj)
-             || PySequence_Size(dataObj) != planeInfo.planeNum) {
-        PyErr_Format(PyrExc_SetupError,
-                     "incoherent plane data (found=%ld expected=%i)",
-                     PySequence_Size(dataObj), planeInfo.planeNum);
-        err = -1;
-    } else {
-        err = Image_DataForeachPlaneDo(self,
-                                       &planeInfo, dataObj,
-                                       planeWorker, userData);
-    }
-    return err;
-}
-
-
-static int
 Image_AreParamsValid(PyrImageObject *self,
                      int width, int height, enum PixelFormat pixFmt)
 {
@@ -424,31 +389,82 @@ Image_AreParamsValid(PyrImageObject *self,
     return valid;
 }
 
-static int
-Image_ArePlanesValid(PyrImageObject *self, PyObject *dataObj)
-{
-    int valid = 1;
-    int err = Image_DataForeachPlane(self, dataObj, Image_IsValidPlane, NULL);
-    if (err) {
-        valid = 0;
-    }
-    return valid;
-}
-
 
 static int
-Image_Fill(PyrImageObject *self, PyObject *dataObj)
+Image_FillFromPlanes(PyrImageObject *self,
+                     const PyrPlaneInfo *planeInfo,
+                     PyObject *dataObj)
 {
     int err = avpicture_alloc(&(self->image.picture), self->image.pixFmt,
                               self->image.width, self->image.height);
     if (!err) {
-        err = Image_DataForeachPlane(self, dataObj, Image_FillPlane, NULL);
+        err = Image_DataForeachPlane(self, planeInfo, dataObj, Image_FillPlane, NULL);
         if (err) {
             avpicture_free(&(self->image.picture));
         }
     }
     return err;
 }
+
+static int
+Image_FillFromData(PyrImageObject *self,
+                   const PyrPlaneInfo *planeInfo,
+                   PyObject *dataObj)
+{
+    Py_buffer planeView;
+    int ret = 0;
+    int size = avpicture_get_size(self->image.pixFmt,
+                                  self->image.width, self->image.height);
+    int err = PyObject_GetBuffer(dataObj, &planeView, PyBUF_SIMPLE);
+
+    if (err) {
+        PyErr_Format(PyrExc_SetupError, "cannot access data");
+        ret = -1;
+    } else if (planeView.len != size) {
+        PyErr_Format(PyrExc_SetupError,
+                    "data size mismatch (found=%i expected=%ld)",
+                    size, planeView.len);
+        ret = -1;
+    } else {
+        int s = avpicture_fill((AVPicture *)&(self->image), planeView.buf,
+                               self->image.pixFmt,
+                               self->image.width, self->image.height);
+        if (s != size) { /* can't happen */
+            PyErr_Format(PyrExc_SetupError,
+                        "copy data size mismatch (found=%i expected=%i)",
+                        s, size);
+        }
+    }
+    PyBuffer_Release(&planeView);
+    return ret;
+}
+
+static int
+Image_InitData(PyrImageObject *self, PyObject *dataObj)
+{
+    int ret = 0;
+    PyrPlaneInfo planeInfo;
+    int err = Pyr_GetPlanesInfo(self->image.pixFmt,
+                                self->image.width, self->image.height,
+                                &planeInfo);
+ 
+    if (err) {
+        PyErr_Format(PyrExc_UnsupportedError, "unknown Pixel Format");
+    }
+    
+    if (PySequence_Check(dataObj)
+     && PySequence_Size(dataObj) == planeInfo.planeNum) {
+        ret = Image_FillFromPlanes(self, &planeInfo, dataObj);
+    } else if (PyObject_CheckBuffer(dataObj)) {
+        ret = Image_FillFromData(self, &planeInfo, dataObj);
+    } else {
+        PyErr_Format(PyrExc_SetupError, "bad Image data");
+        ret = -1;
+    }
+
+    return ret;
+}
+
 
 static int
 Image_init(PyrImageObject *self, PyObject *args, PyObject *kwds)
@@ -471,12 +487,8 @@ Image_init(PyrImageObject *self, PyObject *args, PyObject *kwds)
             self->image.width = width;
             self->image.height = height;
             self->image.pixFmt = pixFmt;
-            
-            if (!Image_ArePlanesValid(self, dataObj)) {
-                ret = -1;
-            } else {
-//              ret = avpicture_alloc(&(self->image.picture), pixFmt, width, height);
-            }
+
+            ret = Image_InitData(self, dataObj);
         }
     }
     return ret;
