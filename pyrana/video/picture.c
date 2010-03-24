@@ -330,8 +330,8 @@ Image_FillPlane(PyrImageObject *self,
                 void *userData)
 {
     int err = 0;
-    if (planeView->len == planeInfo->infos[i].size) {
-        PyErr_Format(PyrExc_ProcessingError,
+    if (planeView->len != planeInfo->infos[i].size) {
+        PyErr_Format(PyrExc_SetupError,
                     "data size mismatch on plane #%i (found=%i expected=%ld)",
                     i, planeInfo->infos[i].size, planeView->len);
         err = -1;

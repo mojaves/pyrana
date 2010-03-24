@@ -119,9 +119,9 @@ class Muxer(object): # (XXX!)
 
 #pyrana.video
 
-input_codecs   = frozenset()
-output_codecs  = frozenset()
-pixel_formats  = frozenset()
+input_codecs       = frozenset()
+output_codecs      = frozenset()
+pixel_formats      = frozenset()
 user_pixel_formats = frozenset()
 
 
