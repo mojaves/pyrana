@@ -31,7 +31,8 @@
 
 #define SUB_MODULE_NAME MODULE_NAME".video"
 
-#define PYR_BUF_SIZE (128)
+#define PYR_BUF_SIZE        (128)
+#define PYR_PICT_NO_TYPE    (-1)
 
 /*************************************************************************/
 
@@ -93,10 +94,13 @@ PyrVideo_Setup(PyObject *m)
         PyModule_AddObject(sm, "input_codecs",  BuildCodecNamesInput());
         PyModule_AddObject(sm, "output_codecs", BuildCodecNamesOutput());
         PyModule_AddObject(sm, "pixel_formats", PyrVideo_NewPixelFormats());
+        PyModule_AddObject(sm, "user_pixel_formats",
+                           PyrVideo_NewUserPixelFormats());
 
         /* FIXME:
          * smells wrong, need to figure something better (more coherent?)
          */
+        PyModule_AddIntConstant(sm, "PICT_NO_TYPE", PYR_PICT_NO_TYPE);
         PyModule_AddIntConstant(sm, "PICT_I_TYPE",  FF_I_TYPE);
         PyModule_AddIntConstant(sm, "PICT_P_TYPE",  FF_P_TYPE);
         PyModule_AddIntConstant(sm, "PICT_B_TYPE",  FF_B_TYPE);
