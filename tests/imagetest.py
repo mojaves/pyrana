@@ -3,7 +3,7 @@
 import pyrana
 import unittest
 
-class ImageCommonTestCase():
+class ImageCommonBaseTestCase(object):
     def test_NewFromValidString(self):
         try:
             self._build_img(self.width, self.height, self.data)
@@ -51,7 +51,7 @@ class ImageCommonTestCase():
         self.assertTrue(i.width == self.width)
  
 
-class ImageFromDataTestCase(ImageCommonTestCase, unittest.TestCase):
+class ImageFromDataTestCase(ImageCommonBaseTestCase, unittest.TestCase):
     def setUp(self):
         self.pixFmt = "rgb24"
         self.width, self.height = 320, 240
@@ -59,7 +59,7 @@ class ImageFromDataTestCase(ImageCommonTestCase, unittest.TestCase):
     def _build_img(self, w, h, d, n="rgb24"):
         return pyrana.video.Image(w, h, n, d)
 
-class ImageFromPlanesTestCase(ImageCommonTestCase, unittest.TestCase):
+class ImageFromPlanesTestCase(ImageCommonBaseTestCase, unittest.TestCase):
     def setUp(self):
         self.pixFmt = "yuv420p"
         self.width, self.height = 320, 240

@@ -157,9 +157,9 @@ class Frame(object):
     isKey
     topFieldFirst
     isInterlaced
-    picType
-    codedNum
-    displayNum
+    picType      # can only by set by decoder/encoder
+    codedNum     # ditto
+    displayNum   # ditto
 
 
 
