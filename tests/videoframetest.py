@@ -10,9 +10,10 @@ class VFrameCommonBaseTestCase(object):
         self.assertTrue(getattr(f, fieldName) == oldValue)
         self.assertRaises(AttributeError, setattr, f, fieldName, newValue)
         self.assertTrue(getattr(f, fieldName) == oldValue)
-    def _new_frame(self):
-        return pyrana.video.Frame(self._img, pyrana.TS_NULL,
-                                  True, False, False)
+    def _new_frame(self, i=None):
+        if i is None:
+            i = self._img
+        return pyrana.video.Frame(i, pyrana.TS_NULL, True, False, False)
     def test_NewFromImg(self):
         try:
             self._new_frame()
@@ -23,11 +24,11 @@ class VFrameCommonBaseTestCase(object):
         # TODO image test
         self.assertTrue(f.pts == pyrana.TS_NULL)
         self.assertTrue(f.isKey == True)
-        self.assertTrue(f.toFieldFirst == False)
+        self.assertTrue(f.topFieldFirst == False)
         self.assertTrue(f.isInterlaced == False)
         self.assertTrue(f.picType == pyrana.video.PICT_NO_TYPE)
-        self.assertTrue(f.codedNum == -1)
-        self.assertTrue(f.displayNum == -1)
+        self.assertTrue(f.codedNum == pyrana.FRAMENUM_NULL)
+        self.assertTrue(f.displayNum == pyrana.FRAMENUM_NULL)
     def test_CannotResetPTS(self):
         self._check_cannotResetField(self._new_frame(),
                                      "pts", pyrana.TS_NULL, 23)
@@ -45,9 +46,28 @@ class VFrameCommonBaseTestCase(object):
                                      "picType", pyrana.video.PICT_NO_TYPE,
                                                 pyrana.video.PICT_I_TYPE)
     def test_CannotResetCodedNum(self):
-        self._check_cannotResetField(self._new_frame(), "codedNum", -1, 42)
+        self._check_cannotResetField(self._new_frame(), "codedNum",
+                                     pyrana.FRAMENUM_NULL, 42)
     def test_CannotResetDisplayNum(self):
-        self._check_cannotResetField(self._new_frame(), "displayNum", -1, 42)
+        self._check_cannotResetField(self._new_frame(), "displayNum",
+                                     pyrana.FRAMENUM_NULL, 42)
+    def test_GetImage(self):
+        i = self._new_img(400, 300)
+        f = self._new_frame(i)
+        j = f.image
+        self.assertTrue(i.width == j.width)
+        self.assertTrue(i.height == j.height)
+        self.assertTrue(i.pixFmt == j.pixFmt)
+    def test_GetImageLifeTime(self):
+        i = self._new_img(400, 300)
+        f = self._new_frame(i)
+        del i
+        j = f.image
+        self.assertTrue(j.pixFmt == "rgb24")
+        del f
+        self.assertTrue(j.pixFmt == "rgb24")
+        
+
 
 
 
