@@ -32,7 +32,6 @@
 #define SUB_MODULE_NAME MODULE_NAME".video"
 
 #define PYR_BUF_SIZE        (128)
-#define PYR_PICT_NO_TYPE    (-1)
 
 /*************************************************************************/
 

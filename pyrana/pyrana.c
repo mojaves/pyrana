@@ -50,6 +50,7 @@ initpyrana(void)
 
         PyModule_AddStringConstant(m, "VERSION", PYRANA_VERSION_STRING);
         PyModule_AddIntConstant(m, "TS_NULL", AV_NOPTS_VALUE);
+        PyModule_AddIntConstant(m, "FRAMENUM_NULL", PYR_FRAMENUM_NULL);
 
         PyrErrors_Setup(m);
         PyrFormat_Setup(m);

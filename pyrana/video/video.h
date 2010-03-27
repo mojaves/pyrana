@@ -28,6 +28,10 @@
 
 #include "pyrana/pyrana.h"
 
+enum {
+    PYR_PICT_NO_TYPE = -1,
+    PYR_FRAMENUM_NULL = -1
+};
 
 int PyrVideo_Setup(PyObject *m);
 

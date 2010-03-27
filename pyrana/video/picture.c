@@ -310,7 +310,7 @@ static void
 Image_dealloc(PyrImageObject *self)
 {
     if (self->parent) {
-        Py_DECREF(self->parent);
+        Py_XDECREF(self->parent);
     }
     PyObject_Del((PyObject *)self);
 }
@@ -513,7 +513,14 @@ PyrImageObject *PyrImage_NewFromFrame(PyrVFrameObject *frame)
 static PyObject *
 Image_repr(PyrImageObject *self)
 {
-    return PyString_FromFormat("<Image>");
+    PyrPlaneInfo planeInfo;
+    int err = Pyr_GetPlanesInfo(self->image.pixFmt,
+                                self->image.width, self->image.height,
+                                &planeInfo);
+    return PyString_FromFormat("<Image size=%ix%i pixFmt=%s hasPlanes=%s>",
+                               self->image.width, self->image.height,
+                               avcodec_get_pix_fmt_name(self->image.pixFmt),
+                               (!err && planeInfo.planeNum > 1) ?"Y" :"N");
 } 
 
 
@@ -684,6 +691,7 @@ PyrVFrame_Check(PyObject *o)
 static void
 VFrame_dealloc(PyrVFrameObject *self)
 {
+    Py_XDECREF((PyObject*)self->image);
     PyObject_Del((PyObject *)self);
 }
 
@@ -691,8 +699,83 @@ VFrame_dealloc(PyrVFrameObject *self)
 static int
 VFrame_init(PyrVFrameObject *self, PyObject *args, PyObject *kwds)
 {
-    int ret = 0;
+    int ret = 0, isKey = 0, isInterlaced = 0, topFieldFirst = 0;
+    PY_LONG_LONG pts = 0;
+    PyObject *image = NULL;
+
+    if (!PyArg_ParseTuple(args, "OLiii:init",
+                          &image, &pts, &isKey,
+                          &isInterlaced, &topFieldFirst)) {
+        ret = -1; 
+    } else if (!PyrImage_Check(image)) {
+        PyErr_Format(PyExc_ValueError, "<image> is not a pyrana.video.Image");
+        ret = -1;
+    } else {
+        Py_INCREF(image);
+        self->image = (PyrImageObject*)image;
+        self->ref_image = 0;
+        
+        avcodec_get_frame_defaults(&(self->frame));
+        self->frame.pts = pts;
+        self->frame.interlaced_frame = isInterlaced;
+        self->frame.top_field_first = topFieldFirst;
+
+        /* beware of the following */
+        self->frame.key_frame = isKey;
+        self->frame.coded_picture_number = PYR_FRAMENUM_NULL;
+        self->frame.display_picture_number = PYR_FRAMENUM_NULL;
+        self->frame.pict_type = PYR_PICT_NO_TYPE;
+    }
+
     return ret;
+}
+
+static const char *
+VFrame_GetPictDesc(PyrVFrameObject *self)
+{
+    const char *p = "N";
+    switch (self->frame.pict_type) {
+      case FF_I_TYPE:
+        p = "I";
+        break;
+      case FF_P_TYPE:
+        p = "P";
+        break;
+      case FF_B_TYPE:
+        p = "B";
+        break;
+      case FF_S_TYPE:
+        p = "S";
+        break;
+      case FF_SI_TYPE:
+        p = "SI";
+        break;
+      case FF_SP_TYPE:
+        p = "SP";
+        break;
+      case FF_BI_TYPE:
+        p = "BI";
+        break;
+      case PYR_PICT_NO_TYPE: /* fallthrough */
+      default:
+        p = "N";
+        break;
+    }
+    return p;
+}
+
+static const char *
+VFrame_GetILaceDesc(PyrVFrameObject *self)
+{
+     const char *s = "N";
+     if (self->frame.interlaced_frame) {
+        if (self->frame.top_field_first) {
+            s = "T";
+        } else {
+            s = "B";
+        }
+     }
+     return s;
 }
 
 static PyObject *
@@ -701,7 +784,9 @@ VFrame_repr(PyrVFrameObject *self)
     return PyString_FromFormat("<Video Frame #%i/%i type=%s key=%s ilace=%s>",
                                self->frame.coded_picture_number,
                                self->frame.display_picture_number,
-                               "", "", "");
+                               VFrame_GetPictDesc(self), 
+                               (self->frame.key_frame) ?"Y" :"N",
+                               VFrame_GetILaceDesc(self));
 } 
 
 
@@ -715,13 +800,11 @@ PyrVFrame_NewFromAVFrame(AVFrame *frame)
 static PyObject *
 PyrVFrame_getimage(PyrVFrameObject *self)
 {
-    PyrImageObject *image = NULL;
+    PyrImageObject *image = self->image;
     if (self->ref_image) {
-        image = PyrImage_NewFromFrame(self);
-    } else {
-        image = self->image;
+        self->image->parent = self;
+        Py_INCREF((PyObject*)self);
     }
-    /* here we want an independent reference */
     Py_INCREF((PyObject*)image);
     return (PyObject*)image;
 }

@@ -81,6 +81,7 @@ struct pyrvframeobject_ {
     PyObject_HEAD
     PyrImageObject *image;
     AVFrame frame;
+    int isKey;
     int ref_image; /* if != 0, image is a soft-ref to frame */
 };
 
