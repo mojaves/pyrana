@@ -1,15 +1,3 @@
-* general
-~~~~~~~~~
-- TESTS!
-- publish version strings.
-
-* format submodule
-~~~~~~~~~~~~~~~~~~
-- {in,out}put_formats: a set() maybe?
-- why there are duplicates in the former list?
-- is_streaming broken
-
-* video submodule
-~~~~~~~~~~~~~~~~~
-- ImageConverter is clumsy. Maybe another sub-sub-module?
+- port to PEP07
+- port to PY3
 
