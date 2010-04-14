@@ -1,6 +1,7 @@
 from distutils.core import setup
 from distutils.core import Extension
 
+import sys
 import commands
 import shutil
 import os
@@ -41,14 +42,29 @@ def pkgconfig(*packages, **kw):
     return kw
 
 info = pkginfo()
-lavu = pkgconfig("libavutil") 
-lavc = pkgconfig("libavcodec") 
-lavf = pkgconfig("libavformat") 
 
-inc_dirs   = [ "." ] # FIXME feels hacky, need to figure out a better way
-inc_dirs  += list(set(lavu["include_dirs"] + lavc["include_dirs"] + lavf["include_dirs"]))
-lib_dirs   = list(set(lavu["library_dirs"] + lavc["library_dirs"] + lavf["library_dirs"]))
-extra_libs = list(set(lavu["libraries"] + lavc["libraries"] + lavf["libraries"]))
+ # FIXME feels hacky, need to figure out a better way
+inc_dirs   = [ "." ]
+lib_dirs   = []
+extra_libs = []
+
+conf_map = {"include_dirs":inc_dirs, "library_dirs":lib_dirs, "libraries":extra_libs}
+
+for pkg_name in ("libavutil", "libavcodec", "libavformat"):
+    pkg = pkgconfig(pkg_name)
+    for k, v in conf_map.items():
+        try:
+            v.extend(pkg[k])
+        except KeyError:
+            # FIXME: we can do better than this
+            sys.stderr.write("WARNING: cannot config the %s pkg-config setting for package `%s'\n" %(k, pkg_name))
+
+
+# purge duplicates
+inc_dirs = list(set(inc_dirs))
+lib_dirs = list(set(lib_dirs))
+extra_libs = list(set(extra_libs))
+
 
 pyrana_ext = Extension('pyrana',
                        [
