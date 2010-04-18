@@ -56,8 +56,7 @@ for pkg_name in ("libavutil", "libavcodec", "libavformat"):
         try:
             v.extend(pkg[k])
         except KeyError:
-            # FIXME: we can do better than this
-            sys.stderr.write("WARNING: cannot config the %s pkg-config setting for package `%s'\n" %(k, pkg_name))
+            pass
 
 
 # purge duplicates
@@ -72,6 +71,7 @@ pyrana_ext = Extension('pyrana',
                         'pyrana/format/format.c', 'pyrana/format/pyfileproto.c',
                         'pyrana/format/packet.c', 'pyrana/format/demuxer.c',
                         'pyrana/video/video.c', 'pyrana/video/picture.c',
+                        'pyrana/video/decoder.c',
                         'pyrana/audio/audio.c'
                        ],
                        include_dirs=inc_dirs,

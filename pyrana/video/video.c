@@ -25,6 +25,7 @@
 
 #include "pyrana/video/video.h"
 #include "pyrana/video/picture.h"
+#include "pyrana/video/decoder.h"
 
 
 #define SUB_MODULE_PYDOC "Not yet"
@@ -110,6 +111,7 @@ PyrVideo_Setup(PyObject *m)
 
         PyrImage_Setup(sm);
         PyrVFrame_Setup(sm);
+        PyrVDecoder_Setup(sm);
 
         PyModule_AddObject(m, "video", sm);
         ret = 0;

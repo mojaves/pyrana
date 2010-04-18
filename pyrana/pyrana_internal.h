@@ -24,24 +24,17 @@
  */ 
 
 
-#ifndef PYRANA_DEMUXER_H
-#define PYRANA_DEMUXER_H
+#ifndef PYRANA_INTERNAL_H
+#define PYRANA_INTERNAL_H
 
-#include "format.h"
-
-enum {
-    PYRANA_STREAM_ANY  = -1
-};
-
+#include "pyrana/errors.h"
 
 typedef struct {
     PyObject_HEAD
-    AVFormatContext *ic;
-    PyObject        *streams;
-    PyObject        *key;
-} PyrDemuxerObject;
+    PyObject *parent; /* for decoders spawned from demuxers */
+    AVCodecContext *ctx;
+    AVCodec *codec;
+    PyObject *params;
+} PyrCodecObject;
 
-int PyrDemuxer_Check(PyObject *o);
-int PyrDemuxer_Setup(PyObject *m);
-
-#endif /* PYRANA_DEMUXER_H */
+#endif /* PYRANA_INTERNAL_H */

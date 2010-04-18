@@ -34,6 +34,7 @@ extern PyObject *PyrExc_EOSError;
 extern PyObject *PyrExc_ProcessingError;
 extern PyObject *PyrExc_SetupError;
 extern PyObject *PyrExc_UnsupportedError;
+extern PyObject *PyrExc_NeedFeedError;
 
 /**************************************************************************/
 

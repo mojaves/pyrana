@@ -29,6 +29,8 @@
 
 #include "pyrana/format/pyfileproto.h"
 
+#include "pyrana/video/decoder.h"
+
 
 #define DEMUXER_NAME "Demuxer"
 
@@ -70,6 +72,11 @@ DEMUXER_NAME"(file [, name]) -> demuxer\n"
 static PyTypeObject DemuxerType;
 
 
+int
+PyrDemuxer_Check(PyObject *o)
+{
+    return PyObject_TypeCheck(o, &DemuxerType);
+}
 
 static int
 Demuxer_SetAttribute(PyObject *dict, const char *key, PyObject *val)
@@ -178,10 +185,8 @@ Demuxer_OpenDecoder(PyrDemuxerObject *self, PyObject *args)
         return NULL;
     }
  
-    PyErr_Format(PyExc_NotImplementedError, "not yet");
-    return NULL;
-//    not yet
-//    return (PyObject *)PyrDecoder_NewFromDemuxer(self, streamid, params);
+    return (PyObject *)PyrDecoder_NewFromDemuxer((PyObject*)self,
+                                                 streamid, params);
 }
 
 static int

@@ -222,7 +222,7 @@ class Decoder(object):
     - no conversion/scaling will be performed
     - add flush() operation
     """
-    def __init__(self, name, params={}):
+    def __init__(self, input_codec, params={}):
         pass
     def decode(self, Packet):
         """decode(Packet) -> Frame"""

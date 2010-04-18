@@ -23,25 +23,20 @@
  * distribution.
  */ 
 
+#ifndef PYRANA_DECODER_H
+#define PYRANA_DECODER_H
 
-#ifndef PYRANA_DEMUXER_H
-#define PYRANA_DEMUXER_H
-
-#include "format.h"
-
-enum {
-    PYRANA_STREAM_ANY  = -1
-};
+#include "pyrana/pyrana.h"
+#include "pyrana/pyrana_internal.h"
 
 
-typedef struct {
-    PyObject_HEAD
-    AVFormatContext *ic;
-    PyObject        *streams;
-    PyObject        *key;
-} PyrDemuxerObject;
+PyrCodecObject *PyrDecoder_NewFromDemuxer(PyObject *dmx,
+                                          int streamid, PyObject *params);
 
-int PyrDemuxer_Check(PyObject *o);
-int PyrDemuxer_Setup(PyObject *m);
+int PyrVDecoder_Check(PyObject *o);
 
-#endif /* PYRANA_DEMUXER_H */
+int PyrVDecoder_Setup(PyObject *m);
+
+
+
+#endif /* PYRANA_DECODER_H */
