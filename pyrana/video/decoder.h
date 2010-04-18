@@ -23,8 +23,8 @@
  * distribution.
  */ 
 
-#ifndef PYRANA_DECODER_H
-#define PYRANA_DECODER_H
+#ifndef PYRANA_VDECODER_H
+#define PYRANA_VDECODER_H
 
 #include "pyrana/pyrana.h"
 #include "pyrana/pyrana_internal.h"
@@ -39,4 +39,4 @@ int PyrVDecoder_Setup(PyObject *m);
 
 
 
-#endif /* PYRANA_DECODER_H */
+#endif /* PYRANA_VDECODER_H */
