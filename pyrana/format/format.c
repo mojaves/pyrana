@@ -30,6 +30,7 @@
 #include "pyrana/format/pyfileproto.h"
 #include "pyrana/format/packet.h"
 #include "pyrana/format/demuxer.h"
+#include "pyrana/format/muxer.h"
 
 
 #define SUB_MODULE_PYDOC "Not yet"
@@ -167,6 +168,8 @@ PyrFormat_Setup(PyObject *m)
 
         PyrPacket_Setup(sm);
         PyrDemuxer_Setup(sm);
+        /*PyrMuxer_Setup(sm);*/
+        /* intentionally and temporarily left out */
 
         PyModule_AddObject(m, "format", sm);
         ret = 0;

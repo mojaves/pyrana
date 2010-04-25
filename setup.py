@@ -69,7 +69,8 @@ pyrana_ext = Extension('pyrana',
                        [
                         'pyrana/errors.c', 'pyrana/pyrana.c',
                         'pyrana/format/format.c', 'pyrana/format/pyfileproto.c',
-                        'pyrana/format/packet.c', 'pyrana/format/demuxer.c',
+                        'pyrana/format/demuxer.c', 'pyrana/format/muxer.c',
+                        'pyrana/format/packet.c',
                         'pyrana/video/video.c', 'pyrana/video/picture.c',
                         'pyrana/video/decoder.c',
                         'pyrana/audio/audio.c'
