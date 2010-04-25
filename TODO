@@ -1,3 +1,16 @@
+TODO (real)
 - port to PEP07
 - port to PY3
+
+BACKGROUND
+- more testing
+- polishing
+
+ROADMAP
+- video decoding (in progress)
+- audio decoding
+- video encoding
+- muxing
+- audio encoding
+- all the bits left
 
