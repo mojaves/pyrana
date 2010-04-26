@@ -27,7 +27,7 @@
 #ifndef PYRANA_DEMUXER_H
 #define PYRANA_DEMUXER_H
 
-#include "format.h"
+#include "pyrana/format/format.h"
 
 enum {
     PYRANA_STREAM_ANY  = -1
