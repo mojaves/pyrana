@@ -30,8 +30,8 @@
 #include "pyrana/pyrana_internal.h"
 
 
-PyrCodecObject *PyrDecoder_NewFromDemuxer(PyObject *dmx,
-                                          int streamid, PyObject *params);
+PyrCodecObject *PyrVDecoder_NewFromDemuxer(PyObject *dmx,
+                                           int streamid, PyObject *params);
 
 int PyrVDecoder_Check(PyObject *o);
 

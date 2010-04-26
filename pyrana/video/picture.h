@@ -72,21 +72,30 @@ struct pyrimageobject_ {
 
 
 PyrImageObject *PyrImage_NewFromImage(const PyrImage *image);
-PyrImageObject *PyrImage_NewFromFrame(PyrVFrameObject *frame);
+PyrImageObject *PyrImage_NewFromFrame(PyrVFrameObject *frame,
+                                      const PyrImage *img);
 int PyrImage_Check(PyObject *o);
 
 int PyrImage_Setup(PyObject *m);
 
+typedef enum {
+    PYR_VFRAME_ORIGIN_UNKNOWN = 0,
+    PYR_VFRAME_ORIGIN_USER,
+    PYR_VFRAME_ORIGIN_LIBAV
+} PyrVFrameOrigin;
+
 struct pyrvframeobject_ {
     PyObject_HEAD
     PyrImageObject *image;
-    AVFrame frame;
+    AVFrame *frame;
     int isKey;
-    int ref_image; /* if != 0, image is a soft-ref to frame */
+    PyrVFrameOrigin origin;
 };
 
 
-PyrVFrameObject *PyrVFrame_NewFromAVFrame(AVFrame *frame);
+/* most of informations we provide into a PyrImage are stored into an AVCodecContext,
+   so an extra hint is needed here */
+PyrVFrameObject *PyrVFrame_NewFromAVFrame(AVFrame *frame, const PyrImage *img);
 int PyrVFrame_Check(PyObject *o);
 
 int PyrVFrame_Setup(PyObject *m);

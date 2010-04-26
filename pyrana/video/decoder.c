@@ -22,7 +22,8 @@
  * 3. This notice may not be removed or altered from any source
  * distribution.
  */ 
-
+/* FIXME: ugly */
+#include "pyrana/format/demuxer.h"
 
 #include "pyrana/video/decoder.h"
 #include "pyrana/video/picture.h"
@@ -44,7 +45,7 @@ VDECODE"(Packet) -> Frame Object\n"
 PyDoc_STRVAR(vdFlush_doc,
 VDFLUSH"() -> Frame Object\n"
 "flushes any internal buffered Packets (see decode() doc) and returns\n"
-"he corresponding Frames.\n"
+"the corresponding Frame, one per call.\n"
 "\n"
 "Raises ProcessingError when all buffers have been flushed.");
 
@@ -80,47 +81,76 @@ VDecoder_GetParams(PyrCodecObject *self)
 
 
 static PyObject *
-VDecoder_Decode(PyrCodecObject *self, PyObject *args)
+VDecoder_DecodePacket(PyrCodecObject *self, AVPacket *pkt)
 {
-    int ret = 0, got_picture = 0;
-    PyrPacketObject *packet = NULL;
+    int ret = 0, got_picture = 0, failed = 0;
     PyrVFrameObject *frame = NULL;
-    AVFrame pict;
+    AVFrame *pict = avcodec_alloc_frame();
+    if (pict) {
+        ret = avcodec_decode_video2(self->ctx, pict, &got_picture, pkt);
 
-    avcodec_get_frame_defaults(&pict);
+        if (ret < 0) {
+            PyErr_Format(PyrExc_ProcessingError, "Decode error (%i)", ret);
+            failed = 1;
+        } else if (!got_picture) {
+            PyErr_Format(PyrExc_NeedFeedError, "Bytes consumed (%i)", ret);
+            failed = 1;
+        } else {
+            PyrImage img;
+            memset(&img, 0, sizeof(PyrImage));
+            img.width  = self->ctx->width;
+            img.height = self->ctx->height;
+            img.pixFmt = self->ctx->pix_fmt;
 
-    if (!PyArg_ParseTuple(args, "O:readFrame", &packet)) {
-        return NULL;
+            frame = PyrVFrame_NewFromAVFrame(pict, &img);
+            if (!frame) {
+                failed = 1;
+            }
+        }
     }
-
-    if (!PyrPacket_Check((PyObject*)packet)) {
-        PyErr_Format(PyrExc_ProcessingError,
-                     "Invalid packet");
-        return NULL;
-    }
-
-    ret = avcodec_decode_video2(self->ctx, &pict,
-                                &got_picture, &packet->pkt);
-    if (ret < 0) {
-        PyErr_Format(PyrExc_ProcessingError, "Decode error (%i)", ret);
-    } else if (!got_picture) {
-        PyErr_Format(PyrExc_NeedFeedError, "Bytes consumed (%i)", ret);
-    } else {
-        frame = PyrVFrame_NewFromAVFrame(&pict);
+    if (failed) {
+        av_free(pict);
     }
     return (PyObject *)frame;
 }
 
+
+
 static PyObject *
-VDecoder_Flush(PyrCodecObject *self, PyObject *args)
+VDecoder_Decode(PyrCodecObject *self, PyObject *args)
 {
-    /* libavcodec doesn't do any buffering. Pretty easy, huh? */
-    PyErr_Format(PyrExc_ProcessingError, "All buffers flushed");
-    return NULL;
+    PyrPacketObject *packet = NULL;
+
+    if (!PyArg_ParseTuple(args, "O:decode", &packet)) {
+        return NULL;
+    }
+
+    if (!PyrPacket_Check((PyObject*)packet)) {
+        PyErr_Format(PyrExc_ProcessingError, "Invalid packet");
+        return NULL;
+    }
+    return VDecoder_DecodePacket(self, &(packet->pkt));
 }
 
 
-/* ---------------------------------------------------------------------- */
+static PyObject *
+VDecoder_Flush(PyrCodecObject *self, PyObject *args)
+{
+    PyObject *frame = NULL;
+    AVPacket pkt;
+
+    av_init_packet(&pkt);
+    pkt.data = NULL;
+    pkt.size = 0;
+
+    frame = VDecoder_DecodePacket(self, &pkt);
+    if (!frame) {
+        PyErr_Format(PyrExc_ProcessingError, "All buffers flushed");
+    }
+    return frame;
+}
+
+
 
 static PyMethodDef VDecoder_methods[] =
 {
@@ -139,36 +169,127 @@ static PyMethodDef VDecoder_methods[] =
     { NULL, NULL }, /* Sentinel */
 };
 
-/* ---------------------------------------------------------------------- */
+
 static void
 VDecoder_dealloc(PyrCodecObject *self)
 {
-    /* TODO */
+    int ret = 0;
+    /* FIXME: is that needed? Is that needed *here*? */
+    /* avcodec_flush_buffers(self->ctx); */
+
+    ret = avcodec_close(self->ctx);
+
+    Py_XDECREF(self->params);
+    if (self->parent) {
+        Py_DECREF(self->parent);
+    }
+    PyObject_Del((PyObject *)self);
 }
 
-/* ---------------------------------------------------------------------- */
+static void
+VDecoder_setParamsDefault(PyrCodecObject *self)
+{
+    if (self->codec->capabilities & CODEC_CAP_TRUNCATED) {
+        self->ctx->flags |= CODEC_FLAG_TRUNCATED;
+    }
+    
+    self->ctx->error_recognition = FF_ER_COMPLIANT;
+    self->ctx->error_concealment = FF_EC_GUESS_MVS|FF_EC_DEBLOCK;
+
+    return;
+}
+
+static void
+VDecoder_setParamsUser(PyrCodecObject *self, PyObject *params)
+{
+    /* TODO */
+    return;
+}
+
+/* FIXME: ugly, inexpressive name */
+static int
+VDecoder_initCodec(PyrCodecObject *self, PyObject *params)
+{
+    int ret = 0;
+
+    self->codec = avcodec_find_decoder(self->ctx->codec_id);
+    if (self->codec == NULL) {
+        PyErr_Format(PyrExc_SetupError,
+                     "Unable to find a decoder for codec 0x%X",
+                     self->ctx->codec_id);
+        /* FIXME */
+        ret = -1;
+    } else {
+        VDecoder_setParamsDefault(self);
+        VDecoder_setParamsUser(self, params);
+
+        ret = avcodec_open(self->ctx, self->codec);
+        if (ret < 0) {
+            PyErr_Format(PyrExc_SetupError,
+                         "Could not initialize the '%s' codec.",
+                         self->codec->name);
+        }
+    }
+    return ret;
+}
+
 static int
 VDecoder_init(PyrCodecObject *self, PyObject *args, PyObject *kwds)
 {
     return -1;
 }
 
-PyrCodecObject *PyrDecoder_NewFromDemuxer(PyObject *dmx,
-                                          int streamid, PyObject *params)
+PyrCodecObject *
+PyrVDecoder_NewFromDemuxer(PyObject *dmx, int streamid, PyObject *params)
 {
-    return NULL;
+    PyrCodecObject *self = NULL;
+    PyrDemuxerObject *demux = NULL;
+
+    if (!PyrDemuxer_Check(dmx)) {
+        PyErr_Format(PyExc_TypeError, "'dmx' argument has to be a demuxer");
+        return NULL;
+    }
+    demux = (PyrDemuxerObject *)dmx;
+   
+    if (params) {
+        if (!PyDict_Check(params)) {
+            PyErr_Format(PyExc_TypeError, "'params' argument has to be a dict");
+            return NULL;
+        }
+    }
+    if (streamid < 0 || streamid > demux->ic->nb_streams) {
+        PyErr_Format(PyrExc_SetupError,
+                     "'streamid' value out of range [0,%i]",
+                     demux->ic->nb_streams);
+        return NULL;
+    }
+
+    self = PyObject_New(PyrCodecObject, &VDecoderType);
+    if (self) {
+        int err = 0;
+
+        self->params = NULL;
+        self->parent = dmx;
+        self->ctx = demux->ic->streams[streamid]->codec;
+
+        err = VDecoder_initCodec(self, params);
+        if (err) {
+            /* TODO */
+        } else {
+            Py_INCREF(self->parent);
+        }
+    }
+    return self;
 }
 
 
 
-/* ---------------------------------------------------------------------- */
 static PyGetSetDef VDecoder_getsetlist[] =
 {
     { VDPARAMS, (getter)VDecoder_GetParams, NULL, vdParams_doc },
     { NULL }, /* Sentinel */
 };
 
-/* ---------------------------------------------------------------------- */
 static PyTypeObject VDecoderType =
 {
     PyObject_HEAD_INIT(NULL)
@@ -214,7 +335,7 @@ static PyTypeObject VDecoderType =
 
 
 int
-PyrCodec_Setup(PyObject *m)
+PyrVDecoder_Setup(PyObject *m)
 {
     if (PyType_Ready(&VDecoderType) < 0) {
         return -1;

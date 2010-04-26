@@ -494,18 +494,45 @@ Image_init(PyrImageObject *self, PyObject *args, PyObject *kwds)
     return ret;
 }
 
+static void
+avpicture_softref(AVPicture *pict, AVFrame *frame)
+{
+    pict->data[0] = frame->data[0];
+    pict->data[1] = frame->data[1];
+    pict->data[2] = frame->data[2];
+    pict->data[3] = frame->data[3];
+
+    pict->linesize[0] = frame->linesize[0];
+    pict->linesize[1] = frame->linesize[1];
+    pict->linesize[2] = frame->linesize[2];
+    pict->linesize[3] = frame->linesize[3];
+}
+
+static void
+Image_initFromFrame(PyrImageObject *self, PyrVFrameObject *frame,
+                    const PyrImage *img)
+{
+    avpicture_softref(&(self->image.picture), frame->frame);
+    self->image.width = img->width;
+    self->image.height = img->height;
+    self->image.pixFmt = img->pixFmt;
+}
+
 PyrImageObject *PyrImage_NewFromImage(const PyrImage *image)
 {
+    /* TODO */
     return NULL;
 }
 
-PyrImageObject *PyrImage_NewFromFrame(PyrVFrameObject *frame)
+PyrImageObject *PyrImage_NewFromFrame(PyrVFrameObject *frame,
+                                      const PyrImage *img)
 {
     PyrImageObject *self = PyObject_New(PyrImageObject, &ImageType);
     if (self) {
         Py_INCREF((PyObject*)frame);
         self->parent = frame;
-        /* init image */
+
+        Image_initFromFrame(self, frame, img);
     }
     return self;
 }
@@ -529,6 +556,7 @@ Image_repr(PyrImageObject *self)
 static Py_ssize_t
 Image_getbuf(PyrImageObject *self, Py_ssize_t segment, void **ptrptr)
 {
+    /* TODO */
     Py_ssize_t ret = -1;
     return ret;
 }
@@ -537,6 +565,7 @@ Image_getbuf(PyrImageObject *self, Py_ssize_t segment, void **ptrptr)
 static Py_ssize_t
 Image_getsegcount(PyrImageObject *self, Py_ssize_t *lenp)
 {
+    /* TODO */
     return 0;
 }
 
@@ -582,6 +611,7 @@ static PyGetSetDef Image_getsetlist[] =
 static PyObject *
 Image_Plane(PyrImageObject *self, PyObject *args)
 {
+    /* TODO */
     PyErr_Format(PyExc_NotImplementedError, "not yet");
     return NULL;
 }
@@ -589,6 +619,7 @@ Image_Plane(PyrImageObject *self, PyObject *args)
 static PyObject *
 Image_Convert(PyrImageObject *self, PyObject *args)
 {
+    /* TODO */
     PyErr_Format(PyExc_NotImplementedError, "not yet");
     return NULL;
 }
@@ -691,6 +722,9 @@ PyrVFrame_Check(PyObject *o)
 static void
 VFrame_dealloc(PyrVFrameObject *self)
 {
+    if (self->frame) {
+        av_free(self->frame);
+    }
     Py_XDECREF((PyObject*)self->image);
     PyObject_Del((PyObject *)self);
 }
@@ -713,18 +747,17 @@ VFrame_init(PyrVFrameObject *self, PyObject *args, PyObject *kwds)
     } else {
         Py_INCREF(image);
         self->image = (PyrImageObject*)image;
-        self->ref_image = 0;
-        
-        avcodec_get_frame_defaults(&(self->frame));
-        self->frame.pts = pts;
-        self->frame.interlaced_frame = isInterlaced;
-        self->frame.top_field_first = topFieldFirst;
+       
+        self->frame = avcodec_alloc_frame();
+        self->frame->pts = pts;
+        self->frame->interlaced_frame = isInterlaced;
+        self->frame->top_field_first = topFieldFirst;
 
         /* beware of the following */
-        self->frame.key_frame = isKey;
-        self->frame.coded_picture_number = PYR_FRAMENUM_NULL;
-        self->frame.display_picture_number = PYR_FRAMENUM_NULL;
-        self->frame.pict_type = PYR_PICT_NO_TYPE;
+        self->frame->key_frame = isKey;
+        self->frame->coded_picture_number = PYR_FRAMENUM_NULL;
+        self->frame->display_picture_number = PYR_FRAMENUM_NULL;
+        self->frame->pict_type = PYR_PICT_NO_TYPE;
     }
 
     return ret;
@@ -734,7 +767,7 @@ static const char *
 VFrame_GetPictDesc(PyrVFrameObject *self)
 {
     const char *p = "N";
-    switch (self->frame.pict_type) {
+    switch (self->frame->pict_type) {
       case FF_I_TYPE:
         p = "I";
         break;
@@ -768,8 +801,8 @@ static const char *
 VFrame_GetILaceDesc(PyrVFrameObject *self)
 {
      const char *s = "N";
-     if (self->frame.interlaced_frame) {
-        if (self->frame.top_field_first) {
+     if (self->frame->interlaced_frame) {
+        if (self->frame->top_field_first) {
             s = "T";
         } else {
             s = "B";
@@ -782,18 +815,28 @@ static PyObject *
 VFrame_repr(PyrVFrameObject *self)
 {
     return PyString_FromFormat("<Video Frame #%i/%i type=%s key=%s ilace=%s>",
-                               self->frame.coded_picture_number,
-                               self->frame.display_picture_number,
+                               self->frame->coded_picture_number,
+                               self->frame->display_picture_number,
                                VFrame_GetPictDesc(self), 
-                               (self->frame.key_frame) ?"Y" :"N",
+                               (self->frame->key_frame) ?"Y" :"N",
                                VFrame_GetILaceDesc(self));
 } 
 
 
 PyrVFrameObject *
-PyrVFrame_NewFromAVFrame(AVFrame *frame)
+PyrVFrame_NewFromAVFrame(AVFrame *frame, const PyrImage *img)
 {
-    return NULL;
+    PyrVFrameObject *self = NULL;
+
+    self = PyObject_New(PyrVFrameObject, &VFrameType);
+    if (self) {
+        self->origin = PYR_VFRAME_ORIGIN_LIBAV;
+        self->frame = frame;
+        self->isKey = frame->key_frame;
+        self->image = PyrImage_NewFromFrame(self, img);
+        /* TODO: NewFromFrame can fail */
+    }
+    return self;
 }
 
 
@@ -801,7 +844,7 @@ static PyObject *
 PyrVFrame_getimage(PyrVFrameObject *self)
 {
     PyrImageObject *image = self->image;
-    if (self->ref_image) {
+    if (self->origin == PYR_VFRAME_ORIGIN_LIBAV) {
         self->image->parent = self;
         Py_INCREF((PyObject*)self);
     }
@@ -812,44 +855,44 @@ PyrVFrame_getimage(PyrVFrameObject *self)
 static PyObject *
 PyrVFrame_getkey(PyrVFrameObject *self)
 {
-    return PyInt_FromLong(self->frame.key_frame);
+    return PyInt_FromLong(self->frame->key_frame);
 }
 
 
 static PyObject *
 PyrVFrame_getpts(PyrVFrameObject *self)
 {
-    return PyLong_FromLongLong(self->frame.pts);
+    return PyLong_FromLongLong(self->frame->pts);
 }
 
 static PyObject *
 PyrVFrame_gettopfieldfirst(PyrVFrameObject *self)
 {
-    return PyInt_FromLong(self->frame.top_field_first);
+    return PyInt_FromLong(self->frame->top_field_first);
 }
 
 static PyObject *
 PyrVFrame_getisinterlaced(PyrVFrameObject *self)
 {
-    return PyInt_FromLong(self->frame.interlaced_frame);
+    return PyInt_FromLong(self->frame->interlaced_frame);
 }
 
 static PyObject *
 PyrVFrame_getpictype(PyrVFrameObject *self)
 {
-    return PyInt_FromLong(self->frame.pict_type);
+    return PyInt_FromLong(self->frame->pict_type);
 }
 
 static PyObject *
 PyrVFrame_getcodednum(PyrVFrameObject *self)
 {
-    return PyInt_FromLong(self->frame.coded_picture_number);
+    return PyInt_FromLong(self->frame->coded_picture_number);
 }
 
 static PyObject *
 PyrVFrame_getdisplaynum(PyrVFrameObject *self)
 {
-    return PyInt_FromLong(self->frame.display_picture_number);
+    return PyInt_FromLong(self->frame->display_picture_number);
 }
 
 
