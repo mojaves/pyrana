@@ -27,6 +27,7 @@
 #ifndef PYRANA_INTERNAL_H
 #define PYRANA_INTERNAL_H
 
+#include "pyrana/pyrana.h"
 #include "pyrana/errors.h"
 
 typedef struct {

@@ -39,6 +39,14 @@ PyDoc_STRVAR(Pyrana_doc,
 "be as much backward compatible as is possible to the Pyredia package.");
 
 
+
+static void Pyr_AVLog(void* ctx, int level, const char *fmt, va_list ap)
+{
+    /* discard everything */
+    ;
+}
+
+
 PyMODINIT_FUNC
 initpyrana(void)
 {
@@ -48,9 +56,15 @@ initpyrana(void)
         avcodec_register_all();
         av_register_all();
 
+        av_log_set_callback(Pyr_AVLog);
+
         PyModule_AddStringConstant(m, "VERSION", PYRANA_VERSION_STRING);
         PyModule_AddIntConstant(m, "TS_NULL", AV_NOPTS_VALUE);
         PyModule_AddIntConstant(m, "FRAMENUM_NULL", PYR_FRAMENUM_NULL);
+
+        PyModule_AddIntConstant(m, "MEDIA_ANY", AVMEDIA_TYPE_UNKNOWN);
+        PyModule_AddIntConstant(m, "MEDIA_VIDEO", AVMEDIA_TYPE_VIDEO);
+        PyModule_AddIntConstant(m, "MEDIA_AUDIO", AVMEDIA_TYPE_AUDIO);
 
         PyrErrors_Setup(m);
         PyrFormat_Setup(m);
