@@ -31,13 +31,18 @@ input_formats  = frozenset()
 output_formats = frozenset()
 
 
-def is_streaming(name) # (XXX!!!)
+def is_streamable(name) # (XXX!!!)
      """
-     is_streaming(name) -> Bool
+     is_streamable(name) -> Bool
      tells if a given format is streamable (-> needs seek()) or not.
      """
      pass
 
+def find_stream(streams, streamid, media):
+    """
+    TODO
+    """
+    pass
 
 class Packet(object):
     def __init__(self, idx, data, pts, dts, isKey):

@@ -106,10 +106,9 @@ Demuxer_FillStreamInfo(PyObject *streaminfo, AVCodecContext *ctx)
                          PyString_FromString(get_codec_name(ctx)));
     Demuxer_SetAttribute(streaminfo, "bitrate",
                          PyInt_FromLong(ctx->bit_rate));
-
+    Demuxer_SetAttribute(streaminfo, "type",
+                         PyInt_FromLong(ctx->codec_type));
     if (ctx->codec_type == CODEC_TYPE_VIDEO) {
-        Demuxer_SetAttribute(streaminfo, "type",
-                             PyString_FromString("video"));
         Demuxer_SetAttribute(streaminfo, "pixfmt",
                              PyString_FromString(avcodec_get_pix_fmt_name(ctx->pix_fmt)));
         if (ctx->width) {
@@ -120,8 +119,6 @@ Demuxer_FillStreamInfo(PyObject *streaminfo, AVCodecContext *ctx)
         }
     }
     if (ctx->codec_type == CODEC_TYPE_AUDIO) {
-        Demuxer_SetAttribute(streaminfo, "type",
-                             PyString_FromString("audio"));
         Demuxer_SetAttribute(streaminfo, "channels",
                              PyInt_FromLong(ctx->channels));
         Demuxer_SetAttribute(streaminfo, "samplerate",
@@ -174,9 +171,10 @@ static PyObject *
 Demuxer_OpenDecoder(PyrDemuxerObject *self, PyObject *args)
 {
     PyObject *params = NULL;
+    PyObject *dec = NULL;
     int streamid = 0;
 
-    if (!PyArg_ParseTuple(args, "i|O", &streamid, &params)) { 
+    if (!PyArg_ParseTuple(args, "i|O:openDecoder", &streamid, &params)) { 
         PyErr_Format(PyrExc_SetupError, "Wrong arguments");
         return NULL; 
     }
@@ -184,9 +182,24 @@ Demuxer_OpenDecoder(PyrDemuxerObject *self, PyObject *args)
         PyErr_Format(PyExc_TypeError, "'params' argument has to be a dict");
         return NULL;
     }
- 
-    return (PyObject *)PyrDecoder_NewFromDemuxer((PyObject*)self,
-                                                 streamid, params);
+
+    if (streamid < 0 || streamid > self->ic->nb_streams) {
+        PyErr_Format(PyrExc_SetupError,
+                     "'streamid' value out of range [0,%i]",
+                     self->ic->nb_streams);
+        return NULL;
+    }
+
+    if (self->ic->streams[streamid]->codec->codec_type == CODEC_TYPE_VIDEO) {
+        dec = (PyObject *)PyrVDecoder_NewFromDemuxer((PyObject*)self,
+                                                     streamid, params);
+    } else {
+        PyErr_Format(PyrExc_SetupError,
+                     "unsupporded codec type for stream %i",
+                     streamid);
+        dec = NULL; /* enforce */
+    }
+    return dec;
 }
 
 static int

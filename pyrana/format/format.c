@@ -37,11 +37,15 @@
 
 #define SUB_MODULE_NAME MODULE_NAME".format"
 
-#define IS_STREAMING_NAME "is_streaming"
-PyDoc_STRVAR(is_streaming_doc,
+#define IS_STREAMING_NAME "is_streamable"
+PyDoc_STRVAR(is_streamable_doc,
 IS_STREAMING_NAME"(name) - returns a boolean telling if format name is streamable"
 );
 
+#define FIND_STREAM_NAME "find_stream"
+PyDoc_STRVAR(find_stream_doc,
+FIND_STREAM_NAME"(streams, streamid, media) - TODO"
+);
 
 
 static PyObject *InputFormats = NULL;
@@ -123,7 +127,7 @@ PyrFormat_IsOutput(const char *fmt)
 
 /*************************************************************************/
 static PyObject *
-is_streaming(PyObject *self, PyObject *args)
+is_streamable(PyObject *self, PyObject *args)
 {
     const char *name = NULL;
     long res = 0;
@@ -137,14 +141,30 @@ is_streaming(PyObject *self, PyObject *args)
     Py_RETURN_FALSE;
 }
 
+/* this one should be probably written in python */
+static PyObject *
+find_stream(PyObject *self, PyObject *args)
+{
+    int retsid = -1;
+
+    return PyInt_FromLong(retsid);
+}
+
+
 /*************************************************************************/
 static PyMethodDef format_functions[] =
 {
     {
         IS_STREAMING_NAME,
-        (PyCFunction)is_streaming,
+        (PyCFunction)is_streamable,
         METH_VARARGS,
-        is_streaming_doc
+        is_streamable_doc
+    },
+    {
+        FIND_STREAM_NAME,
+        (PyCFunction)find_stream,
+        METH_VARARGS,
+        find_stream_doc
     },
     { NULL, NULL },
 };
