@@ -3,3 +3,8 @@ fetch sample test files from http://www.bigbuckbunny.org/index.php/download/
 big_buck_bunny_720p_stereo.ogg
 
 In order to run some tests, you need to edit the samples.cfg file
+
+Naming key:
+st_* -> Stress Test.
+ut_* -> Unit Test.
+

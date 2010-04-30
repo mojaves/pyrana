@@ -3,7 +3,7 @@
 import pyrana
 import unittest
 
-class GlobalsTestCase(unittest.TestCase):
+class CommonTestCase(unittest.TestCase):
     def test_InputFormats(self):
         self.assertTrue(len(pyrana.format.input_formats) > 0)
     def test_OutputFormats(self):

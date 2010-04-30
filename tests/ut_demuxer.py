@@ -22,7 +22,7 @@ class DemuxerTestCase(unittest.TestCase):
         for st, ex in zip(got, expected):
             self.assertTrue(len(st) == len(ex))
             for k in ex:
-                if k == 'extradata':
+                if k == 'extraData':
                     # we can't compare extradata (yet)
                     continue
                 self.failUnlessEqual(ex[k], st[k],
