@@ -176,12 +176,16 @@ VDecoder_dealloc(PyrCodecObject *self)
     int ret = 0;
     /* FIXME: is that needed? Is that needed *here*? */
     /* avcodec_flush_buffers(self->ctx); */
-
-    ret = avcodec_close(self->ctx);
-
     Py_XDECREF(self->params);
+
+    if (self->codec) {
+        ret = avcodec_close(self->ctx);
+    }
+
     if (self->parent) {
         Py_DECREF(self->parent);
+    } else if (self->ctx) {
+        av_free(self->ctx);
     }
     PyObject_Del((PyObject *)self);
 }
@@ -208,18 +212,13 @@ VDecoder_setParamsUser(PyrCodecObject *self, PyObject *params)
 
 /* FIXME: ugly, inexpressive name */
 static int
-VDecoder_initCodec(PyrCodecObject *self, PyObject *params)
+VDecoder_initCodec(PyrCodecObject *self, AVCodec *codec, PyObject *params)
 {
-    int ret = 0;
+    int ret = -1;
 
-    self->codec = avcodec_find_decoder(self->ctx->codec_id);
-    if (self->codec == NULL) {
-        PyErr_Format(PyrExc_SetupError,
-                     "Unable to find a decoder for codec 0x%X",
-                     self->ctx->codec_id);
-        /* FIXME */
-        ret = -1;
-    } else {
+    if (codec) {
+        self->codec = codec;
+
         VDecoder_setParamsDefault(self);
         VDecoder_setParamsUser(self, params);
 
@@ -234,15 +233,56 @@ VDecoder_initCodec(PyrCodecObject *self, PyObject *params)
 }
 
 static int
-VDecoder_init(PyrCodecObject *self, PyObject *args, PyObject *kwds)
+VDecoder_validParams(PyObject *params)
 {
-    return -1;
+    int valid = 1;
+    if (params) {
+        /* FIXME: relax this constraint. A map-like is enough. */
+        if (!PyDict_Check(params)) {
+            PyErr_Format(PyExc_TypeError, "'params' argument has to be a dict");
+            valid = 0;
+        }
+    }
+    return valid;
 }
 
-PyrCodecObject *
-PyrVDecoder_NewFromDemuxer(PyObject *dmx, int streamid, PyObject *params)
+static int
+VDecoder_init(PyrCodecObject *self, PyObject *args, PyObject *kwds)
 {
-    PyrCodecObject *self = NULL;
+    int err = -1;
+    const char *name = NULL;
+    PyObject *params = NULL;
+
+    if (!PyArg_ParseTuple(args, "s|O:init", &name, &params)) { 
+        PyErr_Format(PyrExc_SetupError, "Wrong arguments");
+        return err; 
+    }
+
+    if (VDecoder_validParams(params)) {
+        AVCodec *codec = avcodec_find_decoder_by_name(name);
+        if (!codec) {
+            PyErr_Format(PyrExc_SetupError, "unkown decoder `%s'", name);
+        } else {
+            self->parent = NULL;
+            self->params = NULL;
+            self->codec = NULL;
+            self->ctx = avcodec_alloc_context();
+
+            if (!self->ctx) {
+                PyErr_Format(PyrExc_SetupError,
+                            "unable to alloc the avcodec context");
+            } else {
+                err = VDecoder_initCodec(self, codec, params);
+                /* exception already set */
+            }
+        }
+    }
+    return err;
+}
+
+static PyrDemuxerObject *
+PyrVDecoder_narrowDemuxer(PyObject *dmx, int streamid)
+{
     PyrDemuxerObject *demux = NULL;
 
     if (!PyrDemuxer_Check(dmx)) {
@@ -251,12 +291,6 @@ PyrVDecoder_NewFromDemuxer(PyObject *dmx, int streamid, PyObject *params)
     }
     demux = (PyrDemuxerObject *)dmx;
    
-    if (params) {
-        if (!PyDict_Check(params)) {
-            PyErr_Format(PyExc_TypeError, "'params' argument has to be a dict");
-            return NULL;
-        }
-    }
     if (streamid < 0 || streamid > demux->ic->nb_streams) {
         PyErr_Format(PyrExc_SetupError,
                      "'streamid' value out of range [0,%i]",
@@ -264,19 +298,38 @@ PyrVDecoder_NewFromDemuxer(PyObject *dmx, int streamid, PyObject *params)
         return NULL;
     }
 
-    self = PyObject_New(PyrCodecObject, &VDecoderType);
-    if (self) {
-        int err = 0;
+    return demux;
+}
 
-        self->params = NULL;
-        self->parent = dmx;
-        self->ctx = demux->ic->streams[streamid]->codec;
+PyrCodecObject *
+PyrVDecoder_NewFromDemuxer(PyObject *dmx, int streamid, PyObject *params)
+{
+    PyrCodecObject *self = NULL;
+    PyrDemuxerObject *demux = PyrVDecoder_narrowDemuxer(dmx, streamid);
 
-        err = VDecoder_initCodec(self, params);
-        if (err) {
-            /* TODO */
-        } else {
-            Py_INCREF(self->parent);
+    if (demux && VDecoder_validParams(params)) {
+        self = PyObject_New(PyrCodecObject, &VDecoderType);
+        if (self) {
+            AVCodec *codec = NULL;
+            int err = 0;
+
+            self->params = NULL;
+            self->parent = dmx;
+            self->codec = NULL;
+            self->ctx = demux->ic->streams[streamid]->codec;
+            
+            codec = avcodec_find_decoder(self->ctx->codec_id);
+            if (!codec) {
+                PyErr_Format(PyrExc_SetupError,
+                            "unkown decoder 0x%X",
+                            self->ctx->codec_id);
+            } else {
+               err = VDecoder_initCodec(self, codec, params);
+                /* exception already set, if failed */
+                if (!err) {
+                    Py_INCREF(self->parent);
+                }
+            }
         }
     }
     return self;

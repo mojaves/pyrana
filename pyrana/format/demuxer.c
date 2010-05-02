@@ -178,6 +178,7 @@ Demuxer_OpenDecoder(PyrDemuxerObject *self, PyObject *args)
         PyErr_Format(PyrExc_SetupError, "Wrong arguments");
         return NULL; 
     }
+    /* FIXME: relax this constraint. A map-like is enough. */
     if (params && !PyDict_Check(params)) {
         PyErr_Format(PyExc_TypeError, "'params' argument has to be a dict");
         return NULL;
