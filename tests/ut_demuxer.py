@@ -8,8 +8,8 @@ import helper
 samples = helper.get_samples_path()
 st_info = helper.get_stream_info(samples)
 
-def prepareSource():
-    f = open(samples["OGG_AV"], "rb")
+def prepareSource(K="OGG_AV"):
+    f = open(samples[K], "rb")
     assert(f)
     return f
 
@@ -54,8 +54,9 @@ class DemuxerTestCase(unittest.TestCase):
         streams = getStreams()
         self.failUnlessEqualStreams(streams, st_info["OGG_AV"])
     def test_ForceRightFormat(self):
-        f = prepareSource()
-        dmx = pyrana.format.Demuxer(f, "ogg")
+        fmt = "avi"
+        f = prepareSource("%s_AV" %(fmt.upper()))
+        dmx = pyrana.format.Demuxer(f, fmt)
     def test_ForceInexistentFormat(self):
         self.assertRaises(pyrana.UnsupportedError, wrapOpen, "ZAPZAPZAP")
     def test_ForceWrongFormat(self):
@@ -64,7 +65,7 @@ class DemuxerTestCase(unittest.TestCase):
         dmx = pyrana.format.Demuxer(open(samples["OGG_AV"], "rb"))
         self.failUnlessEqualStreams(dmx.streams, st_info["OGG_AV"])
     def test_OpenDecoder(self):
-        dmx = pyrana.format.Demuxer(open(samples["OGG_AV"], "rb"))
+        dmx = pyrana.format.Demuxer(open(samples["MOV_AV"], "rb"))
         dec = dmx.openDecoder(0)
         self.assertTrue(dec)
         self.assertTrue(hasattr(dec, "decode"))

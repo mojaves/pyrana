@@ -10,7 +10,7 @@ def get_samples_path(cfg="samples.cfg"):
     parser.read(cfg)
     basepath = parser.get("Samples", "samples_dir")
     res = {}
-    for sample in ("ogg_av", "ogg_a", "mpg_a", "mpg_v"): # FIXME
+    for sample in ("ogg_av", "ogg_a", "mpg_a", "mpg_v", "mov_av", "avi_av"): # FIXME
         name = parser.get("Samples", "%s_sample" %(sample))
         root, ext = os.path.splitext(name)
         res[sample.upper()] = os.path.join(basepath, name)
