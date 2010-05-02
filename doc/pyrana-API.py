@@ -131,7 +131,7 @@ user_pixel_formats = frozenset()
 
 
 class Plane(object):
-    # no constructor, can be generated only by Images
+    # no constructor, can be generated only from Images
     planeId
     stride
     width

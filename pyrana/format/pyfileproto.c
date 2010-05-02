@@ -54,7 +54,7 @@ PyrFileProto_GetMappedFile(const char *filename)
 PyObject *
 PyrFileProto_GetFileKey(void)
 {
-    static long int i = 0;
+    static long int i = 0; /* FIXME */
     PyObject *key = PyString_FromFormat("%ld", i++);
     return key;
 }

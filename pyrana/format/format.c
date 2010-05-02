@@ -145,7 +145,7 @@ is_streamable(PyObject *self, PyObject *args)
 static PyObject *
 find_stream(PyObject *self, PyObject *args)
 {
-    int retsid = -1;
+    int retsid = 0;
 
     return PyInt_FromLong(retsid);
 }

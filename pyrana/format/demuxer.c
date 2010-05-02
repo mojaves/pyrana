@@ -109,7 +109,7 @@ Demuxer_FillStreamInfo(PyObject *streaminfo, AVCodecContext *ctx)
     Demuxer_SetAttribute(streaminfo, "type",
                          PyInt_FromLong(ctx->codec_type));
     if (ctx->codec_type == CODEC_TYPE_VIDEO) {
-        Demuxer_SetAttribute(streaminfo, "pixfmt",
+        Demuxer_SetAttribute(streaminfo, "pixFmt",
                              PyString_FromString(avcodec_get_pix_fmt_name(ctx->pix_fmt)));
         if (ctx->width) {
             Demuxer_SetAttribute(streaminfo, "width",
@@ -121,16 +121,16 @@ Demuxer_FillStreamInfo(PyObject *streaminfo, AVCodecContext *ctx)
     if (ctx->codec_type == CODEC_TYPE_AUDIO) {
         Demuxer_SetAttribute(streaminfo, "channels",
                              PyInt_FromLong(ctx->channels));
-        Demuxer_SetAttribute(streaminfo, "samplerate",
+        Demuxer_SetAttribute(streaminfo, "sampleRate",
                              PyInt_FromLong(ctx->sample_rate));
-        Demuxer_SetAttribute(streaminfo, "samplebytes",
+        Demuxer_SetAttribute(streaminfo, "sampleBytes",
                              PyInt_FromLong(2));
         // FIXME: BPP is hardcoded
     }
     if (ctx->extradata && ctx->extradata_size) {
         PyObject *obj = (PyObject *)PyrPacket_NewFromData(ctx->extradata,
                                                           ctx->extradata_size);
-        Demuxer_SetAttribute(streaminfo, "extradata", obj);
+        Demuxer_SetAttribute(streaminfo, "extraData", obj);
     }
     return;
 }
@@ -317,7 +317,7 @@ Demuxer_dealloc(PyrDemuxerObject *self)
 static int
 Demuxer_init(PyrDemuxerObject *self, PyObject *args, PyObject *kwds)
 {
-    char filebuf[Pyr_FILE_KEY_LEN];
+    char filebuf[Pyr_FILE_KEY_LEN] = { '\0' };
     AVInputFormat *ifmt = NULL;
     const char *name = NULL;
     PyObject *src = NULL;
@@ -368,9 +368,11 @@ Demuxer_init(PyrDemuxerObject *self, PyObject *args, PyObject *kwds)
 
     ret = av_open_input_file(&(self->ic), filebuf, ifmt, 0, NULL);
     if (ret != 0) {
+        char errmsg[256] = { '\0' };
+        int averr = av_strerror(ret, errmsg, sizeof(errmsg));
         PyErr_Format(PyrExc_SetupError,
-                    "libavformat error (at open=%i, filebuf=%s)",
-                    ret, filebuf);
+                    "libavformat error: %s (at open=%i:%i, filebuf=%s)",
+                    errmsg, ret, averr, filebuf);
         return -1;
     }
 
