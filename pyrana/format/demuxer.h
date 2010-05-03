@@ -29,10 +29,6 @@
 
 #include "pyrana/format/format.h"
 
-enum {
-    PYRANA_STREAM_ANY  = -1
-};
-
 
 typedef struct {
     PyObject_HEAD

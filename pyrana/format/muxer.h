@@ -29,7 +29,6 @@
 
 #include "pyrana/format/format.h"
 
-/* ---------------------------------------------------------------------- */
 typedef struct {
     PyObject_HEAD
 
@@ -43,7 +42,7 @@ typedef struct {
 } PyrMuxerObject;
 
 
-/* ---------------------------------------------------------------------- */
+int PyrMuxer_Check(PyObject *o);
 int PyrMuxer_Setup(PyObject *m);
 
 #endif /* PYRANA_MUXER_H */

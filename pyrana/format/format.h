@@ -29,6 +29,10 @@
 
 #include "pyrana/pyrana.h"
 
+enum {
+    PYRANA_STREAM_ANY  = -1
+};
+
 int PyrFormat_NeedSeeking(const char *fmt);
 int PyrFormat_IsInput(const char *fmt);
 int PyrFormat_IsOutput(const char *fmt);

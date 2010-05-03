@@ -64,7 +64,22 @@ PyDoc_STRVAR(flush_doc,
 FLUSH_NAME"() -> flush muxer buffers\n"
 );
 
-/* ---------------------------------------------------------------------- */
+#define WRITE_HEADER_NAME "writeHeader"
+PyDoc_STRVAR(writeHeader_doc,
+WRITE_HEADER_NAME"() -> write the header into the underlying stream\n"
+"\n"
+"If the format being muxed doesn't require an header, do nothing.\n"
+);
+
+#define WRITE_TRAILER_NAME "writeTrailer"
+PyDoc_STRVAR(writeTrailer_doc,
+WRITE_HEADER_NAME"() -> write the trailer into the underlying stream\n"
+"\n"
+"If the format being muxed doesn't require a trailer, do nothing.\n"
+);
+
+
+
 static int
 Muxer_SetupCheck(PyrMuxerObject *self)
 {
@@ -75,7 +90,7 @@ Muxer_SetupCheck(PyrMuxerObject *self)
     return 1;
 }
 
-/* ---------------------------------------------------------------------- */
+
 static PyObject *
 Muxer_AddStream(PyrMuxerObject *self, PyObject *args)
 {
@@ -86,14 +101,16 @@ Muxer_AddStream(PyrMuxerObject *self, PyObject *args)
         return NULL;
     }
 
+    /* TODO */
 
     Py_RETURN_NONE;
 }
 
-/* ---------------------------------------------------------------------- */
+
 static PyObject *
 Muxer_GetStreamPTS(PyrMuxerObject *self, PyObject *args)
 {
+    PyObject *PTS = NULL;
     int streamid = -1;
 
     if (!Muxer_SetupCheck(self)) {
@@ -102,21 +119,22 @@ Muxer_GetStreamPTS(PyrMuxerObject *self, PyObject *args)
     }
 
     if (!PyArg_ParseTuple(args, "i:getStreamPTS", &streamid)) {
+        /* TODO exception? */
         return NULL;
     }
 
     if (streamid > self->oc->nb_streams || streamid < 0) {
         PyErr_Format(PyrExc_SetupError,  "Bad stream index");
-        return NULL;
+    } else {
+        PTS = Py_BuildValue("i,i,i",
+                            self->oc->streams[streamid]->pts.val,
+                            self->oc->streams[streamid]->pts.num,
+                            self->oc->streams[streamid]->pts.den);
     }
-
-    return Py_BuildValue("i,i,i",
-                         self->oc->streams[streamid]->pts.val,
-                         self->oc->streams[streamid]->pts.num,
-                         self->oc->streams[streamid]->pts.den);
+    return PTS;
 }
 
-/* ---------------------------------------------------------------------- */
+
 static PyObject *
 Muxer_WriteHeader(PyrMuxerObject *self)
 {
@@ -133,7 +151,7 @@ Muxer_WriteHeader(PyrMuxerObject *self)
     Py_RETURN_NONE;
 }
 
-/* ---------------------------------------------------------------------- */
+
 static PyObject *
 Muxer_WriteTrailer(PyrMuxerObject *self)
 {
@@ -150,7 +168,7 @@ Muxer_WriteTrailer(PyrMuxerObject *self)
     Py_RETURN_NONE;
 }
 
-/* ---------------------------------------------------------------------- */
+
 static PyObject *
 Muxer_WriteFrame(PyrMuxerObject *self, PyObject *args)
 {
@@ -163,11 +181,6 @@ Muxer_WriteFrame(PyrMuxerObject *self, PyObject *args)
         return NULL;
     }
 
-    if (!Muxer_WriteHeader(self)) {
-        /* exception already set, if any */
-        return NULL;
-    }
-    
     if (!PyArg_ParseTuple(args, "O:writeFrame", &obj)) {
         return NULL;
     }
@@ -178,6 +191,11 @@ Muxer_WriteFrame(PyrMuxerObject *self, PyObject *args)
         return NULL;
     }
 
+    if (!Muxer_WriteHeader(self)) {
+        /* exception already set, if any */
+        return NULL;
+    }
+    
     pkt = (PyrPacketObject *)obj;
     if (pkt->pkt.stream_index < 0
      || pkt->pkt.stream_index > self->oc->nb_streams) {
@@ -200,16 +218,15 @@ Muxer_WriteFrame(PyrMuxerObject *self, PyObject *args)
 
 
 
-/* ---------------------------------------------------------------------- */
 static PyObject *
 Muxer_Flush(PyrMuxerObject *self)
 {
+    /* TODO: actually flush packets */
     Muxer_WriteTrailer(self);
-    /* nothing else, yet */
     Py_RETURN_NONE;
 }
 
-/* ---------------------------------------------------------------------- */
+
 static PyMethodDef Muxer_methods[] =
 {
     {
@@ -225,6 +242,18 @@ static PyMethodDef Muxer_methods[] =
         writeFrame_doc
     },
     {
+        WRITE_HEADER_NAME,
+        (PyCFunction)Muxer_WriteHeader,
+        METH_NOARGS,
+        writeHeader_doc
+    },
+    {
+        WRITE_TRAILER_NAME,
+        (PyCFunction)Muxer_WriteTrailer,
+        METH_NOARGS,
+        writeTrailer_doc
+    },
+    {
         GET_STREAM_PTS_NAME,
         (PyCFunction)Muxer_GetStreamPTS,
         METH_VARARGS,
@@ -236,11 +265,10 @@ static PyMethodDef Muxer_methods[] =
         METH_NOARGS,
         flush_doc
     },
-
     { NULL, NULL }, /* Sentinel */
 };
 
-/* ---------------------------------------------------------------------- */
+
 static void
 Muxer_dealloc(PyrMuxerObject *self)
 {
@@ -254,7 +282,7 @@ Muxer_dealloc(PyrMuxerObject *self)
     }
 }
 
-/* ---------------------------------------------------------------------- */
+
 static int
 Muxer_init(PyrMuxerObject *self, PyObject *args, PyObject *kwds)
 {
@@ -271,7 +299,7 @@ Muxer_init(PyrMuxerObject *self, PyObject *args, PyObject *kwds)
         return -1;
     }
 
-    /* XXX */
+    /* TODO */
     
     self->key = PyrFileProto_GetFileKey();
     if (!self->key) {
@@ -286,7 +314,7 @@ Muxer_init(PyrMuxerObject *self, PyObject *args, PyObject *kwds)
         return -1;
     }
 
-    /* XXX */
+    /* TODO */
 
     return 0;
 }
@@ -335,7 +363,6 @@ static PyTypeObject MuxerType =
     PyType_GenericNew,                      /* tp_new */
 };
 
-/* ---------------------------------------------------------------------- */
 int 
 PyrMuxer_Setup(PyObject *m)
 {
@@ -349,5 +376,5 @@ PyrMuxer_Setup(PyObject *m)
     return 0;
 }
 
-/* ---------------------------------------------------------------------- */
+/* vim: set ts=4 sw=4 et */
 

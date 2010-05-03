@@ -188,8 +188,7 @@ PyrFormat_Setup(PyObject *m)
 
         PyrPacket_Setup(sm);
         PyrDemuxer_Setup(sm);
-        /*PyrMuxer_Setup(sm);*/
-        /* intentionally and temporarily left out */
+        PyrMuxer_Setup(sm);
 
         PyModule_AddObject(m, "format", sm);
         ret = 0;
