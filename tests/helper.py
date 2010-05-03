@@ -4,6 +4,8 @@ import pyrana
 import os
 import os.path
 import ConfigParser
+import unittest
+
 
 def get_samples_path(cfg="samples.cfg"):
     parser = ConfigParser.ConfigParser()
@@ -36,4 +38,19 @@ def get_stream_info(samples):
                         'extraData'  : None,
                     })
             }
+
+
+class BaseFormatTestCase(unittest.TestCase):
+    def failUnlessEqualStreams(self, got, expected):
+        for st, ex in zip(got, expected):
+            self.assertTrue(len(st) == len(ex))
+            for k in ex:
+                if k == 'extraData':
+                    # we can't compare extradata (yet)
+                    continue
+                self.failUnlessEqual(ex[k], st[k],
+                                     "'%s' is different: ref='%s' got='%s'" \
+                                     %(k, ex[k], st[k]))
+
+
 

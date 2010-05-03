@@ -17,17 +17,7 @@ def wrapOpen(fmt):
     f = prepareSource()
     dmx = pyrana.format.Demuxer(f, fmt)
 
-class DemuxerTestCase(unittest.TestCase):
-    def failUnlessEqualStreams(self, got, expected):
-        for st, ex in zip(got, expected):
-            self.assertTrue(len(st) == len(ex))
-            for k in ex:
-                if k == 'extraData':
-                    # we can't compare extradata (yet)
-                    continue
-                self.failUnlessEqual(ex[k], st[k],
-                                     "'%s' is different: ref='%s' got='%s'" \
-                                     %(k, ex[k], st[k]))
+class DemuxerTestCase(helper.BaseFormatTestCase):
     def test_CreateDemuxer(self):
         f = prepareSource()
         dmx = pyrana.format.Demuxer(f)
