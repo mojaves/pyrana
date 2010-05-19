@@ -318,7 +318,7 @@ Demuxer_dealloc(PyrDemuxerObject *self)
 static int
 Demuxer_init(PyrDemuxerObject *self, PyObject *args, PyObject *kwds)
 {
-    char filebuf[Pyr_FILE_KEY_LEN] = { '\0' };
+    char filebuf[PYR_FILE_KEY_LEN] = { '\0' };
     AVInputFormat *ifmt = NULL;
     const char *name = NULL;
     PyObject *src = NULL;

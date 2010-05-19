@@ -28,7 +28,10 @@
 
 #include "format.h"
 
-#define Pyr_FILE_KEY_LEN	(64)
+enum {
+    PYR_FILE_KEY_LEN = 64
+};
+
 
 /* returns a NEW reference */
 PyObject *PyrFileProto_GetMappedFile(const char *filename);

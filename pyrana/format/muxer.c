@@ -36,7 +36,7 @@ static PyTypeObject MuxerType;
 PyDoc_STRVAR(Muxer_doc,
 MUXER_NAME"(name) -> Muxer\n"
 "\n"
-"Returns muxer object based on extension passed."
+"WRITEME."
 );
 
 #define ADD_STREAM_NAME "addStream" 
@@ -49,7 +49,7 @@ ADD_STREAM_NAME"(codec_id, [codec_params]) -> stream index\n"
 
 #define WRITE_FRAME_NAME "writeFrame"
 PyDoc_STRVAR(writeFrame_doc,
-WRITE_FRAME_NAME"(stream_index, Packet) -> None\n"
+WRITE_FRAME_NAME"(Packet) -> None\n"
 "\n"
 "Write frame into on of the streams in muxer.\n"
 );
@@ -287,33 +287,58 @@ static int
 Muxer_init(PyrMuxerObject *self, PyObject *args, PyObject *kwds)
 {
     const char *name = NULL;
-    char filebuf[Pyr_FILE_KEY_LEN];
-    int seeking = 0, ret = -1;
+    int ret = -1;
     PyObject *src = NULL;
 
     if (!PyArg_ParseTuple(args, "O|s:init", &src, &name)) { 
+        /* TODO */
         return -1; 
     }
     
     if (!PyFile_Check(src)) {
+        /* TODO */
         return -1;
     }
 
-    /* TODO */
-    
-    self->key = PyrFileProto_GetFileKey();
-    if (!self->key) {
+    self->oc = avformat_alloc_context();
+    if (!self->oc) {
+        /* TODO */
         return -1;
     }
 
-    snprintf(filebuf, sizeof(filebuf), "%s://%s",
-             seeking ?"pyfile" :"pypipe",
-             PyString_AsString(self->key));
-    ret = PyrFileProto_AddMappedFile(self->key, src);
-    if (ret != 0) {
+    self->oc->oformat = av_guess_format(name, NULL, NULL); /* TODO */
+    if (!self->oc->oformat) {
+        /* TODO */
         return -1;
     }
 
+    av_set_parameters(self->oc, NULL); /* TODO */
+   
+    /* open the output file, if needed */
+    if (!(self->oc->oformat->flags & AVFMT_NOFILE)) {
+        char filebuf[PYR_FILE_KEY_LEN + 1] = { '\0' };
+        int seeking = 0;
+
+        self->key = PyrFileProto_GetFileKey();
+        if (!self->key) {
+            /* TODO */
+            return -1;
+        }    
+
+        snprintf(filebuf, sizeof(filebuf), "%s://%s",
+                 seeking ?"pyfile" :"pypipe",
+                 PyString_AsString(self->key));
+        ret = PyrFileProto_AddMappedFile(self->key, src);
+        if (ret != 0) {
+            return -1;
+        }
+
+        strncpy(self->oc->filename, filebuf, PYR_FILE_KEY_LEN);
+        ret = url_fopen(&(self->oc->pb), filebuf, URL_WRONLY);
+        if (ret < 0) {
+            /* FIXME */
+        }
+    }
     /* TODO */
 
     return 0;
