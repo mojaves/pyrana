@@ -1,120 +1,15 @@
 Pyrana coding style guidelines
 ===============================
 
-Python side
------------
+In a nutshell:
+* PEP8 guidelines applies for python code,
+* PEP7 applies for C code.
 
-PEP8 guidelines applies for python code,
-PEP7 applies for C code.
+A few notes about local extensions/addendum to the PEPs above follows.
 
-While not specified by any above, the following applies:
+PEP7 addendum
+-------------
 
-Semantics
----------
+TODO
 
-* Functions should not be overly long or complex; as a rule of thumb, if a
-  function has more than four levels of indentation then it should probably
-  be broken up into separate functions.
-
-* Do not use binary operators to perform arithmetic operations.  In
-  particular, never use bit-shift operators in place of multiplication or
-  division by powers of two.  (Modern compilers are smart enough to convert
-  arithmetic expressions like "x/2" to a bit-shift operation; moreover,
-  right shift and division give different results on negative numbers.)
-  Binary operators should only be used when operating on bitmasks or other
-  values where there is a need to extract or modify particular bits,
-  independent of the value of the variable as a whole.
-
-* Always use the increment and decrement operators (++ and --) as postfix
-  operators, except in expressions that require prefix usage.
-
-* Avoid nesting assignment expressions (including increment and decrement
-  operations) within other expressions, to the extent that extracting the
-  assignment operation would not unduly complicate the code.  In the
-  following example, separating the strtok() call and its comparison would
-  require changing the structure of the loop completely, so the example is
-  acceptable as is:
-
-      while ((s = strtok(NULL, " \t\r\n")) != NULL) {
-          ...
-      }
-
-* Do not use an assignment expression as the condition in an "if", "while",
-  or "for" test; explicitly compare the result of the assignment against 0
-  or NULL, as appropriate.
-
-* Do not use the result of a logical expression (operators &&, ||, ==,
-  etc.) as an operand in an arithmetic or binary expression.
-
-* Always use NULL, not 0, in pointer comparisons.  For character
-  comparisons, use 0 when checking for the null terminator at the end of a
-  string; use '\0' only if the intent is to check for the ASCII character
-  NUL as part of a string.  Do not use '\0' with variables declared as type
-  int8_t or uint8_t, even though these types are usually equivalent to char
-  and unsigned char.
-
-* The construct "!!expression" should not be used.  Use "expression != 0"
-  (for characters or integers) or "expression != NULL" (for pointers)
-  instead.
-
-* All exported functions must be prototyped in a header file.
-
-* When declaring a function that takes no parameters, use "(void)" instead
-  of "()", since the latter does not declare a prototype in C.  Example:
-
-      int function(void)  /* Function that takes no parameters */
-      {
-          ...
-      }
-
-* Do not use the "inline" keyword.  Most compilers can determine
-  automatically when inlining a function will be beneficial, and will do
-  so (if told to optimize) even without the "inline"; older compilers may
-  not understand "inline" at all.
-
-* Functions should check all parameters for validity.  However, in cases
-  where it is clear that a parameter is valid (for example, because the
-  function is only called by one other function under specific
-  circumstances), it is acceptable to assume the parameter is valid if that
-  assumption is listed as a precondition in the function's header.
-
-* Variables should be declared in the innermost block which completely
-  encloses all uses of the variable.  However, a loop counter in a nested
-  loop may be declared at a higher level if there are no other loop-local
-  variables at the appropriate level.  Examples:
-
-      int function(int limit)
-      {
-          int foo = 0;  /* used throughout the function */
-          int i;        /* used in a top-level loop */
-          int j;        /* used in a nested loop, no other locals */
-
-          for (i = 0; i < limit; i++) {
-              /* No loop-local variables here, so j is declared above */
-              for (j = 0; j < 3; j++) {
-                  int x, y;  /* only used inside the loop body */
-                  otherfunction(i, j, &x, &y);
-                  foo += x * y;
-              }
-          }
-          return foo;
-      }
-
-* The goto statement should not be used except in error handling situations
-  where it will help avoid multiple levels of if nesting or other awkward
-  code.  Labels for goto should be outdented half of an indentation unit
-  from the surrounding code (i.e., indented two columns less than the
-  surrounding code).
-
-* assert() must not be used.  If a sanity check fails, the program should
-  either recover as best it can or, if recovery is impossible, print a
-  meaningful error message and exit gracefully.
-
-
-Thanks
-------
-
-This document is a stripped-down and tuned derivative of transcode style
-guidelines. Thanks to Andrew Church who wrote most of the original
-document.
 
