@@ -34,7 +34,7 @@
 
 
 enum {
-    PYR_PLANES_NUM  = 4
+    Pyr_PLANES_NUM  = 4
 };
 
 
@@ -53,7 +53,7 @@ typedef struct {
         int width;
         int height;
         int size;
-    } infos[PYR_PLANES_NUM]; 
+    } infos[Pyr_PLANES_NUM]; 
 } PyrPlaneInfo;
 
 typedef struct {
@@ -79,9 +79,9 @@ int PyrImage_Check(PyObject *o);
 int PyrImage_Setup(PyObject *m);
 
 typedef enum {
-    PYR_VFRAME_ORIGIN_UNKNOWN = 0,
-    PYR_VFRAME_ORIGIN_USER,
-    PYR_VFRAME_ORIGIN_LIBAV
+    Pyr_VFRAME_ORIGIN_UNKNOWN = 0,
+    Pyr_VFRAME_ORIGIN_USER,
+    Pyr_VFRAME_ORIGIN_LIBAV
 } PyrVFrameOrigin;
 
 struct pyrvframeobject_ {
@@ -102,4 +102,6 @@ int PyrVFrame_Setup(PyObject *m);
 
 
 #endif /* PYRANA_PICTURE_H */
+
+/* vim: set ts=4 sw=4 et */
 

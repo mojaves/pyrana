@@ -28,11 +28,16 @@
 
 #include "pyrana/pyrana.h"
 
+
 enum {
-    PYR_PICT_NO_TYPE = -1,
-    PYR_FRAMENUM_NULL = -1
+    Pyr_PICT_NO_TYPE = -1,
+    Pyr_FRAMENUM_NULL = -1
 };
+
 
 int PyrVideo_Setup(PyObject *m);
 
 #endif /* PYRANA_VIDEO_H */
+
+/* vim: set ts=4 sw=4 et */
+

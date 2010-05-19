@@ -29,6 +29,7 @@
 
 #include "pyrana.h"
 
+
 extern PyObject *PyrExc_PyrediaError;
 extern PyObject *PyrExc_EOSError;
 extern PyObject *PyrExc_ProcessingError;
@@ -36,8 +37,10 @@ extern PyObject *PyrExc_SetupError;
 extern PyObject *PyrExc_UnsupportedError;
 extern PyObject *PyrExc_NeedFeedError;
 
-/**************************************************************************/
 
 int PyrErrors_Setup(PyObject *m);
 
 #endif /* PYRANA_ERRORS_H */
+
+/* vim: set ts=4 sw=4 et */
+

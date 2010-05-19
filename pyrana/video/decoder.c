@@ -22,6 +22,7 @@
  * 3. This notice may not be removed or altered from any source
  * distribution.
  */ 
+
 /* FIXME: ugly */
 #include "pyrana/format/demuxer.h"
 
@@ -33,46 +34,24 @@
 
 #define VDECODER_NAME "Decoder"
 
-#define VDECODE "decode"
-PyDoc_STRVAR(vDecode_doc,
-VDECODE"(Packet) -> Frame Object\n"
-"decodes a complete encoded frame, enclosed in a Packet, into a Frame.\n"
-"\n"
-"Raises a NeedFeedError if fed with a Packet which doesn't contain a\n"
-"complete frame. In that case the partial Packet is buffered internally.");
-
-#define VDFLUSH "flush"
-PyDoc_STRVAR(vdFlush_doc,
-VDFLUSH"() -> Frame Object\n"
-"flushes any internal buffered Packets (see decode() doc) and returns\n"
-"the corresponding Frame, one per call.\n"
-"\n"
-"Raises ProcessingError when all buffers have been flushed.");
-
-#define VDPARAMS "params"
-PyDoc_STRVAR(vdParams_doc,
-VDPARAMS" -> params\n"
-"Returns dictionary containing the decoder configuration parameters.\n"
-"The content depends by the format being decoded.\n");
 
 
-PyDoc_STRVAR(VDecoder_doc,
-VDECODER_NAME"(file [, name]) -> demuxer\n"
-"Returns demuxer objecte.");
-
-
-
-
-static PyTypeObject VDecoderType;
+static PyTypeObject VDecoder_Type;
 
 
 int
 PyrCodec_Check(PyObject *o)
 {
-    return PyObject_TypeCheck(o, &VDecoderType);
+    return PyObject_TypeCheck(o, &VDecoder_Type);
 }
 
 
+#define VDECODER_PARAMS "params"
+PyDoc_STRVAR(VDecoder_Params__doc__,
+VDECODER_PARAMS" -> params\n"
+"Returns dictionary containing the decoder configuration parameters.\n"
+"The content depends by the format being decoded.\n"
+);
 static PyObject *
 VDecoder_GetParams(PyrCodecObject *self)
 {
@@ -92,10 +71,12 @@ VDecoder_DecodePacket(PyrCodecObject *self, AVPacket *pkt)
         if (ret < 0) {
             PyErr_Format(PyrExc_ProcessingError, "Decode error (%i)", ret);
             failed = 1;
-        } else if (!got_picture) {
+        }
+        else if (!got_picture) {
             PyErr_Format(PyrExc_NeedFeedError, "Bytes consumed (%i)", ret);
             failed = 1;
-        } else {
+        }
+        else {
             PyrImage img;
             memset(&img, 0, sizeof(PyrImage));
             img.width  = self->ctx->width;
@@ -115,7 +96,14 @@ VDecoder_DecodePacket(PyrCodecObject *self, AVPacket *pkt)
 }
 
 
-
+#define VDECODER_DECODE "decode"
+PyDoc_STRVAR(VDecoder_Decode__doc__,
+VDECODER_DECODE"(Packet) -> Frame Object\n"
+"decodes a complete encoded frame, enclosed in a Packet, into a Frame.\n"
+"\n"
+"Raises a NeedFeedError if fed with a Packet which doesn't contain a\n"
+"complete frame. In that case the partial Packet is buffered internally."
+);
 static PyObject *
 VDecoder_Decode(PyrCodecObject *self, PyObject *args)
 {
@@ -125,14 +113,21 @@ VDecoder_Decode(PyrCodecObject *self, PyObject *args)
         return NULL;
     }
 
-    if (!PyrPacket_Check((PyObject*)packet)) {
+    if (!PyrPacket_Check((PyObject *)packet)) {
         PyErr_Format(PyrExc_ProcessingError, "Invalid packet");
         return NULL;
     }
     return VDecoder_DecodePacket(self, &(packet->pkt));
 }
 
-
+#define VDECODER_FLUSH "flush"
+PyDoc_STRVAR(VDecoder_Flush__doc__,
+VDECODER_FLUSH"() -> Frame Object\n"
+"flushes any internal buffered Packets (see decode() doc) and returns\n"
+"the corresponding Frame, one per call.\n"
+"\n"
+"Raises ProcessingError when all buffers have been flushed."
+);
 static PyObject *
 VDecoder_Flush(PyrCodecObject *self, PyObject *args)
 {
@@ -152,26 +147,26 @@ VDecoder_Flush(PyrCodecObject *self, PyObject *args)
 
 
 
-static PyMethodDef VDecoder_methods[] =
+static PyMethodDef VDecoder_Methods[] =
 {
     {
-        VDECODE,
+        VDECODER_DECODE,
         (PyCFunction)VDecoder_Decode,
         METH_VARARGS,
-        vDecode_doc
+        VDecoder_Decode__doc__
     },
     {
-        VDFLUSH,
+        VDECODER_FLUSH,
         (PyCFunction)VDecoder_Flush,
         METH_VARARGS,
-        vdFlush_doc
+        VDecoder_Flush__doc__
     },
     { NULL, NULL }, /* Sentinel */
 };
 
 
 static void
-VDecoder_dealloc(PyrCodecObject *self)
+VDecoder_Dealloc(PyrCodecObject *self)
 {
     int ret = 0;
     /* FIXME: is that needed? Is that needed *here*? */
@@ -184,14 +179,15 @@ VDecoder_dealloc(PyrCodecObject *self)
 
     if (self->parent) {
         Py_DECREF(self->parent);
-    } else if (self->ctx) {
+    }
+    else if (self->ctx) {
         av_free(self->ctx);
     }
     PyObject_Del((PyObject *)self);
 }
 
 static void
-VDecoder_setParamsDefault(PyrCodecObject *self)
+VDecoder_SetParamsDefault(PyrCodecObject *self)
 {
     if (self->codec->capabilities & CODEC_CAP_TRUNCATED) {
         self->ctx->flags |= CODEC_FLAG_TRUNCATED;
@@ -204,7 +200,7 @@ VDecoder_setParamsDefault(PyrCodecObject *self)
 }
 
 static void
-VDecoder_setParamsUser(PyrCodecObject *self, PyObject *params)
+VDecoder_SetParamsUser(PyrCodecObject *self, PyObject *params)
 {
     /* TODO */
     return;
@@ -212,15 +208,15 @@ VDecoder_setParamsUser(PyrCodecObject *self, PyObject *params)
 
 /* FIXME: ugly, inexpressive name */
 static int
-VDecoder_initCodec(PyrCodecObject *self, AVCodec *codec, PyObject *params)
+VDecoder_InitCodec(PyrCodecObject *self, AVCodec *codec, PyObject *params)
 {
     int ret = -1;
 
     if (codec) {
         self->codec = codec;
 
-        VDecoder_setParamsDefault(self);
-        VDecoder_setParamsUser(self, params);
+        VDecoder_SetParamsDefault(self);
+        VDecoder_SetParamsUser(self, params);
 
         ret = avcodec_open(self->ctx, self->codec);
         if (ret < 0) {
@@ -233,7 +229,7 @@ VDecoder_initCodec(PyrCodecObject *self, AVCodec *codec, PyObject *params)
 }
 
 static int
-VDecoder_validParams(PyObject *params)
+VDecoder_ValidParams(PyObject *params)
 {
     int valid = 1;
     if (params) {
@@ -246,8 +242,12 @@ VDecoder_validParams(PyObject *params)
     return valid;
 }
 
+PyDoc_STRVAR(VDecoder__doc__,
+VDECODER_NAME"(file [, name]) -> demuxer\n"
+"Returns demuxer objecte."
+);
 static int
-VDecoder_init(PyrCodecObject *self, PyObject *args, PyObject *kwds)
+VDecoder_Init(PyrCodecObject *self, PyObject *args, PyObject *kwds)
 {
     int err = -1;
     const char *name = NULL;
@@ -258,11 +258,12 @@ VDecoder_init(PyrCodecObject *self, PyObject *args, PyObject *kwds)
         return err; 
     }
 
-    if (VDecoder_validParams(params)) {
+    if (VDecoder_ValidParams(params)) {
         AVCodec *codec = avcodec_find_decoder_by_name(name);
         if (!codec) {
             PyErr_Format(PyrExc_SetupError, "unkown decoder `%s'", name);
-        } else {
+        }
+        else {
             self->parent = NULL;
             self->params = NULL;
             self->codec = NULL;
@@ -271,8 +272,9 @@ VDecoder_init(PyrCodecObject *self, PyObject *args, PyObject *kwds)
             if (!self->ctx) {
                 PyErr_Format(PyrExc_SetupError,
                             "unable to alloc the avcodec context");
-            } else {
-                err = VDecoder_initCodec(self, codec, params);
+            }
+            else {
+                err = VDecoder_InitCodec(self, codec, params);
                 /* exception already set */
             }
         }
@@ -281,7 +283,7 @@ VDecoder_init(PyrCodecObject *self, PyObject *args, PyObject *kwds)
 }
 
 static PyrDemuxerObject *
-PyrVDecoder_narrowDemuxer(PyObject *dmx, int streamid)
+PyrVDecoder_NarrowDemuxer(PyObject *dmx, int streamid)
 {
     PyrDemuxerObject *demux = NULL;
 
@@ -305,10 +307,10 @@ PyrCodecObject *
 PyrVDecoder_NewFromDemuxer(PyObject *dmx, int streamid, PyObject *params)
 {
     PyrCodecObject *self = NULL;
-    PyrDemuxerObject *demux = PyrVDecoder_narrowDemuxer(dmx, streamid);
+    PyrDemuxerObject *demux = PyrVDecoder_NarrowDemuxer(dmx, streamid);
 
-    if (demux && VDecoder_validParams(params)) {
-        self = PyObject_New(PyrCodecObject, &VDecoderType);
+    if (demux && VDecoder_ValidParams(params)) {
+        self = PyObject_New(PyrCodecObject, &VDecoder_Type);
         if (self) {
             AVCodec *codec = NULL;
             int err = 0;
@@ -323,8 +325,9 @@ PyrVDecoder_NewFromDemuxer(PyObject *dmx, int streamid, PyObject *params)
                 PyErr_Format(PyrExc_SetupError,
                             "unkown decoder 0x%X",
                             self->ctx->codec_id);
-            } else {
-               err = VDecoder_initCodec(self, codec, params);
+            }
+            else {
+               err = VDecoder_InitCodec(self, codec, params);
                 /* exception already set, if failed */
                 if (!err) {
                     Py_INCREF(self->parent);
@@ -337,20 +340,25 @@ PyrVDecoder_NewFromDemuxer(PyObject *dmx, int streamid, PyObject *params)
 
 
 
-static PyGetSetDef VDecoder_getsetlist[] =
+static PyGetSetDef VDecoder_GetSetList[] =
 {
-    { VDPARAMS, (getter)VDecoder_GetParams, NULL, vdParams_doc },
+    {
+        VDECODER_PARAMS,
+        (getter)VDecoder_GetParams,
+        NULL,
+        VDecoder_Params__doc__
+    },
     { NULL }, /* Sentinel */
 };
 
-static PyTypeObject VDecoderType =
+static PyTypeObject VDecoder_Type =
 {
     PyObject_HEAD_INIT(NULL)
     0,
     VDECODER_NAME,
     sizeof(PyrCodecObject),
     0,
-    (destructor)VDecoder_dealloc,           /* tp_dealloc */
+    (destructor)VDecoder_Dealloc,           /* tp_Dealloc */
     0,                                      /* tp_print */
     0,                                      /* tp_getattr */
     0,                                      /* tp_setattr */
@@ -366,22 +374,22 @@ static PyTypeObject VDecoderType =
     0,                                      /* tp_setattro */
     0,                                      /* tp_as_buffer */
     Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE, /* tp_flags */
-    VDecoder_doc,                           /* tp_doc */
+    VDecoder__doc__,                        /* tp_doc */
     0,                                      /* tp_traverse */
     0,                                      /* tp_clear */
     0,                                      /* tp_richcompare */
     0,                                      /* tp_weaklistoffset */
     0,                                      /* tp_iter */
     0,                                      /* tp_iternext */
-    VDecoder_methods,                       /* tp_methods */
+    VDecoder_Methods,                       /* tp_methods */
     0,                                      /* tp_members */
-    VDecoder_getsetlist,                    /* tp_getset */
+    VDecoder_GetSetList,                    /* tp_getset */
     0,                                      /* tp_base */
     0,                                      /* tp_dict */
     0,                                      /* tp_descr_get */
     0,                                      /* tp_descr_set */
     0,                                      /* tp_dictoffset */
-    (initproc)VDecoder_init,                /* tp_init */
+    (initproc)VDecoder_Init,                /* tp_init */
     PyType_GenericAlloc,                    /* tp_alloc */
     PyType_GenericNew,                      /* tp_new */
 };
@@ -390,13 +398,13 @@ static PyTypeObject VDecoderType =
 int
 PyrVDecoder_Setup(PyObject *m)
 {
-    if (PyType_Ready(&VDecoderType) < 0) {
+    if (PyType_Ready(&VDecoder_Type) < 0) {
         return -1;
     }
 
-    VDecoderType.ob_type = &PyType_Type;
-    Py_INCREF((PyObject *)&VDecoderType);
-    PyModule_AddObject(m, VDECODER_NAME, (PyObject *)&VDecoderType);
+    VDecoder_Type.ob_type = &PyType_Type;
+    Py_INCREF((PyObject *)&VDecoder_Type);
+    PyModule_AddObject(m, VDECODER_NAME, (PyObject *)&VDecoder_Type);
     return 0;
 }
 

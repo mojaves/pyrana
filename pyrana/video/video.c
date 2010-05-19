@@ -32,7 +32,7 @@
 
 #define SUB_MODULE_NAME MODULE_NAME".video"
 
-#define PYR_BUF_SIZE        (128)
+#define Pyr_BUF_SIZE        (128)
 
 /*************************************************************************/
 
@@ -100,7 +100,7 @@ PyrVideo_Setup(PyObject *m)
         /* FIXME:
          * smells wrong, need to figure something better (more coherent?)
          */
-        PyModule_AddIntConstant(sm, "PICT_NO_TYPE", PYR_PICT_NO_TYPE);
+        PyModule_AddIntConstant(sm, "PICT_NO_TYPE", Pyr_PICT_NO_TYPE);
         PyModule_AddIntConstant(sm, "PICT_I_TYPE",  FF_I_TYPE);
         PyModule_AddIntConstant(sm, "PICT_P_TYPE",  FF_P_TYPE);
         PyModule_AddIntConstant(sm, "PICT_B_TYPE",  FF_B_TYPE);

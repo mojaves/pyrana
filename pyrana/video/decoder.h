@@ -38,5 +38,7 @@ int PyrVDecoder_Check(PyObject *o);
 int PyrVDecoder_Setup(PyObject *m);
 
 
-
 #endif /* PYRANA_VDECODER_H */
+
+/* vim: set ts=4 sw=4 et */
+
