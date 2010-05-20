@@ -10,6 +10,37 @@ A few notes about local extensions/addendum to the PEPs above follows.
 PEP7 addendum
 -------------
 
-TODO
+* internal (private) functions: 
+  MixedCase()
 
+* ...unless they implement operations on a type:
+  MyType_DoSomething()
+
+* brace positioning:
+  enum {
+      FOO,
+      BAR
+  };
+
+  struct FooBar {
+  };
+
+* docstrings: SomeThing__doc__ (append __doc__ suffix)
+  always near the thing they document.
+
+* naming of variables (and parameters):
+  separated_with_underscore_if_needed
+  abbreviations are fine as long as they are common enough
+  (fmt, buf, len, pkt, pts, kwd(s) ...)
+
+* globals:
+  avoid as much as is possible. Prefix with g_.
+  Make them static. Never export a global.
+
+* Type attribute data (as buffer, get/set)
+  they are both variables and part of a Type definition, so
+  MyType_some_thing
+
+* Type Objects:
+  MyTypeObjects. As done in the python sources.
 
