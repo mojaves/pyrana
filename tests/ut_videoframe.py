@@ -23,33 +23,33 @@ class VFrameCommonBaseTestCase(object):
         f = self._new_frame()
         # TODO image test
         self.assertTrue(f.pts == pyrana.TS_NULL)
-        self.assertTrue(f.isKey == True)
-        self.assertTrue(f.topFieldFirst == False)
-        self.assertTrue(f.isInterlaced == False)
-        self.assertTrue(f.picType == pyrana.video.PICT_NO_TYPE)
-        self.assertTrue(f.codedNum == pyrana.FRAMENUM_NULL)
-        self.assertTrue(f.displayNum == pyrana.FRAMENUM_NULL)
+        self.assertTrue(f.is_key == True)
+        self.assertTrue(f.top_field_first == False)
+        self.assertTrue(f.is_interlaced == False)
+        self.assertTrue(f.pic_type == pyrana.video.PICT_NO_TYPE)
+        self.assertTrue(f.coded_num == pyrana.FRAMENUM_NULL)
+        self.assertTrue(f.display_num == pyrana.FRAMENUM_NULL)
     def test_CannotResetPTS(self):
         self._check_cannotResetField(self._new_frame(),
                                      "pts", pyrana.TS_NULL, 23)
     def test_CannotResetIsKey(self):
         self._check_cannotResetField(self._new_frame(),
-                                     "isKey", True, False)
+                                     "is_key", True, False)
     def test_CannotResetTopFieldFirst(self):
         self._check_cannotResetField(self._new_frame(),
-                                     "topFieldFirst", False, True)
+                                     "top_field_first", False, True)
     def test_CannotResetIsInterlaced(self):
         self._check_cannotResetField(self._new_frame(),
-                                     "isInterlaced", False, True)
+                                     "is_interlaced", False, True)
     def test_CannotResetPicType(self):
         self._check_cannotResetField(self._new_frame(),
-                                     "picType", pyrana.video.PICT_NO_TYPE,
+                                     "pic_type", pyrana.video.PICT_NO_TYPE,
                                                 pyrana.video.PICT_I_TYPE)
-    def test_CannotResetCodedNum(self):
-        self._check_cannotResetField(self._new_frame(), "codedNum",
+    def test_CannotResetCoded_num(self):
+        self._check_cannotResetField(self._new_frame(), "coded_num",
                                      pyrana.FRAMENUM_NULL, 42)
-    def test_CannotResetDisplayNum(self):
-        self._check_cannotResetField(self._new_frame(), "displayNum",
+    def test_CannotResetDisplay_num(self):
+        self._check_cannotResetField(self._new_frame(), "display_num",
                                      pyrana.FRAMENUM_NULL, 42)
     def test_GetImage(self):
         i = self._new_img(400, 300)
@@ -57,15 +57,15 @@ class VFrameCommonBaseTestCase(object):
         j = f.image
         self.assertTrue(i.width == j.width)
         self.assertTrue(i.height == j.height)
-        self.assertTrue(i.pixFmt == j.pixFmt)
+        self.assertTrue(i.pix_fmt == j.pix_fmt)
     def test_GetImageLifeTime(self):
         i = self._new_img(400, 300)
         f = self._new_frame(i)
         del i
         j = f.image
-        self.assertTrue(j.pixFmt == "rgb24")
+        self.assertTrue(j.pix_fmt == "rgb24")
         del f
-        self.assertTrue(j.pixFmt == "rgb24")
+        self.assertTrue(j.pix_fmt == "rgb24")
         
 
 

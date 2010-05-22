@@ -28,12 +28,12 @@ class ImageCommonBaseTestCase(object):
         self.failUnlessRaises(pyrana.SetupError, self._build_img,
                               self.width, self.height, ())
     def test_InitValues(self):
-        i = self._build_img(self.width, self.height, self.data, self.pixFmt)
+        i = self._build_img(self.width, self.height, self.data, self.pix_fmt)
         self.assertTrue(i.width == self.width)
         self.assertTrue(i.height == self.height)
-        self.assertTrue(i.pixFmt == self.pixFmt)
+        self.assertTrue(i.pix_fmt == self.pix_fmt)
         # gratuitous
-        self.assertTrue(i.pixFmt in pyrana.video.user_pixel_formats)
+        self.assertTrue(i.pix_fmt in pyrana.video.user_pixel_formats)
     def test_CannotResetWidth(self):
         i = self._build_img(self.width, self.height, self.data)
         self.assertTrue(i.width == self.width)
@@ -47,13 +47,13 @@ class ImageCommonBaseTestCase(object):
     def test_CannotResetPixFmt(self):
         i = self._build_img(self.width, self.height, self.data)
         self.assertTrue(i.width == self.width)
-        self.assertRaises(AttributeError, setattr, i, "pixFmt", "something")
+        self.assertRaises(AttributeError, setattr, i, "pix_fmt", "something")
         self.assertTrue(i.width == self.width)
  
 
 class ImageFromDataTestCase(ImageCommonBaseTestCase, unittest.TestCase):
     def setUp(self):
-        self.pixFmt = "rgb24"
+        self.pix_fmt = "rgb24"
         self.width, self.height = 320, 240
         self.data = "\0\0\0" * self.width * self.height
     def _build_img(self, w, h, d, n="rgb24"):
@@ -61,7 +61,7 @@ class ImageFromDataTestCase(ImageCommonBaseTestCase, unittest.TestCase):
 
 class ImageFromPlanesTestCase(ImageCommonBaseTestCase, unittest.TestCase):
     def setUp(self):
-        self.pixFmt = "yuv420p"
+        self.pix_fmt = "yuv420p"
         self.width, self.height = 320, 240
         self.data = [ "\0" * self.width * self.height,
                       "\0" * (self.width / 2 * self.height / 2),

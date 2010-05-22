@@ -15,6 +15,7 @@ PEP7 addendum
 
 * ...unless they implement operations on a type:
   MyType_DoSomething()
+  But remember to OMIT the Pyr prefix!
 
 * brace positioning:
   enum {
@@ -25,8 +26,11 @@ PEP7 addendum
   struct FooBar {
   };
 
+  rule of thumb to cover 90%+ of the cases: braces deserve to be on a
+  separate line only in functions.
+
 * docstrings: SomeThing__doc__ (append __doc__ suffix)
-  always near the thing they document.
+  always right above the thing they document.
 
 * naming of variables (and parameters):
   separated_with_underscore_if_needed
@@ -37,10 +41,12 @@ PEP7 addendum
   avoid as much as is possible. Prefix with g_.
   Make them static. Never export a global.
 
-* Type attribute data (as buffer, get/set)
+* Type attribute data (as buffer, get/set list)
   they are both variables and part of a Type definition, so
   MyType_some_thing
 
 * Type Objects:
-  MyTypeObjects. As done in the python sources.
+  MyTypeObject. As done in the CPython sources.
+
+* no vertical alignement (borrowed from PEP8)
 

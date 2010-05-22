@@ -34,7 +34,7 @@ class DemuxerTestCase(helper.BaseFormatTestCase):
         f = prepareSource()
         dmx = pyrana.format.Demuxer(f)
         self.assertTrue(dmx.streams)
-        F = dmx.readFrame()
+        F = dmx.read_frame()
         self.assertTrue(F.idx in range(len(dmx.streams)))
     def test_StreamsObjSurvives(self):
         def getStreams():
@@ -56,7 +56,7 @@ class DemuxerTestCase(helper.BaseFormatTestCase):
         self.failUnlessEqualStreams(dmx.streams, st_info["OGG_AV"])
     def test_OpenDecoder(self):
         dmx = pyrana.format.Demuxer(open(samples["MOV_AV"], "rb"))
-        dec = dmx.openDecoder(0)
+        dec = dmx.open_decoder(0)
         self.assertTrue(dec)
         self.assertTrue(hasattr(dec, "decode"))
        

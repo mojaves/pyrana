@@ -45,7 +45,7 @@ def find_stream(streams, streamid, media):
     pass
 
 class Packet(object):
-    def __init__(self, idx, data, pts, dts, isKey):
+    def __init__(self, idx, data, pts, dts, is_key):
         """
         a Packet object represents an immutable, encoded packet of a
         multimedia stream.
@@ -54,7 +54,7 @@ class Packet(object):
     idx
     pts
     dts
-    isKey
+    is_key
     size
     data
 
@@ -68,9 +68,9 @@ class Demuxer(object):
         already open.
         """   
         pass
-    def readFrame(self, streamid=pyrana.format.STREAM_ANY):
+    def read_frame(self, streamid=pyrana.format.STREAM_ANY):
         """
-        readFrame(streamid=ANY) -> Packet Object
+        read_frame(streamid=ANY) -> Packet Object
         reads and returns a new complete encoded frame (enclosed in a Packet) from the demuxer.
         if the optional `streamid' argument is !ANY, returns a frame
         belonging to the specified streams.
@@ -80,9 +80,9 @@ class Demuxer(object):
         - the streams ends.
         """
         raise NotImplementedError
-    def openDecoder(self, streamid, params={}):
+    def open_decoder(self, streamid, params={}):
         """
-        openDecoder(streamid) -> Decoder instance
+        open_decoder(streamid) -> Decoder instance
         create and returns a full-blown decoder Instance capable to decode the selected
         stream. Like doing things manually, just easily.
         """
@@ -96,7 +96,7 @@ class Demuxer(object):
 class Muxer(object): # (XXX!)
     """
     as the old pyrana Muxer class, with the following changes:
-    write -> writeFrame
+    write -> write_frame
     start -> header (called implicitely at first write)
     end   -> trailer (called implicitely at object del)
     add flush() methods (guess what?)
@@ -107,16 +107,16 @@ class Muxer(object): # (XXX!)
     """
     def __init__(self, f, name):
         pass
-    def addStream(self, streamid, params={}):
+    def add_stream(self, streamid, params={}):
         pass
-    def writeHeader(self):
+    def write_header(self):
         pass
-    def writeTrailer(self):
+    def write_trailer(self):
         pass
-    def writeFrame(self, Packet):
+    def write_frame(self, Packet):
         """requires an encoded frame enclosed in a Packet!"""
         pass
-    def getStreamPTS(self, streamid):
+    def get_pts(self, streamid):
         pass
     def flush(self):
         """flush() -> None"""
@@ -132,21 +132,21 @@ user_pixel_formats = frozenset()
 
 class Plane(object):
     # no constructor, can be generated only from Images
-    planeId
+    plane_id
     stride
     width
     height
-    pixFmt
+    pix_fmt
     data
     size
 
 class Image(object):
-    def __init__(self, width, height, pixFmt, data):
+    def __init__(self, width, height, pix_fmt, data):
         """not yet decided"""
         pass
     width
     height
-    pixFmt
+    pix_fmt
     def plane(self, num):
         return Plane # FIXME
     def convert(self, ...):
@@ -154,17 +154,17 @@ class Image(object):
 
 
 class Frame(object):
-    def __init__(self, image, pts, isKey, isInterlaced, topFieldFirst):
+    def __init__(self, image, pts, is_key, is_interlaced, top_field_first):
         """not yet decided"""
         pass
     image
     pts
-    isKey
-    topFieldFirst
-    isInterlaced
-    picType      # can only by set by decoder/encoder
-    codedNum     # ditto
-    displayNum   # ditto
+    is_key
+    top_field_first
+    is_interlaced
+    pic_type      # can only by set by decoder/encoder
+    coded_num     # ditto
+    display_num   # ditto
 
 
 
@@ -214,11 +214,11 @@ output_codecs  = frozenset()
 class Frame(object): # (V)
     def __init__(self, data, pts=0, dts=0):
         pass
-    pts   #XXX
-    dts   #XXX
-    isKey [RO] #XXX
-    size  [RO]
-    data  [RO]
+    pts #XXX
+    dts #XXX
+    is_key [RO] #XXX
+    size [RO]
+    data [RO]
 
 class Decoder(object):
     """
