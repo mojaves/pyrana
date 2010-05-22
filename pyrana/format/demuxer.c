@@ -34,39 +34,10 @@
 
 #define DEMUXER_NAME "Demuxer"
 
-#define READ_FRAME "readFrame"
-PyDoc_STRVAR(readFrame_doc,
-READ_FRAME"(streamid=ANY) -> Packet Object\n"
-"reads and returns a new complete encoded frame (enclosed in a Packet)\n"
-"from the demuxer. if the optional `streamid' argument is !ANY,\n"
-"then returns a frame belonging to the specified streams.\n"
-"\n"
-"raises EndOfStreamError if either\n"
-"- a stream id is specified, and such streams doesn't exists.\n"
-"- the streams ends.");
 
-#define OPEN_DECODER "openDecoder"
-PyDoc_STRVAR(openDecoder_doc,
-OPEN_DECODER"(streamid) -> Decoder instance\n"
-"\n"
-"create and returns a full-blown decoder Instance capable to decode the selected\n"
-"stream. Like doing things manually, just easily.");
-
-#define STREAMS "streams"
-PyDoc_STRVAR(streams_doc,
-STREAMS" -> streams\n"
-"Returns list of streams within after the header is read in order they listed in a master stream.\n"
-"It may contain the following attributes:\n"
-"    type    - stream type ('audio' or 'video' or 'extra')\n"
-"    bitrate - stream bitrate\n"
-"    width   - picture width if any\n"
-"    height  - picture height if any");
-
-PyDoc_STRVAR(Demuxer_doc,
-DEMUXER_NAME"(file [, name]) -> demuxer\n"
-"Returns demuxer objecte.");
-
-
+enum {
+    Pyr_ERROR_MESSAGE_LEN = 256
+};
 
 
 static PyTypeObject DemuxerType;
@@ -90,7 +61,7 @@ Demuxer_SetAttribute(PyObject *dict, const char *key, PyObject *val)
 }
 
 static const char *
-get_codec_name(AVCodecContext *ctx)
+GetCodecName(AVCodecContext *ctx)
 {
     AVCodec *c = avcodec_find_decoder(ctx->codec_id);
     if (c->name) {
@@ -100,42 +71,51 @@ get_codec_name(AVCodecContext *ctx)
 } 
 
 static void
-Demuxer_FillStreamInfo(PyObject *streaminfo, AVCodecContext *ctx)
+Demuxer_FillStreamInfo(PyObject *stream_info, AVCodecContext *ctx)
 {
-    Demuxer_SetAttribute(streaminfo, "name",
-                         PyString_FromString(get_codec_name(ctx)));
-    Demuxer_SetAttribute(streaminfo, "bitrate",
+    Demuxer_SetAttribute(stream_info, "name",
+                         PyString_FromString(GetCodecName(ctx)));
+    Demuxer_SetAttribute(stream_info, "bitrate",
                          PyInt_FromLong(ctx->bit_rate));
-    Demuxer_SetAttribute(streaminfo, "type",
+    Demuxer_SetAttribute(stream_info, "type",
                          PyInt_FromLong(ctx->codec_type));
     if (ctx->codec_type == CODEC_TYPE_VIDEO) {
-        Demuxer_SetAttribute(streaminfo, "pixFmt",
+        Demuxer_SetAttribute(stream_info, "pixFmt",
                              PyString_FromString(avcodec_get_pix_fmt_name(ctx->pix_fmt)));
         if (ctx->width) {
-            Demuxer_SetAttribute(streaminfo, "width",
+            Demuxer_SetAttribute(stream_info, "width",
                                  PyInt_FromLong(ctx->width));
-            Demuxer_SetAttribute(streaminfo, "height",
+            Demuxer_SetAttribute(stream_info, "height",
                                  PyInt_FromLong(ctx->height));
         }
     }
     if (ctx->codec_type == CODEC_TYPE_AUDIO) {
-        Demuxer_SetAttribute(streaminfo, "channels",
+        Demuxer_SetAttribute(stream_info, "channels",
                              PyInt_FromLong(ctx->channels));
-        Demuxer_SetAttribute(streaminfo, "sampleRate",
+        Demuxer_SetAttribute(stream_info, "sampleRate",
                              PyInt_FromLong(ctx->sample_rate));
-        Demuxer_SetAttribute(streaminfo, "sampleBytes",
+        Demuxer_SetAttribute(stream_info, "sampleBytes",
                              PyInt_FromLong(2));
-        // FIXME: BPP is hardcoded
+        /* FIXME: BPP is hardcoded */
     }
     if (ctx->extradata && ctx->extradata_size) {
         PyObject *obj = (PyObject *)PyrPacket_NewFromData(ctx->extradata,
                                                           ctx->extradata_size);
-        Demuxer_SetAttribute(streaminfo, "extraData", obj);
+        Demuxer_SetAttribute(stream_info, "extraData", obj);
     }
     return;
 }
 
-
+#define STREAMS "streams"
+PyDoc_STRVAR(Demuxer_Streams__doc__,
+STREAMS" -> streams\n"
+"Returns list of streams within after the header is read in order they listed in a master stream.\n"
+"It may contain the following attributes:\n"
+"    type    - stream type ('audio' or 'video' or 'extra')\n"
+"    bitrate - stream bitrate\n"
+"    width   - picture width if any\n"
+"    height  - picture height if any"
+);
 static PyObject *
 Demuxer_GetStreams(PyrDemuxerObject *self)
 {
@@ -145,20 +125,20 @@ Demuxer_GetStreams(PyrDemuxerObject *self)
             int i;
 
             for (i = 0; i < self->ic->nb_streams; i++) {
-                PyObject *streaminfo = Py_None;
+                PyObject *stream_info = Py_None;
                 AVCodecContext *ctx = self->ic->streams[i]->codec;
 
                 if (ctx->codec_id) {
-                    streaminfo = PyDict_New();
-                    if (!streaminfo) {
+                    stream_info = PyDict_New();
+                    if (!stream_info) {
                         PyErr_Format(PyExc_RuntimeError,
                                      "Unable to allocate stream info data");
                         return NULL;
                     }
 
-                    Demuxer_FillStreamInfo(streaminfo, ctx);
+                    Demuxer_FillStreamInfo(stream_info, ctx);
                 }
-                PyTuple_SetItem(self->streams, i, streaminfo);
+                PyTuple_SetItem(self->streams, i, stream_info);
             }
         }
     }
@@ -167,14 +147,21 @@ Demuxer_GetStreams(PyrDemuxerObject *self)
 }
 
 
+#define OPEN_DECODER "open_decoder"
+PyDoc_STRVAR(Demuxer_OpenDecoder__doc__,
+OPEN_DECODER"(stream_id) -> Decoder instance\n"
+"\n"
+"create and returns a full-blown decoder Instance capable to decode the selected\n"
+"stream. Like doing things manually, just easily."
+);
 static PyObject *
 Demuxer_OpenDecoder(PyrDemuxerObject *self, PyObject *args)
 {
     PyObject *params = NULL;
     PyObject *dec = NULL;
-    int streamid = 0;
+    int stream_id = 0;
 
-    if (!PyArg_ParseTuple(args, "i|O:openDecoder", &streamid, &params)) { 
+    if (!PyArg_ParseTuple(args, "i|O:openDecoder", &stream_id, &params)) { 
         PyErr_Format(PyrExc_SetupError, "Wrong arguments");
         return NULL; 
     }
@@ -184,27 +171,29 @@ Demuxer_OpenDecoder(PyrDemuxerObject *self, PyObject *args)
         return NULL;
     }
 
-    if (streamid < 0 || streamid > self->ic->nb_streams) {
+    if (stream_id < 0 || stream_id > self->ic->nb_streams) {
         PyErr_Format(PyrExc_SetupError,
-                     "'streamid' value out of range [0,%i]",
+                     "'stream_id' value out of range [0,%i]",
                      self->ic->nb_streams);
         return NULL;
     }
 
-    if (self->ic->streams[streamid]->codec->codec_type == CODEC_TYPE_VIDEO) {
+    /* FIXME */
+    if (self->ic->streams[stream_id]->codec->codec_type == CODEC_TYPE_VIDEO) {
         dec = (PyObject *)PyrVDecoder_NewFromDemuxer((PyObject*)self,
-                                                     streamid, params);
-    } else {
+                                                     stream_id, params);
+    }
+    else {
         PyErr_Format(PyrExc_SetupError,
-                     "unsupporded codec type for stream %i",
-                     streamid);
+                     "unsupported codec type for stream %i",
+                     stream_id);
         dec = NULL; /* enforce */
     }
     return dec;
 }
 
 static int
-Demuxer_NextPacket(PyrDemuxerObject *self, int streamid, AVPacket *pkt)
+Demuxer_NextPacket(PyrDemuxerObject *self, int stream_id, AVPacket *pkt)
 {
     int ret = 0;
 
@@ -214,7 +203,8 @@ Demuxer_NextPacket(PyrDemuxerObject *self, int streamid, AVPacket *pkt)
         if (ret < 0) {
             break;
         }
-        if (streamid == PYRANA_STREAM_ANY || (pkt->stream_index == streamid)) {
+        if (stream_id == Pyr_STREAM_ANY ||
+           (pkt->stream_index == stream_id)) {
             break;
         }
 
@@ -224,35 +214,47 @@ Demuxer_NextPacket(PyrDemuxerObject *self, int streamid, AVPacket *pkt)
     return ret;
 }
 
+
+#define READ_FRAME "read_frame"
+PyDoc_STRVAR(Demuxer_ReadFrame__doc__,
+READ_FRAME"(stream_id=ANY) -> Packet Object\n"
+"reads and returns a new complete encoded frame (enclosed in a Packet)\n"
+"from the demuxer. if the optional `stream_id' argument is !ANY,\n"
+"then returns a frame belonging to the specified streams.\n"
+"\n"
+"raises EndOfStreamError if either\n"
+"- a stream id is specified, and such streams doesn't exists.\n"
+"- the streams ends."
+);
 static PyObject *
 Demuxer_ReadFrame(PyrDemuxerObject *self, PyObject *args)
 {
-    int streamid = PYRANA_STREAM_ANY, ret = 0;
+    int stream_id = Pyr_STREAM_ANY, ret = 0;
     PyrPacketObject *pkt = NULL;
     AVPacket packet;
 
-    if (!PyArg_ParseTuple(args, "|i:readFrame", &streamid)) {
+    if (!PyArg_ParseTuple(args, "|i:readFrame", &stream_id)) {
         return NULL;
     }
 
-    if (streamid != PYRANA_STREAM_ANY
-     && (streamid < 0 ||  streamid > self->ic->nb_streams)) {
+    if (stream_id != Pyr_STREAM_ANY &&
+       (stream_id < 0 ||  stream_id > self->ic->nb_streams)) {
         PyErr_Format(PyrExc_EOSError,
-                     "Invalid stream index (%i)", streamid);
+                     "Invalid stream index (%i)", stream_id);
         return NULL;
     }
 
-    ret = Demuxer_NextPacket(self, streamid, &packet);
+    ret = Demuxer_NextPacket(self, stream_id, &packet);
 
     if (ret < 0) {
         PyErr_Format(PyrExc_EOSError, "Stream end reached");
-    } else {
+    }
+    else {
         pkt = PyrPacket_NewFromAVPacket(&packet);
     }
     return (PyObject *)pkt;
 }
 
-/* ---------------------------------------------------------------------- */
 
 static PyObject *
 Demuxer_GetIter(PyrDemuxerObject *self)
@@ -267,7 +269,7 @@ Demuxer_Next(PyrDemuxerObject *self)
     PyrPacketObject *pkt = NULL;
     AVPacket packet;
 
-    int ret = Demuxer_NextPacket(self, PYRANA_STREAM_ANY, &packet);
+    int ret = Demuxer_NextPacket(self, Pyr_STREAM_ANY, &packet);
 
     if (ret < 0) {
         PyErr_Format(PyExc_StopIteration, "Stream end reached");
@@ -277,7 +279,7 @@ Demuxer_Next(PyrDemuxerObject *self)
     return (PyObject *)pkt;
 }
 
-/* ---------------------------------------------------------------------- */
+
 
 static PyMethodDef Demuxer_methods[] =
 {
@@ -285,25 +287,25 @@ static PyMethodDef Demuxer_methods[] =
         READ_FRAME,
         (PyCFunction)Demuxer_ReadFrame,
         METH_VARARGS,
-        readFrame_doc
+        Demuxer_ReadFrame__doc__
     },
     {
         OPEN_DECODER,
         (PyCFunction)Demuxer_OpenDecoder,
         METH_VARARGS,
-        openDecoder_doc
+        Demuxer_OpenDecoder__doc__
     },
     { NULL, NULL }, /* Sentinel */
 };
 
-/* ---------------------------------------------------------------------- */
+
 static void
-Demuxer_dealloc(PyrDemuxerObject *self)
+Demuxer_Dealloc(PyrDemuxerObject *self)
 {
     int err;
     
     if (self->ic) {
-        av_close_input_file(self->ic); // FIXME
+        av_close_input_file(self->ic); /* FIXME */
         self->ic = NULL;
     }
     err = PyrFileProto_DelMappedFile(self->key);
@@ -314,11 +316,15 @@ Demuxer_dealloc(PyrDemuxerObject *self)
     }
 }
 
-/* ---------------------------------------------------------------------- */
+
+PyDoc_STRVAR(Demuxer__doc__,
+DEMUXER_NAME"(file [, name]) -> demuxer\n"
+"Returns demuxer objecte."
+);
 static int
-Demuxer_init(PyrDemuxerObject *self, PyObject *args, PyObject *kwds)
+Demuxer_Init(PyrDemuxerObject *self, PyObject *args, PyObject *kwds)
 {
-    char filebuf[PYR_FILE_KEY_LEN] = { '\0' };
+    char filebuf[Pyr_FILE_KEY_LEN] = { '\0' };
     AVInputFormat *ifmt = NULL;
     const char *name = NULL;
     PyObject *src = NULL;
@@ -369,7 +375,7 @@ Demuxer_init(PyrDemuxerObject *self, PyObject *args, PyObject *kwds)
 
     ret = av_open_input_file(&(self->ic), filebuf, ifmt, 0, NULL);
     if (ret != 0) {
-        char errmsg[256] = { '\0' };
+        char errmsg[Pyr_ERROR_MESSAGE_LEN] = { '\0' };
         int averr = av_strerror(ret, errmsg, sizeof(errmsg));
         PyErr_Format(PyrExc_SetupError,
                     "libavformat error: %s (at open=%i:%i, filebuf=%s)",
@@ -387,14 +393,14 @@ Demuxer_init(PyrDemuxerObject *self, PyObject *args, PyObject *kwds)
     return 0;
 }
 
-/* ---------------------------------------------------------------------- */
-static PyGetSetDef Demuxer_getsetlist[] =
+
+static PyGetSetDef Demuxer_get_set[] =
 {
-    { STREAMS, (getter)Demuxer_GetStreams, NULL, streams_doc },
+    { STREAMS, (getter)Demuxer_GetStreams, NULL, Demuxer_Streams__doc__ },
     { NULL }, /* Sentinel */
 };
 
-/* ---------------------------------------------------------------------- */
+
 static PyTypeObject DemuxerType =
 {
     PyObject_HEAD_INIT(NULL)
@@ -402,7 +408,7 @@ static PyTypeObject DemuxerType =
     DEMUXER_NAME,
     sizeof(PyrDemuxerObject),
     0,
-    (destructor)Demuxer_dealloc,            /* tp_dealloc */
+    (destructor)Demuxer_Dealloc,            /* tp_Dealloc */
     0,                                      /* tp_print */
     0,                                      /* tp_getattr */
     0,                                      /* tp_setattr */
@@ -418,7 +424,7 @@ static PyTypeObject DemuxerType =
     0,                                      /* tp_setattro */
     0,                                      /* tp_as_buffer */
     Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE, /* tp_flags */
-    Demuxer_doc,                            /* tp_doc */
+    Demuxer__doc__,                         /* tp_doc */
     0,                                      /* tp_traverse */
     0,                                      /* tp_clear */
     0,                                      /* tp_richcompare */
@@ -427,13 +433,13 @@ static PyTypeObject DemuxerType =
     (iternextfunc)Demuxer_Next,             /* tp_iternext */
     Demuxer_methods,                        /* tp_methods */
     0,                                      /* tp_members */
-    Demuxer_getsetlist,                     /* tp_getset */
+    Demuxer_get_set,                     /* tp_getset */
     0,                                      /* tp_base */
     0,                                      /* tp_dict */
     0,                                      /* tp_descr_get */
     0,                                      /* tp_descr_set */
     0,                                      /* tp_dictoffset */
-    (initproc)Demuxer_init,                 /* tp_init */
+    (initproc)Demuxer_Init,                 /* tp_Init */
     PyType_GenericAlloc,                    /* tp_alloc */
     PyType_GenericNew,                      /* tp_new */
 };

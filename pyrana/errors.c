@@ -26,12 +26,12 @@
 #include "pyrana/errors.h"
 
 
-PyObject *PyrExc_PyranaError      = NULL;
-PyObject *PyrExc_EOSError         = NULL;
-PyObject *PyrExc_ProcessingError  = NULL;
-PyObject *PyrExc_SetupError       = NULL;
+PyObject *PyrExc_PyranaError = NULL;
+PyObject *PyrExc_EOSError = NULL;
+PyObject *PyrExc_ProcessingError = NULL;
+PyObject *PyrExc_SetupError = NULL;
 PyObject *PyrExc_UnsupportedError = NULL;
-PyObject *PyrExc_NeedFeedError    = NULL;
+PyObject *PyrExc_NeedFeedError = NULL;
 
 
 /**************************************************************************/
@@ -39,20 +39,20 @@ PyObject *PyrExc_NeedFeedError    = NULL;
 int
 PyrErrors_Setup(PyObject *m)
 {
-    PyrExc_PyranaError      = PyErr_NewException("pyrana.PyranaError",      NULL,               NULL);
-    PyrExc_EOSError         = PyErr_NewException("pyrana.EOSError",         PyrExc_PyranaError, NULL);
-    PyrExc_ProcessingError  = PyErr_NewException("pyrana.ProcessingError",  PyrExc_PyranaError, NULL);
-    PyrExc_SetupError       = PyErr_NewException("pyrana.SetupError",       PyrExc_PyranaError, NULL);
+    PyrExc_PyranaError = PyErr_NewException("pyrana.PyranaError", NULL, NULL);
+    PyrExc_EOSError = PyErr_NewException("pyrana.EOSError", PyrExc_PyranaError, NULL);
+    PyrExc_ProcessingError = PyErr_NewException("pyrana.ProcessingError", PyrExc_PyranaError, NULL);
+    PyrExc_SetupError = PyErr_NewException("pyrana.SetupError", PyrExc_PyranaError, NULL);
     PyrExc_UnsupportedError = PyErr_NewException("pyrana.UnsupportedError", PyrExc_PyranaError, NULL);
-    PyrExc_NeedFeedError    = PyErr_NewException("pyrana.NeedFeedError",    PyrExc_PyranaError, NULL);
+    PyrExc_NeedFeedError = PyErr_NewException("pyrana.NeedFeedError", PyrExc_PyranaError, NULL);
 
     /* FIXME: Do we need to INCREFs here? */
-    PyModule_AddObject(m, "PyranaError",      PyrExc_PyranaError);
-    PyModule_AddObject(m, "EOSError",         PyrExc_EOSError);
-    PyModule_AddObject(m, "ProcessingError",  PyrExc_ProcessingError);
-    PyModule_AddObject(m, "SetupError",       PyrExc_SetupError);
+    PyModule_AddObject(m, "PyranaError", PyrExc_PyranaError);
+    PyModule_AddObject(m, "EOSError", PyrExc_EOSError);
+    PyModule_AddObject(m, "ProcessingError", PyrExc_ProcessingError);
+    PyModule_AddObject(m, "SetupError", PyrExc_SetupError);
     PyModule_AddObject(m, "UnsupportedError", PyrExc_UnsupportedError);
-    PyModule_AddObject(m, "NeedFeedError",    PyrExc_UnsupportedError);
+    PyModule_AddObject(m, "NeedFeedError", PyrExc_UnsupportedError);
 
     return 0;
 }

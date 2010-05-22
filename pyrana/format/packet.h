@@ -27,7 +27,7 @@
 #ifndef PYRANA_PACKET_H
 #define PYRANA_PACKET_H
 
-#define PYRANA_MAX_PACKET_SIZE  (8*1024)
+#define Pyr_PACKET_SIZE_MAX  (8*1024)
 
 #include "pyrana/format/format.h"
 
@@ -37,7 +37,7 @@
 typedef struct {
     PyObject_HEAD
     AVPacket pkt;
-    int      len; /* effective size of the data */
+    int len; /* real size of the data */
 } PyrPacketObject;
 
 
@@ -49,4 +49,6 @@ int PyrPacket_Check(PyObject *o);
 int PyrPacket_Setup(PyObject *m);
 
 #endif /* PYRANA_PACKET_H */
+
+/* vim: set ts=4 sw=4 et */
 

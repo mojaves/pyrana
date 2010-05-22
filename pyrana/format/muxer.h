@@ -32,13 +32,13 @@
 typedef struct {
     PyObject_HEAD
 
-    uint32_t        frames;
-    int             nstreams;
-    int             header_written;
-    int             trailer_written;
+    uint32_t frames;
+    int nstreams;
+    int header_written;
+    int trailer_written;
 
     AVFormatContext *oc;
-    PyObject        *key;
+    PyObject *key;
 } PyrMuxerObject;
 
 

@@ -37,21 +37,12 @@
 
 #define SUB_MODULE_NAME MODULE_NAME".format"
 
-#define IS_STREAMING_NAME "is_streamable"
-PyDoc_STRVAR(is_streamable_doc,
-IS_STREAMING_NAME"(name) - returns a boolean telling if format name is streamable"
-);
-
-#define FIND_STREAM_NAME "find_stream"
-PyDoc_STRVAR(find_stream_doc,
-FIND_STREAM_NAME"(streams, streamid, media) - TODO"
-);
 
 
-static PyObject *InputFormats = NULL;
-static PyObject *OutputFormats = NULL;
+static PyObject *g_input_formats = NULL;
+static PyObject *g_output_formats = NULL;
 
-/*************************************************************************/
+
 
 static PyObject *
 BuildFormatNamesInput(void)
@@ -96,7 +87,6 @@ BuildFormatNamesOutput(void)
 }
 
 
-/*************************************************************************/
 int
 PyrFormat_NeedSeeking(const char *fmt)
 {
@@ -107,27 +97,31 @@ static int
 IsValidFormat(PyObject *fmts, const char *fmt)
 {
     int ret = 0;
-    PyObject *Name = PyString_FromString(fmt);
-    ret = PySequence_Contains(fmts, Name);
-    Py_XDECREF(Name);
+    PyObject *name = PyString_FromString(fmt);
+    ret = PySequence_Contains(fmts, name);
+    Py_XDECREF(name);
     return ret;
 }
 
 int
 PyrFormat_IsInput(const char *fmt)
 {
-    return IsValidFormat(InputFormats, fmt);
+    return IsValidFormat(g_input_formats, fmt);
 }
 
 int
 PyrFormat_IsOutput(const char *fmt)
 {
-    return IsValidFormat(OutputFormats, fmt);
+    return IsValidFormat(g_output_formats, fmt);
 }
 
-/*************************************************************************/
+
+#define IS_STREAMABLE "IsStreamable"
+PyDoc_STRVAR(IsStreamable__doc__,
+IS_STREAMABLE"(name) - returns a boolean telling if format name is streamable"
+);
 static PyObject *
-is_streamable(PyObject *self, PyObject *args)
+IsStreamable(PyObject *self, PyObject *args)
 {
     const char *name = NULL;
     long res = 0;
@@ -141,9 +135,14 @@ is_streamable(PyObject *self, PyObject *args)
     Py_RETURN_FALSE;
 }
 
+
+#define FIND_STREAM "FindStream"
+PyDoc_STRVAR(FindStream__doc__,
+FIND_STREAM"(streams, streamid, media) - TODO"
+);
 /* this one should be probably written in python */
 static PyObject *
-find_stream(PyObject *self, PyObject *args)
+FindStream(PyObject *self, PyObject *args)
 {
     int retsid = 0;
 
@@ -151,20 +150,19 @@ find_stream(PyObject *self, PyObject *args)
 }
 
 
-/*************************************************************************/
-static PyMethodDef format_functions[] =
+static PyMethodDef FormatFunctions[] =
 {
     {
-        IS_STREAMING_NAME,
-        (PyCFunction)is_streamable,
+        IS_STREAMABLE,
+        (PyCFunction)IsStreamable,
         METH_VARARGS,
-        is_streamable_doc
+        IsStreamable__doc__
     },
     {
-        FIND_STREAM_NAME,
-        (PyCFunction)find_stream,
+        FIND_STREAM,
+        (PyCFunction)FindStream,
         METH_VARARGS,
-        find_stream_doc
+        FindStream__doc__
     },
     { NULL, NULL },
 };
@@ -174,17 +172,17 @@ PyrFormat_Setup(PyObject *m)
 {
     int ret = -1;
     PyObject *sm = Py_InitModule3(SUB_MODULE_NAME,
-                                  format_functions,
+                                  FormatFunctions,
                                   SUB_MODULE_PYDOC);
     if (sm) {
         PyrFileProto_Setup();
 
-        InputFormats  = BuildFormatNamesInput();
-        OutputFormats = BuildFormatNamesOutput();
+        g_input_formats  = BuildFormatNamesInput();
+        g_output_formats = BuildFormatNamesOutput();
 
-        PyModule_AddIntConstant(sm, "STREAM_ANY", PYRANA_STREAM_ANY);
-        PyModule_AddObject(sm, "input_formats",  InputFormats);
-        PyModule_AddObject(sm, "output_formats", OutputFormats);
+        PyModule_AddIntConstant(sm, "STREAM_ANY", Pyr_STREAM_ANY);
+        PyModule_AddObject(sm, "input_formats", g_input_formats);
+        PyModule_AddObject(sm, "output_formats", g_output_formats);
 
         PyrPacket_Setup(sm);
         PyrDemuxer_Setup(sm);
@@ -196,7 +194,6 @@ PyrFormat_Setup(PyObject *m)
     return ret;
 }
 
-/*************************************************************************/
 
 /* vim: set ts=4 sw=4 et */
 

@@ -40,7 +40,7 @@ PyDoc_STRVAR(Pyrana_doc,
 
 
 
-static void logger(void* ctx, int level, const char *fmt, va_list ap)
+static void Logger(void* ctx, int level, const char *fmt, va_list ap)
 {
     /* discard everything */
     ;
@@ -56,7 +56,7 @@ initpyrana(void)
         avcodec_register_all();
         av_register_all();
 
-        av_log_set_callback(logger);
+        av_log_set_callback(Logger);
 
         PyModule_AddStringConstant(m, "VERSION", PYRANA_VERSION_STRING);
         PyModule_AddIntConstant(m, "TS_NULL", AV_NOPTS_VALUE);

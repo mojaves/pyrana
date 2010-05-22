@@ -32,10 +32,6 @@
 
 
 
-#define VDECODER_NAME "Decoder"
-
-
-
 static PyTypeObject VDecoder_Type;
 
 
@@ -81,7 +77,7 @@ VDecoder_DecodePacket(PyrCodecObject *self, AVPacket *pkt)
             memset(&img, 0, sizeof(PyrImage));
             img.width  = self->ctx->width;
             img.height = self->ctx->height;
-            img.pixFmt = self->ctx->pix_fmt;
+            img.pix_fmt = self->ctx->pix_fmt;
 
             frame = PyrVFrame_NewFromAVFrame(pict, &img);
             if (!frame) {
@@ -147,7 +143,7 @@ VDecoder_Flush(PyrCodecObject *self, PyObject *args)
 
 
 
-static PyMethodDef VDecoder_Methods[] =
+static PyMethodDef VDecoder_methods[] =
 {
     {
         VDECODER_DECODE,
@@ -242,9 +238,10 @@ VDecoder_ValidParams(PyObject *params)
     return valid;
 }
 
+#define VDECODER_NAME "Decoder"
 PyDoc_STRVAR(VDecoder__doc__,
 VDECODER_NAME"(file [, name]) -> demuxer\n"
-"Returns demuxer objecte."
+"Returns demuxer object."
 );
 static int
 VDecoder_Init(PyrCodecObject *self, PyObject *args, PyObject *kwds)
@@ -283,7 +280,7 @@ VDecoder_Init(PyrCodecObject *self, PyObject *args, PyObject *kwds)
 }
 
 static PyrDemuxerObject *
-PyrVDecoder_NarrowDemuxer(PyObject *dmx, int streamid)
+PyrVDecoder_NarrowDemuxer(PyObject *dmx, int stream_id)
 {
     PyrDemuxerObject *demux = NULL;
 
@@ -293,9 +290,9 @@ PyrVDecoder_NarrowDemuxer(PyObject *dmx, int streamid)
     }
     demux = (PyrDemuxerObject *)dmx;
    
-    if (streamid < 0 || streamid > demux->ic->nb_streams) {
+    if (stream_id < 0 || stream_id > demux->ic->nb_streams) {
         PyErr_Format(PyrExc_SetupError,
-                     "'streamid' value out of range [0,%i]",
+                     "'stream_id' value out of range [0,%i]",
                      demux->ic->nb_streams);
         return NULL;
     }
@@ -304,10 +301,10 @@ PyrVDecoder_NarrowDemuxer(PyObject *dmx, int streamid)
 }
 
 PyrCodecObject *
-PyrVDecoder_NewFromDemuxer(PyObject *dmx, int streamid, PyObject *params)
+PyrVDecoder_NewFromDemuxer(PyObject *dmx, int stream_id, PyObject *params)
 {
     PyrCodecObject *self = NULL;
-    PyrDemuxerObject *demux = PyrVDecoder_NarrowDemuxer(dmx, streamid);
+    PyrDemuxerObject *demux = PyrVDecoder_NarrowDemuxer(dmx, stream_id);
 
     if (demux && VDecoder_ValidParams(params)) {
         self = PyObject_New(PyrCodecObject, &VDecoder_Type);
@@ -318,7 +315,7 @@ PyrVDecoder_NewFromDemuxer(PyObject *dmx, int streamid, PyObject *params)
             self->params = NULL;
             self->parent = dmx;
             self->codec = NULL;
-            self->ctx = demux->ic->streams[streamid]->codec;
+            self->ctx = demux->ic->streams[stream_id]->codec;
             
             codec = avcodec_find_decoder(self->ctx->codec_id);
             if (!codec) {
@@ -340,7 +337,7 @@ PyrVDecoder_NewFromDemuxer(PyObject *dmx, int streamid, PyObject *params)
 
 
 
-static PyGetSetDef VDecoder_GetSetList[] =
+static PyGetSetDef VDecoder_get_set[] =
 {
     {
         VDECODER_PARAMS,
@@ -381,9 +378,9 @@ static PyTypeObject VDecoder_Type =
     0,                                      /* tp_weaklistoffset */
     0,                                      /* tp_iter */
     0,                                      /* tp_iternext */
-    VDecoder_Methods,                       /* tp_methods */
+    VDecoder_methods,                       /* tp_methods */
     0,                                      /* tp_members */
-    VDecoder_GetSetList,                    /* tp_getset */
+    VDecoder_get_set,                       /* tp_getset */
     0,                                      /* tp_base */
     0,                                      /* tp_dict */
     0,                                      /* tp_descr_get */

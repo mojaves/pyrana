@@ -29,7 +29,7 @@
 #include "format.h"
 
 enum {
-    PYR_FILE_KEY_LEN = 64
+    Pyr_FILE_KEY_LEN = 64
 };
 
 
@@ -44,4 +44,7 @@ int PyrFileProto_DelMappedFile(PyObject *key);
 int PyrFileProto_Setup(void);
 
 #endif /* PYRANA_FILE_PROTO_H */
+
+
+/* vim: set ts=4 sw=4 et */
 

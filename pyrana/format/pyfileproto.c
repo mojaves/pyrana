@@ -35,7 +35,7 @@
 
 /*************************************************************************/
 
-static PyObject *FileMap = NULL;
+static PyObject *g_file_map = NULL;
 
 /* 
  * Note: those bindings MUST have a lifecycle <= than the wrapping
@@ -46,7 +46,7 @@ static PyObject *FileMap = NULL;
 PyObject *
 PyrFileProto_GetMappedFile(const char *filename)
 {
-    PyObject *obj = PyDict_GetItemString(FileMap, filename);
+    PyObject *obj = PyDict_GetItemString(g_file_map, filename);
     Py_XINCREF(obj);
     return obj;
 }
@@ -65,7 +65,7 @@ PyrFileProto_AddMappedFile(PyObject *key, PyObject *obj)
     if (!key || !obj) {
         return -1;
     }
-    return PyDict_SetItem(FileMap, key, obj);
+    return PyDict_SetItem(g_file_map, key, obj);
 }
 
 int 
@@ -73,7 +73,7 @@ PyrFileProto_DelMappedFile(PyObject *key)
 {
     int ret = 0;
     if (key) {
-        ret = PyDict_DelItem(FileMap, key);
+        ret = PyDict_DelItem(g_file_map, key);
     }
     return ret;
 }
@@ -82,21 +82,21 @@ PyrFileProto_DelMappedFile(PyObject *key)
 
 
 static int 
-PyrPipe_Open(URLContext *h, const char *filename, int flags)
+PipeBridge_Open(URLContext *h, const char *filename, int flags)
 {
     av_strstart(filename, "pypipe://", &filename);
     PyObject *obj = PyrFileProto_GetMappedFile(filename);
     int ret = -1;
     if (obj) {
-        h->priv_data   = obj;
+        h->priv_data = obj;
         h->is_streamed = 1;
-        ret            = 0;
+        ret = 0;
     }
     return ret;
 }
 
 static int 
-PyrPipe_Read(URLContext *h, unsigned char *buf, int size)
+PipeBridge_Read(URLContext *h, unsigned char *buf, int size)
 {
     FILE *f = PyFile_AsFile(h->priv_data);
     size_t r = fread(buf, 1, size, f);
@@ -104,7 +104,7 @@ PyrPipe_Read(URLContext *h, unsigned char *buf, int size)
 }
 
 static int 
-PyrPipe_Write(URLContext *h, unsigned char *buf, int size)
+PipeBridge_Write(URLContext *h, unsigned char *buf, int size)
 {
     FILE *f = PyFile_AsFile(h->priv_data);
     size_t w = fwrite(buf, 1, size, f);
@@ -112,7 +112,7 @@ PyrPipe_Write(URLContext *h, unsigned char *buf, int size)
 }
 
 static int 
-PyrPipe_Close(URLContext *h)
+PipeBridge_Close(URLContext *h)
 {
     PyObject *obj = h->priv_data;
     Py_XDECREF(obj); /* XDECREF: paranoia */
@@ -120,49 +120,49 @@ PyrPipe_Close(URLContext *h)
 }
 
 static int64_t
-PyrPipe_Seek(URLContext *h, int64_t pos, int whence)
+PipeBridge_Seek(URLContext *h, int64_t pos, int whence)
 {
     return -1;
 }
 
-static URLProtocol PyrPipe_Protocol = {
+static URLProtocol pypipe_protocol = {
     "pypipe",
-    PyrPipe_Open,
-    PyrPipe_Read,
-    PyrPipe_Write,
-    PyrPipe_Seek,
-    PyrPipe_Close,
+    PipeBridge_Open,
+    PipeBridge_Read,
+    PipeBridge_Write,
+    PipeBridge_Seek,
+    PipeBridge_Close,
 };
 
 static int 
-PyrFile_Open(URLContext *h, const char *filename, int flags)
+FileBridge_Open(URLContext *h, const char *filename, int flags)
 {
     av_strstart(filename, "pyfile://", &filename);
     PyObject *obj = PyrFileProto_GetMappedFile(filename);
     int ret = -1;
     if (obj) {
-        h->priv_data   = obj;
+        h->priv_data = obj;
         h->is_streamed = 0;
-        ret            = 0;
+        ret = 0;
     }
     return ret;
 }
 
 /* XXX: use llseek? */
 static int64_t
-PyrFile_Seek(URLContext *h, int64_t pos, int whence)
+FileBridge_Seek(URLContext *h, int64_t pos, int whence)
 {
     FILE *f = PyFile_AsFile(h->priv_data);
     return fseek(f, pos, whence);
 }
 
-static URLProtocol PyrFile_Protocol = {
+static URLProtocol pyfile_protocol = {
     "pyfile",
-    PyrFile_Open,
-    PyrPipe_Read,
-    PyrPipe_Write,
-    PyrFile_Seek,
-    PyrPipe_Close,
+    FileBridge_Open,
+    PipeBridge_Read,
+    PipeBridge_Write,
+    FileBridge_Seek,
+    PipeBridge_Close,
 };
 
 
@@ -172,10 +172,10 @@ int
 PyrFileProto_Setup(void)
 {
     int ret = -1;
-    FileMap = PyDict_New();
-    if (FileMap) {
-        av_register_protocol(&PyrFile_Protocol);
-        av_register_protocol(&PyrPipe_Protocol);
+    g_file_map = PyDict_New();
+    if (g_file_map) {
+        av_register_protocol(&pypipe_protocol);
+        av_register_protocol(&pyfile_protocol);
         ret = 0;
     }
     return ret;

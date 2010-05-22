@@ -32,9 +32,9 @@
 
 #define SUB_MODULE_NAME MODULE_NAME".video"
 
-#define Pyr_BUF_SIZE        (128)
+#define Pyr_BUF_SIZE (128)
 
-/*************************************************************************/
+
 
 static PyObject *
 BuildCodecNamesInput(void)
@@ -91,7 +91,7 @@ PyrVideo_Setup(PyObject *m)
                                   NULL,
                                   SUB_MODULE_PYDOC);
     if (sm) {
-        PyModule_AddObject(sm, "input_codecs",  BuildCodecNamesInput());
+        PyModule_AddObject(sm, "input_codecs", BuildCodecNamesInput());
         PyModule_AddObject(sm, "output_codecs", BuildCodecNamesOutput());
         PyModule_AddObject(sm, "pixel_formats", PyrVideo_NewPixelFormats());
         PyModule_AddObject(sm, "user_pixel_formats",
@@ -101,10 +101,10 @@ PyrVideo_Setup(PyObject *m)
          * smells wrong, need to figure something better (more coherent?)
          */
         PyModule_AddIntConstant(sm, "PICT_NO_TYPE", Pyr_PICT_NO_TYPE);
-        PyModule_AddIntConstant(sm, "PICT_I_TYPE",  FF_I_TYPE);
-        PyModule_AddIntConstant(sm, "PICT_P_TYPE",  FF_P_TYPE);
-        PyModule_AddIntConstant(sm, "PICT_B_TYPE",  FF_B_TYPE);
-        PyModule_AddIntConstant(sm, "PICT_S_TYPE",  FF_S_TYPE);
+        PyModule_AddIntConstant(sm, "PICT_I_TYPE", FF_I_TYPE);
+        PyModule_AddIntConstant(sm, "PICT_P_TYPE", FF_P_TYPE);
+        PyModule_AddIntConstant(sm, "PICT_B_TYPE", FF_B_TYPE);
+        PyModule_AddIntConstant(sm, "PICT_S_TYPE", FF_S_TYPE);
         PyModule_AddIntConstant(sm, "PICT_SI_TYPE", FF_SI_TYPE);
         PyModule_AddIntConstant(sm, "PICT_SP_TYPE", FF_SP_TYPE);
         PyModule_AddIntConstant(sm, "PICT_BI_TYPE", FF_BI_TYPE);

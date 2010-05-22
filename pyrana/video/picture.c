@@ -55,7 +55,7 @@
 
 /*************************************************************************/
 
-static const enum PixelFormat PixFmts[] = {
+static const enum PixelFormat g_pix_fmts[] = {
     PIX_FMT_NONE,
     PIX_FMT_YUV420P,
     PIX_FMT_YUYV422,
@@ -120,7 +120,7 @@ static const enum PixelFormat PixFmts[] = {
     PIX_FMT_NB,
 };
 
-static const enum PixelFormat UserPixFmts[] = {
+static const enum PixelFormat g_user_pix_fmts[] = {
     PIX_FMT_NONE,
     PIX_FMT_YUV420P,
     PIX_FMT_RGB24,
@@ -142,7 +142,7 @@ static const enum PixelFormat UserPixFmts[] = {
 
 
 static int
-GetPlanesInfo(enum PixelFormat pixFmt, int width, int height,
+GetPlanesInfo(enum PixelFormat pix_fmt, int width, int height,
               PyrPlaneInfo *info)
 {
     int err = 0;
@@ -150,9 +150,9 @@ GetPlanesInfo(enum PixelFormat pixFmt, int width, int height,
         err = -1;
     }
     else {
-        switch (pixFmt) {
+        switch (pix_fmt) {
           case PIX_FMT_YUV420P:
-            info->planeNum = 3;
+            info->plane_num = 3;
             FILL_INFO(&(info->infos[0]), width, height, 1);
             FILL_INFO(&(info->infos[1]), width/2, height/2, 1);
             FILL_INFO(&(info->infos[2]), width/2, height/2, 1);
@@ -164,14 +164,14 @@ GetPlanesInfo(enum PixelFormat pixFmt, int width, int height,
 */
           case PIX_FMT_RGB24: /* fallback */
           case PIX_FMT_BGR24:
-            info->planeNum = 1;
+            info->plane_num = 1;
             FILL_INFO(&(info->infos[0]), width, height, 3);
             break;
           case PIX_FMT_ARGB: /* fallback */
           case PIX_FMT_RGBA: /* fallback */
           case PIX_FMT_ABGR: /* fallback */
           case PIX_FMT_BGRA:
-            info->planeNum = 1;
+            info->plane_num = 1;
             FILL_INFO(&(info->infos[0]), width, height, 4);
             break;
           case PIX_FMT_NB: /* fallback */
@@ -190,9 +190,9 @@ GetPixFmtName(enum PixelFormat fmt)
     const char *name = NULL;
     int i = 0;
 
-    for (i = 0; !name && PixFmts[i] != PIX_FMT_NB; i++) {
-        if (fmt == PixFmts[i]) {
-            name = avcodec_get_pix_fmt_name(PixFmts[i]);
+    for (i = 0; !name && g_pix_fmts[i] != PIX_FMT_NB; i++) {
+        if (fmt == g_pix_fmts[i]) {
+            name = avcodec_get_pix_fmt_name(g_pix_fmts[i]);
         }
     }
 
@@ -200,7 +200,7 @@ GetPixFmtName(enum PixelFormat fmt)
 }
 
 static PyObject *
-BuildPixelFormatSet(const enum PixelFormat PixFmts[])
+BuildPixelFormatSet(const enum PixelFormat g_pix_fmts[])
 {
     PyObject *ret = NULL;
     PyObject *names = PySet_New(NULL);
@@ -213,8 +213,8 @@ BuildPixelFormatSet(const enum PixelFormat PixFmts[])
         return NULL;
     }
 
-    for (i = 1; !err && PixFmts[i] != PIX_FMT_NB; i++) { /* FIXME */
-        const char *fmt_name = avcodec_get_pix_fmt_name(PixFmts[i]);
+    for (i = 1; !err && g_pix_fmts[i] != PIX_FMT_NB; i++) { /* FIXME */
+        const char *fmt_name = avcodec_get_pix_fmt_name(g_pix_fmts[i]);
         PyObject *name = PyString_FromString(fmt_name);
         err = PySet_Add(names, name);
         if (err) {
@@ -232,13 +232,13 @@ BuildPixelFormatSet(const enum PixelFormat PixFmts[])
 PyObject *
 PyrVideo_NewPixelFormats(void)
 {
-    return BuildPixelFormatSet(PixFmts);
+    return BuildPixelFormatSet(g_pix_fmts);
 }
 
 PyObject *
 PyrVideo_NewUserPixelFormats(void)
 {
-    return BuildPixelFormatSet(UserPixFmts);
+    return BuildPixelFormatSet(g_user_pix_fmts);
 }
 
 
@@ -250,10 +250,10 @@ FindPixFmtByName(const char *name)
     if (name) {
         int i;
         /* FIXME */
-        for (i = 1; fmt == PIX_FMT_NB && PixFmts[i] != PIX_FMT_NB; i++) {
-            const char *fmt_name = avcodec_get_pix_fmt_name(PixFmts[i]);
+        for (i = 1; fmt == PIX_FMT_NB && g_pix_fmts[i] != PIX_FMT_NB; i++) {
+            const char *fmt_name = avcodec_get_pix_fmt_name(g_pix_fmts[i]);
             if (!strcmp(fmt_name, name)) {
-                fmt = PixFmts[i];
+                fmt = g_pix_fmts[i];
             }
         }
     }
@@ -285,24 +285,24 @@ Image_Dealloc(PyrImageObject *self)
 }
 
 typedef int (*PlaneWorker)(PyrImageObject *self,
-                           int i,
-                           const PyrPlaneInfo *planeInfo,
-                           Py_buffer *planeView,
-                           void *userData);
+                           int plane_idx,
+                           const PyrPlaneInfo *plane_info,
+                           Py_buffer *plane_view,
+                           void *user_data);
 
 
 static int
 Image_FillPlane(PyrImageObject *self,
-                int i,
-                const PyrPlaneInfo *planeInfo,
-                Py_buffer *planeView,
-                void *userData)
+                int plane_idx,
+                const PyrPlaneInfo *plane_info,
+                Py_buffer *plane_view,
+                void *user_data)
 {
     int err = 0;
-    if (planeView->len != planeInfo->infos[i].size) {
+    if (plane_view->len != plane_info->infos[plane_idx].size) {
         PyErr_Format(PyrExc_SetupError,
                     "data size mismatch on plane #%i (found=%i expected=%ld)",
-                    i, planeInfo->infos[i].size, planeView->len);
+                    plane_idx, plane_info->infos[plane_idx].size, plane_view->len);
         err = -1;
     }
     else {
@@ -314,28 +314,28 @@ Image_FillPlane(PyrImageObject *self,
 
 static int
 Image_DataForeachPlane(PyrImageObject *self,
-                       const PyrPlaneInfo *planeInfo,
-                       PyObject *dataObj,
-                       PlaneWorker planeWorker,
-                       void *userData)
+                       const PyrPlaneInfo *plane_info,
+                       PyObject *data_obj,
+                       PlaneWorker plane_worker,
+                       void *user_data)
 {
     int i, err = 0;
 
-    for (i = 0; !err && i < planeInfo->planeNum; i++) {
-        PyObject *plane = PySequence_GetItem(dataObj, i);
+    for (i = 0; !err && i < plane_info->plane_num; i++) {
+        PyObject *plane = PySequence_GetItem(data_obj, i);
         if (!plane || !PyObject_CheckBuffer(plane)) {
             PyErr_Format(PyrExc_ProcessingError, "invalid data plane #%i", i);
             err = -1;
         }
         else {
-            Py_buffer planeView;
-            err = PyObject_GetBuffer(plane, &planeView, PyBUF_SIMPLE);
+            Py_buffer plane_view;
+            err = PyObject_GetBuffer(plane, &plane_view, PyBUF_SIMPLE);
             if (err) {
                 PyErr_Format(PyrExc_ProcessingError, "can't access to data plane #%i", i);
             }
             else {
-                err = planeWorker(self, i, planeInfo, &planeView, userData);
-                PyBuffer_Release(&planeView);
+                err = plane_worker(self, i, plane_info, &plane_view, user_data);
+                PyBuffer_Release(&plane_view);
             }
         }
     }
@@ -345,7 +345,7 @@ Image_DataForeachPlane(PyrImageObject *self,
 
 static int
 Image_AreParamsValid(PyrImageObject *self,
-                     int width, int height, enum PixelFormat pixFmt)
+                     int width, int height, enum PixelFormat pix_fmt)
 {
     int valid = 1;
     if (width <= 0) {
@@ -356,7 +356,7 @@ Image_AreParamsValid(PyrImageObject *self,
         PyErr_Format(PyrExc_SetupError, "invalid height");
         valid = 0;
     }
-    else if (pixFmt == PIX_FMT_NB || pixFmt == PIX_FMT_NONE) {
+    else if (pix_fmt == PIX_FMT_NB || pix_fmt == PIX_FMT_NONE) {
         PyErr_Format(PyrExc_SetupError, "invalid pixel format");
         valid = 0;
     }
@@ -366,13 +366,13 @@ Image_AreParamsValid(PyrImageObject *self,
 
 static int
 Image_FillFromPlanes(PyrImageObject *self,
-                     const PyrPlaneInfo *planeInfo,
-                     PyObject *dataObj)
+                     const PyrPlaneInfo *plane_info,
+                     PyObject *data_obj)
 {
-    int err = avpicture_alloc(&(self->image.picture), self->image.pixFmt,
+    int err = avpicture_alloc(&(self->image.picture), self->image.pix_fmt,
                               self->image.width, self->image.height);
     if (!err) {
-        err = Image_DataForeachPlane(self, planeInfo, dataObj, Image_FillPlane, NULL);
+        err = Image_DataForeachPlane(self, plane_info, data_obj, Image_FillPlane, NULL);
         if (err) {
             avpicture_free(&(self->image.picture));
         }
@@ -382,28 +382,28 @@ Image_FillFromPlanes(PyrImageObject *self,
 
 static int
 Image_FillFromData(PyrImageObject *self,
-                   const PyrPlaneInfo *planeInfo,
-                   PyObject *dataObj)
+                   const PyrPlaneInfo *plane_info,
+                   PyObject *data_obj)
 {
-    Py_buffer planeView;
+    Py_buffer plane_view;
     int ret = 0;
-    int size = avpicture_get_size(self->image.pixFmt,
+    int size = avpicture_get_size(self->image.pix_fmt,
                                   self->image.width, self->image.height);
-    int err = PyObject_GetBuffer(dataObj, &planeView, PyBUF_SIMPLE);
+    int err = PyObject_GetBuffer(data_obj, &plane_view, PyBUF_SIMPLE);
 
     if (err) {
         PyErr_Format(PyrExc_SetupError, "cannot access data");
         ret = -1;
     }
-    else if (planeView.len != size) {
+    else if (plane_view.len != size) {
         PyErr_Format(PyrExc_SetupError,
                     "data size mismatch (found=%i expected=%ld)",
-                    size, planeView.len);
+                    size, plane_view.len);
         ret = -1;
     }
     else {
-        int s = avpicture_fill((AVPicture *)&(self->image), planeView.buf,
-                               self->image.pixFmt,
+        int s = avpicture_fill((AVPicture *)&(self->image), plane_view.buf,
+                               self->image.pix_fmt,
                                self->image.width, self->image.height);
         if (s != size) { /* can't happen */
             PyErr_Format(PyrExc_SetupError,
@@ -411,29 +411,29 @@ Image_FillFromData(PyrImageObject *self,
                         s, size);
         }
     }
-    PyBuffer_Release(&planeView);
+    PyBuffer_Release(&plane_view);
     return ret;
 }
 
 static int
-Image_InitData(PyrImageObject *self, PyObject *dataObj)
+Image_InitData(PyrImageObject *self, PyObject *data_obj)
 {
     int ret = 0;
-    PyrPlaneInfo planeInfo;
-    int err = GetPlanesInfo(self->image.pixFmt,
-                                self->image.width, self->image.height,
-                                &planeInfo);
+    PyrPlaneInfo plane_info;
+    int err = GetPlanesInfo(self->image.pix_fmt,
+                            self->image.width, self->image.height,
+                            &plane_info);
  
     if (err) {
         PyErr_Format(PyrExc_UnsupportedError, "unknown Pixel Format");
     }
     
-    if (PySequence_Check(dataObj)
-     && PySequence_Size(dataObj) == planeInfo.planeNum) {
-        ret = Image_FillFromPlanes(self, &planeInfo, dataObj);
+    if (PySequence_Check(data_obj)
+     && PySequence_Size(data_obj) == plane_info.plane_num) {
+        ret = Image_FillFromPlanes(self, &plane_info, data_obj);
     }
-    else if (PyObject_CheckBuffer(dataObj)) {
-        ret = Image_FillFromData(self, &planeInfo, dataObj);
+    else if (PyObject_CheckBuffer(data_obj)) {
+        ret = Image_FillFromData(self, &plane_info, data_obj);
     }
     else {
         PyErr_Format(PyrExc_SetupError, "bad Image data");
@@ -452,27 +452,27 @@ static int
 Image_Init(PyrImageObject *self, PyObject *args, PyObject *kwds)
 {
     int ret = 0, width = 0, height = 0;
-    PyObject *pixFmtObj = NULL;
-    PyObject *dataObj = NULL;
+    PyObject *pix_fmt_obj = NULL;
+    PyObject *data_obj = NULL;
 
     self->parent = NULL;
 
     if (!PyArg_ParseTuple(args, "iiOO:init",
-                          &width, &height, &pixFmtObj, &dataObj)) {
+                          &width, &height, &pix_fmt_obj, &data_obj)) {
         ret = -1; 
     }
     else {
-        const char *name = PyString_AsString(pixFmtObj);
-        enum PixelFormat pixFmt = FindPixFmtByName(name);
-        if (!Image_AreParamsValid(self, width, height, pixFmt)) {
+        const char *name = PyString_AsString(pix_fmt_obj);
+        enum PixelFormat pix_fmt = FindPixFmtByName(name);
+        if (!Image_AreParamsValid(self, width, height, pix_fmt)) {
             ret = -1;
         }
         else {
             self->image.width = width;
             self->image.height = height;
-            self->image.pixFmt = pixFmt;
+            self->image.pix_fmt = pix_fmt;
 
-            ret = Image_InitData(self, dataObj);
+            ret = Image_InitData(self, data_obj);
         }
     }
     return ret;
@@ -500,7 +500,7 @@ Image_InitFromFrame(PyrImageObject *self, PyrVFrameObject *frame,
     avpicture_softref(&(self->image.picture), frame->frame);
     self->image.width = img->width;
     self->image.height = img->height;
-    self->image.pixFmt = img->pixFmt;
+    self->image.pix_fmt = img->pix_fmt;
 }
 
 PyrImageObject *PyrImage_NewFromImage(const PyrImage *image)
@@ -525,14 +525,14 @@ PyrImageObject *PyrImage_NewFromFrame(PyrVFrameObject *frame,
 static PyObject *
 Image_Repr(PyrImageObject *self)
 {
-    PyrPlaneInfo planeInfo;
-    int err = GetPlanesInfo(self->image.pixFmt,
-                                self->image.width, self->image.height,
-                                &planeInfo);
-    return PyString_FromFormat("<Image size=%ix%i pixFmt=%s hasPlanes=%s>",
+    PyrPlaneInfo plane_info;
+    int err = GetPlanesInfo(self->image.pix_fmt,
+                            self->image.width, self->image.height,
+                            &plane_info);
+    return PyString_FromFormat("<Image size=%ix%i pix_fmt=%s hasPlanes=%s>",
                                self->image.width, self->image.height,
-                               avcodec_get_pix_fmt_name(self->image.pixFmt),
-                               (!err && planeInfo.planeNum > 1) ?"Y" :"N");
+                               avcodec_get_pix_fmt_name(self->image.pix_fmt),
+                               (!err && plane_info.plane_num > 1) ?"Y" :"N");
 } 
 
 
@@ -579,16 +579,16 @@ PyrImage_GetHeight(PyrImageObject *self)
 static PyObject *
 PyrImage_GetPixFmt(PyrImageObject *self)
 {
-    const char *fmt_name = avcodec_get_pix_fmt_name(self->image.pixFmt);
+    const char *fmt_name = avcodec_get_pix_fmt_name(self->image.pix_fmt);
     return PyString_FromString(fmt_name);
 }
 
 
-static PyGetSetDef Image_GetSetList[] =
+static PyGetSetDef Image_get_set[] =
 {
-    { "width",  (getter)PyrImage_GetWidth,  NULL, "width."   },
-    { "height", (getter)PyrImage_GetHeight, NULL, "height."  },
-    { "pixFmt", (getter)PyrImage_GetPixFmt, NULL, "pixel format as string." },
+    { "width",        (getter)PyrImage_GetWidth,  NULL, "width."   },
+    { "height",       (getter)PyrImage_GetHeight, NULL, "height."  },
+    { "pixel_format", (getter)PyrImage_GetPixFmt, NULL, "pixel format as string." },
     { NULL }, /* Sentinel */
 };
 
@@ -644,38 +644,38 @@ static PyTypeObject Image_Type =
     IMAGE_NAME,
     sizeof(PyrImageObject),
     0,
-    (destructor)Image_Dealloc,              /* tp_Dealloc */
+    (destructor)Image_Dealloc,              /* tp_dealloc */
     0,                                      /* tp_print */
-    0,                                      /* tp_Getattr */
+    0,                                      /* tp_getattr */
     0,                                      /* tp_setattr */
     0,                                      /* tp_compare */
-    (reprfunc)Image_Repr,                   /* tp_Repr */
+    (reprfunc)Image_Repr,                   /* tp_repr */
     0,                                      /* tp_as_number */
     0,                                      /* tp_as_sequence */
     0,                                      /* tp_as_mapping */
     0,                                      /* tp_hash */
     0,                                      /* tp_call */
     0,                                      /* tp_str */
-    0,                                      /* tp_Getattro */
+    0,                                      /* tp_getattro */
     0,                                      /* tp_setattro */
     &Image_as_buffer,                       /* tp_as_buffer */
     Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE, /* tp_flags */
-    Image__doc__,                              /* tp__doc__ */
+    Image__doc__,                           /* tp_doc */
     0,                                      /* tp_traverse */
     0,                                      /* tp_clear */
     0,                                      /* tp_richcompare */
     0,                                      /* tp_weaklistoffset */
     0,                                      /* tp_iter */
     0,                                      /* tp_iternext */
-    Image_Methods,                          /* tp_Methods */
+    Image_Methods,                          /* tp_methods */
     0,                                      /* tp_members */
-    Image_GetSetList,                       /* tp_Getset */
+    Image_get_set,                          /* tp_getset */
     0,                                      /* tp_base */
     0,                                      /* tp_dict */
-    0,                                      /* tp_descr_Get */
+    0,                                      /* tp_descr_get */
     0,                                      /* tp_descr_set */
     0,                                      /* tp_dictoffset */
-    (initproc)Image_Init,                   /* tp_Init */
+    (initproc)Image_Init,                   /* tp_init */
     PyType_GenericAlloc,                    /* tp_alloc */
     PyType_GenericNew,                      /* tp_new */
 };
@@ -726,12 +726,12 @@ IMAGE_NAME" - N/A\n"
 static int
 VFrame_Init(PyrVFrameObject *self, PyObject *args, PyObject *kwds)
 {
-    int ret = 0, isKey = 0, isInterlaced = 0, topFieldFirst = 0;
+    int ret = 0, is_key = 0, isInterlaced = 0, topFieldFirst = 0;
     PY_LONG_LONG pts = 0;
     PyObject *image = NULL;
 
     if (!PyArg_ParseTuple(args, "OLiii:init",
-                          &image, &pts, &isKey,
+                          &image, &pts, &is_key,
                           &isInterlaced, &topFieldFirst)) {
         ret = -1; 
     }
@@ -749,7 +749,7 @@ VFrame_Init(PyrVFrameObject *self, PyObject *args, PyObject *kwds)
         self->frame->top_field_first = topFieldFirst;
 
         /* beware of the following */
-        self->frame->key_frame = isKey;
+        self->frame->key_frame = is_key;
         self->frame->coded_picture_number = Pyr_FRAMENUM_NULL;
         self->frame->display_picture_number = Pyr_FRAMENUM_NULL;
         self->frame->pict_type = Pyr_PICT_NO_TYPE;
@@ -828,7 +828,7 @@ PyrVFrame_NewFromAVFrame(AVFrame *frame, const PyrImage *img)
     if (self) {
         self->origin = Pyr_VFRAME_ORIGIN_LIBAV;
         self->frame = frame;
-        self->isKey = frame->key_frame;
+        self->is_key = frame->key_frame;
         self->image = PyrImage_NewFromFrame(self, img);
         /* TODO: NewFromFrame can fail */
     }
@@ -892,16 +892,16 @@ PyrVFrame_GetDisplayNum(PyrVFrameObject *self)
 }
 
 
-static PyGetSetDef VFrame_GetSetList[] =
+static PyGetSetDef VFrame_get_set[] =
 {
-    { "image",         (getter)PyrVFrame_GetImage,         NULL, "frame image data"              },
-    { "isKey",         (getter)PyrVFrame_GetKey,           NULL, "is it a reference frame?"      },
-    { "pts",           (getter)PyrVFrame_GetPts,           NULL, "frame presentation timestamp." },
-    { "topFieldFirst", (getter)PyrVFrame_GetTopFieldFirst, NULL, "interlaced field order."       },
-    { "isInterlaced",  (getter)PyrVFrame_GetIsInterlaced,  NULL, "is it interlaced?"             },
-    { "picType",       (getter)PyrVFrame_GetPicType,       NULL, "picture type"                  },
-    { "codedNum",      (getter)PyrVFrame_GetCodedNum,      NULL, "encoded sequence number"       },
-    { "displayNum",    (getter)PyrVFrame_GetDisplayNum,    NULL, "display sequence number"       },
+    { "image", (getter)PyrVFrame_GetImage, NULL, "frame image data" },
+    { "is_key", (getter)PyrVFrame_GetKey, NULL, "reference frame flag" },
+    { "pts", (getter)PyrVFrame_GetPts, NULL, "frame presentation timestamp." },
+    { "top_field_first", (getter)PyrVFrame_GetTopFieldFirst, NULL, "interlaced field order." },
+    { "is_interlaced", (getter)PyrVFrame_GetIsInterlaced, NULL, "interlace flag" },
+    { "pic_type", (getter)PyrVFrame_GetPicType, NULL, "picture type" },
+    { "coded_num", (getter)PyrVFrame_GetCodedNum, NULL, "encoded sequence number" },
+    { "display_num", (getter)PyrVFrame_GetDisplayNum, NULL, "display sequence number" },
     { NULL }, /* Sentinel */
 };
 
@@ -938,7 +938,7 @@ static PyTypeObject VFrame_Type =
     0,                                      /* tp_iternext */
     0,                                      /* tp_Methods */
     0,                                      /* tp_members */
-    VFrame_GetSetList,                      /* tp_Getset */
+    VFrame_get_set,                         /* tp_getset */
     0,                                      /* tp_base */
     0,                                      /* tp_dict */
     0,                                      /* tp_descr_Get */

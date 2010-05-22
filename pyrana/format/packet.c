@@ -26,26 +26,19 @@
 #include "pyrana/format/packet.h"
 
 /* TODO:
- * - move pts, dts, isKey as kwds?
+ * - move pts, dts, is_key, ... as kwds?
  */
 
 
-#define PACKET_NAME "Packet"
-PyDoc_STRVAR(Packet_doc,
-PACKET_NAME" - is an object to represent a packet.\n"
-"It stores the raw packed data, and it has convertion\n"
-"routines to/from regular Python strings.\n"
-"Packet objects are immutable.");
 
-
-static PyTypeObject PacketType;
+static PyTypeObject Packet_Type;
 
 
 
 int
 PyrPacket_Check(PyObject *o)
 {
-    return PyObject_TypeCheck(o, &PacketType);
+    return PyObject_TypeCheck(o, &Packet_Type);
 }
 
 
@@ -55,12 +48,13 @@ PyrPacket_NewEmpty(int size)
     PyrPacketObject *self = NULL;
     
     if (size) {
-        self = PyObject_New(PyrPacketObject, &PacketType);
+        self = PyObject_New(PyrPacketObject, &Packet_Type);
         if (self) {
             int err = av_new_packet(&(self->pkt), size);
             if (!err) {
                 self->len = 0;
-            } else {
+            }
+            else {
                 Py_DECREF(self);
                 self = NULL;
             }
@@ -91,11 +85,11 @@ PyrPacket_NewFromAVPacket(AVPacket *pkt)
     if (pkt && pkt->size) {
         self = PyrPacket_NewFromData(pkt->data, pkt->size);
         if (self) {
-            self->pkt.pts          = pkt->pts;
-            self->pkt.dts          = pkt->dts;
-            self->pkt.pos          = pkt->pos;
-            self->pkt.flags        = pkt->flags;
-            self->pkt.duration     = pkt->duration;
+            self->pkt.pts = pkt->pts;
+            self->pkt.dts = pkt->dts;
+            self->pkt.pos = pkt->pos;
+            self->pkt.flags = pkt->flags;
+            self->pkt.duration = pkt->duration;
             self->pkt.stream_index = pkt->stream_index;
             /* FIXME: Is anything else needed? */
         }
@@ -105,34 +99,41 @@ PyrPacket_NewFromAVPacket(AVPacket *pkt)
 
 
 static void
-Packet_dealloc(PyrPacketObject *self)
+Packet_Dealloc(PyrPacketObject *self)
 {
     av_free_packet(&self->pkt);
     PyObject_Del((PyObject *)self);
 }
 
 
+#define PACKET_NAME "Packet"
+PyDoc_STRVAR(Packet__doc__,
+PACKET_NAME" - is an object to represent a packet.\n"
+"It stores the raw packed data, and it has convertion\n"
+"routines to/from regular Python strings.\n"
+"Packet objects are immutable."
+);
 static int
-Packet_init(PyrPacketObject *self, PyObject *args, PyObject *kwds)
+Packet_Init(PyrPacketObject *self, PyObject *args, PyObject *kwds)
 {
     char *buf = NULL;
-    int err, ret = -1, streamid = 0, len = 0, isKey = 0;
+    int err, ret = -1, stream_id = 0, len = 0, is_key = 0;
     PY_LONG_LONG pts = AV_NOPTS_VALUE, dts = AV_NOPTS_VALUE;
 
     if (!PyArg_ParseTuple(args, "is#|LLi:init",
-                          &streamid, &buf, &len,
-                          &pts, &dts, &isKey)) {
+                          &stream_id, &buf, &len,
+                          &pts, &dts, &is_key)) {
         return -1; 
     }
     err = av_new_packet(&self->pkt, len);
     if (!err) {
         memcpy(self->pkt.data, buf, len);
 
-        self->pkt.stream_index = streamid;
-        self->pkt.pts          = pts;
-        self->pkt.dts          = dts;
-        if (isKey) {
-            self->pkt.flags   |= PKT_FLAG_KEY;
+        self->pkt.stream_index = stream_id;
+        self->pkt.pts = pts;
+        self->pkt.dts = dts;
+        if (is_key) {
+            self->pkt.flags |= PKT_FLAG_KEY;
         }
 
         ret = 0;
@@ -142,22 +143,23 @@ Packet_init(PyrPacketObject *self, PyObject *args, PyObject *kwds)
 
 
 static Py_ssize_t
-Packet_getbuf(PyrPacketObject *self, Py_ssize_t segment, void **ptrptr)
+Packet_GetBuf(PyrPacketObject *self, Py_ssize_t segment, void **ptrptr)
 {
     Py_ssize_t ret = -1;
     if (segment != 0) {
         PyErr_Format(PyExc_SystemError,
                      "accessing non-existent string segment");
-    } else {
+    }
+    else {
         *ptrptr = self->pkt.data;
-        ret     = self->pkt.size;
+        ret = self->pkt.size;
     }
     return ret;
 }
 
 
 static Py_ssize_t
-Packet_getsegcount(PyrPacketObject *self, Py_ssize_t *lenp)
+Packet_GetSegCount(PyrPacketObject *self, Py_ssize_t *lenp)
 {
     if (lenp) {
         *lenp = self->pkt.size;
@@ -167,16 +169,16 @@ Packet_getsegcount(PyrPacketObject *self, Py_ssize_t *lenp)
 
 
 static PyBufferProcs Packet_as_buffer = {
-    (readbufferproc)Packet_getbuf,    /* bg_getreadbuffer  */
+    (readbufferproc)Packet_GetBuf,    /* bg_getreadbuffer  */
     0,                                /* bf_getwritebuffer */
-    (segcountproc)Packet_getsegcount, /* bf_getsegcount    */
-    (charbufferproc)Packet_getbuf,    /* bf_getcharbuffer  */
+    (segcountproc)Packet_GetSegCount, /* bf_getsegcount    */
+    (charbufferproc)Packet_GetBuf,    /* bf_getcharbuffer  */
 };
 
 
 
 static PyObject *
-PyrPacket_getdata(PyrPacketObject *self)
+PyrPacket_GetData(PyrPacketObject *self)
 {
     /* FIXME: is that correct? */
     return PyString_FromStringAndSize((char *)self->pkt.data, self->pkt.size);
@@ -184,55 +186,55 @@ PyrPacket_getdata(PyrPacketObject *self)
 
 
 static PyObject *
-PyrPacket_getsize(PyrPacketObject *self)
+PyrPacket_GetSize(PyrPacketObject *self)
 {
     return PyInt_FromLong(self->pkt.size);
 }
 
 
 static PyObject *
-PyrPacket_getkey(PyrPacketObject *self)
+PyrPacket_GetKey(PyrPacketObject *self)
 {
-    int isKey = 0;
+    int is_key = 0;
     if (self->pkt.flags & PKT_FLAG_KEY) {
-        isKey = 1;
+        is_key = 1;
     }
-    return PyInt_FromLong(isKey);
+    return PyInt_FromLong(is_key);
 }
 
 static PyObject *
-PyrPacket_getidx(PyrPacketObject *self)
+PyrPacket_GetIdx(PyrPacketObject *self)
 {
     return PyInt_FromLong(self->pkt.stream_index);
 }
 
 static PyObject *
-PyrPacket_getpts(PyrPacketObject *self)
+PyrPacket_GetPts(PyrPacketObject *self)
 {
     return PyLong_FromLongLong(self->pkt.pts);
 }
 
 static PyObject *
-PyrPacket_getdts(PyrPacketObject *self)
+PyrPacket_GetDts(PyrPacketObject *self)
 {
     return PyLong_FromLongLong(self->pkt.dts);
 }
 
 
-static PyGetSetDef Packet_getsetlist[] =
+static PyGetSetDef Packet_get_set[] =
 {
-    { "data",  (getter)PyrPacket_getdata, NULL, "packet data as binary string."  },
-    { "size",  (getter)PyrPacket_getsize, NULL, "packet data length."            },
-    { "isKey", (getter)PyrPacket_getkey,  NULL, "is it a reference packet?"      },
-    { "idx",   (getter)PyrPacket_getidx,  NULL, "packet stream index,"           },
-    { "pts",   (getter)PyrPacket_getpts,  NULL, "packet presentation timestamp." },
-    { "dts",   (getter)PyrPacket_getdts,  NULL, "packet decoding timestamp."     },
+    { "data", (getter)PyrPacket_GetData, NULL, "packet data as binary string." },
+    { "size", (getter)PyrPacket_GetSize, NULL, "packet data length." },
+    { "isKey", (getter)PyrPacket_GetKey, NULL, "is it a reference packet?" },
+    { "idx", (getter)PyrPacket_GetIdx, NULL, "packet stream index." },
+    { "pts", (getter)PyrPacket_GetPts, NULL, "packet presentation timestamp." },
+    { "dts", (getter)PyrPacket_GetDts, NULL, "packet decoding timestamp." },
     { NULL }, /* Sentinel */
 };
 
 
 static PyObject *
-Packet_repr(PyrPacketObject *self)
+Packet_Repr(PyrPacketObject *self)
 {
     return PyString_FromFormat("<Packet idx=%i key=%s size=%i>",
                                self->pkt.stream_index,
@@ -241,19 +243,19 @@ Packet_repr(PyrPacketObject *self)
 } 
 
 
-static PyTypeObject PacketType =
+static PyTypeObject Packet_Type =
 {
     PyObject_HEAD_INIT(NULL)
     0,
     PACKET_NAME,
     sizeof(PyrPacketObject),
     0,
-    (destructor)Packet_dealloc,             /* tp_dealloc */
+    (destructor)Packet_Dealloc,             /* tp_Dealloc */
     0,                                      /* tp_print */
     0,                                      /* tp_getattr */
     0,                                      /* tp_setattr */
     0,                                      /* tp_compare */
-    (reprfunc)Packet_repr,                  /* tp_repr */
+    (reprfunc)Packet_Repr,                  /* tp_Repr */
     0,                                      /* tp_as_number */
     0,                                      /* tp_as_sequence */
     0,                                      /* tp_as_mapping */
@@ -264,7 +266,7 @@ static PyTypeObject PacketType =
     0,                                      /* tp_setattro */
     &Packet_as_buffer,                      /* tp_as_buffer */
     Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE, /* tp_flags */
-    Packet_doc,                             /* tp_doc */
+    Packet__doc__,                          /* tp_doc */
     0,                                      /* tp_traverse */
     0,                                      /* tp_clear */
     0,                                      /* tp_richcompare */
@@ -273,13 +275,13 @@ static PyTypeObject PacketType =
     0,                                      /* tp_iternext */
     0,                                      /* tp_methods */
     0,                                      /* tp_members */
-    Packet_getsetlist,                      /* tp_getset */
+    Packet_get_set,                         /* tp_getset */
     0,                                      /* tp_base */
     0,                                      /* tp_dict */
     0,                                      /* tp_descr_get */
     0,                                      /* tp_descr_set */
     0,                                      /* tp_dictoffset */
-    (initproc)Packet_init,                  /* tp_init */
+    (initproc)Packet_Init,                  /* tp_Init */
     PyType_GenericAlloc,                    /* tp_alloc */
     PyType_GenericNew,                      /* tp_new */
 };
@@ -288,12 +290,12 @@ static PyTypeObject PacketType =
 int
 PyrPacket_Setup(PyObject *m)
 {
-    if (PyType_Ready(&PacketType) < 0)
+    if (PyType_Ready(&Packet_Type) < 0)
         return -1;
 
-    PacketType.ob_type = &PyType_Type;
-    Py_INCREF((PyObject *)&PacketType);
-    PyModule_AddObject(m, PACKET_NAME, (PyObject *)&PacketType);
+    Packet_Type.ob_type = &PyType_Type;
+    Py_INCREF((PyObject *)&Packet_Type);
+    PyModule_AddObject(m, PACKET_NAME, (PyObject *)&Packet_Type);
     return 0;
 }
 

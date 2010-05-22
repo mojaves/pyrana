@@ -48,7 +48,7 @@ typedef struct pyrimageobject_ PyrImageObject;
 typedef struct pyrvframeobject_ PyrVFrameObject;
 
 typedef struct {
-    int planeNum;
+    int plane_num;
     struct {
         int width;
         int height;
@@ -60,7 +60,7 @@ typedef struct {
     AVPicture picture;
     int width;
     int height;
-    enum PixelFormat pixFmt;
+    enum PixelFormat pix_fmt;
 } PyrImage;
 
 struct pyrimageobject_ {
@@ -74,6 +74,7 @@ struct pyrimageobject_ {
 PyrImageObject *PyrImage_NewFromImage(const PyrImage *image);
 PyrImageObject *PyrImage_NewFromFrame(PyrVFrameObject *frame,
                                       const PyrImage *img);
+
 int PyrImage_Check(PyObject *o);
 
 int PyrImage_Setup(PyObject *m);
@@ -88,7 +89,7 @@ struct pyrvframeobject_ {
     PyObject_HEAD
     PyrImageObject *image;
     AVFrame *frame;
-    int isKey;
+    int is_key;
     PyrVFrameOrigin origin;
 };
 

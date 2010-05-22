@@ -33,8 +33,8 @@
 typedef struct {
     PyObject_HEAD
     AVFormatContext *ic;
-    PyObject        *streams;
-    PyObject        *key;
+    PyObject *streams;
+    PyObject *key;
 } PyrDemuxerObject;
 
 int PyrDemuxer_Check(PyObject *o);

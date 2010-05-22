@@ -30,7 +30,7 @@
 #include "pyrana/pyrana.h"
 
 enum {
-    PYRANA_STREAM_ANY  = -1
+    Pyr_STREAM_ANY  = -1
 };
 
 int PyrFormat_NeedSeeking(const char *fmt);
@@ -40,4 +40,7 @@ int PyrFormat_IsOutput(const char *fmt);
 int PyrFormat_Setup(PyObject *m);
 
 #endif /* PYRANA_MODULE_FORMAT_H */
+
+
+/* vim: set ts=4 sw=4 et */
 
