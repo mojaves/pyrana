@@ -250,12 +250,12 @@ static PyTypeObject Packet_Type =
     PACKET_NAME,
     sizeof(PyrPacketObject),
     0,
-    (destructor)Packet_Dealloc,             /* tp_Dealloc */
+    (destructor)Packet_Dealloc,             /* tp_dealloc */
     0,                                      /* tp_print */
     0,                                      /* tp_getattr */
     0,                                      /* tp_setattr */
     0,                                      /* tp_compare */
-    (reprfunc)Packet_Repr,                  /* tp_Repr */
+    (reprfunc)Packet_Repr,                  /* tp_repr */
     0,                                      /* tp_as_number */
     0,                                      /* tp_as_sequence */
     0,                                      /* tp_as_mapping */
@@ -281,7 +281,7 @@ static PyTypeObject Packet_Type =
     0,                                      /* tp_descr_get */
     0,                                      /* tp_descr_set */
     0,                                      /* tp_dictoffset */
-    (initproc)Packet_Init,                  /* tp_Init */
+    (initproc)Packet_Init,                  /* tp_init */
     PyType_GenericAlloc,                    /* tp_alloc */
     PyType_GenericNew,                      /* tp_new */
 };

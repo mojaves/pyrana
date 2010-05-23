@@ -409,7 +409,7 @@ static PyTypeObject DemuxerType =
     DEMUXER_NAME,
     sizeof(PyrDemuxerObject),
     0,
-    (destructor)Demuxer_Dealloc,            /* tp_Dealloc */
+    (destructor)Demuxer_Dealloc,            /* tp_dealloc */
     0,                                      /* tp_print */
     0,                                      /* tp_getattr */
     0,                                      /* tp_setattr */
@@ -434,13 +434,13 @@ static PyTypeObject DemuxerType =
     (iternextfunc)Demuxer_Next,             /* tp_iternext */
     Demuxer_methods,                        /* tp_methods */
     0,                                      /* tp_members */
-    Demuxer_get_set,                     /* tp_getset */
+    Demuxer_get_set,                        /* tp_getset */
     0,                                      /* tp_base */
     0,                                      /* tp_dict */
     0,                                      /* tp_descr_get */
     0,                                      /* tp_descr_set */
     0,                                      /* tp_dictoffset */
-    (initproc)Demuxer_Init,                 /* tp_Init */
+    (initproc)Demuxer_Init,                 /* tp_init */
     PyType_GenericAlloc,                    /* tp_alloc */
     PyType_GenericNew,                      /* tp_new */
 };

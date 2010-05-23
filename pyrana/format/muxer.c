@@ -351,7 +351,7 @@ static PyTypeObject MuxerType =
     MUXER_NAME,
     sizeof(PyrMuxerObject),
     0,
-    (destructor)Muxer_Dealloc,              /* tp_Dealloc */
+    (destructor)Muxer_Dealloc,              /* tp_dealloc */
     0,                                      /* tp_print */
     0,                                      /* tp_getattr */
     0,                                      /* tp_setattr */
@@ -382,7 +382,7 @@ static PyTypeObject MuxerType =
     0,                                      /* tp_descr_get */
     0,                                      /* tp_descr_set */
     0,                                      /* tp_dictoffset */
-    (initproc)Muxer_Init,                   /* tp_Init */
+    (initproc)Muxer_Init,                   /* tp_init */
     0,                                      /* tp_alloc */
     PyType_GenericNew,                      /* tp_new */
 };
