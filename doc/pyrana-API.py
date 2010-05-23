@@ -136,17 +136,17 @@ class Plane(object):
     stride
     width
     height
-    pix_fmt
+    pixel_format
     data
     size
 
 class Image(object):
-    def __init__(self, width, height, pix_fmt, data):
+    def __init__(self, width, height, pixel_format, data):
         """not yet decided"""
         pass
     width
     height
-    pix_fmt
+    pixel_format
     def plane(self, num):
         return Plane # FIXME
     def convert(self, ...):
