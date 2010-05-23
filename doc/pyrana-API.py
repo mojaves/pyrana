@@ -157,14 +157,14 @@ class Frame(object):
     def __init__(self, image, pts, is_key, is_interlaced, top_field_first):
         """not yet decided"""
         pass
-    image
     pts
     is_key
+    image
     top_field_first
     is_interlaced
-    pic_type      # can only by set by decoder/encoder
-    coded_num     # ditto
-    display_num   # ditto
+    pic_type # can only set by decoder/encoder
+    coded_num # ditto
+    display_num # ditto
 
 
 
@@ -208,17 +208,23 @@ class Encoder(object):
 
 #pyrana.audio
 
-input_codecs   = frozenset()
-output_codecs  = frozenset()
+input_codecs        = frozenset()
+output_codecs       = frozenset()
+sample_formats      = frozenset()
+user_sample_formats = frozenset()
 
+# FIXME
 class Frame(object): # (V)
-    def __init__(self, data, pts=0, dts=0):
+    def __init__(self, data, pts, sample_format):
         pass
-    pts #XXX
-    dts #XXX
-    is_key [RO] #XXX
-    size [RO]
-    data [RO]
+    pts
+    is_key #XXX
+    sample_format
+    size # bytes (FIXME )
+    data
+    def resample(self, sample_format, ...): # XXX
+        return Frame # ...
+
 
 class Decoder(object):
     """
