@@ -27,6 +27,7 @@
 #ifndef PYRANA_PICTURE_H
 #define PYRANA_PICTURE_H
 
+#include "pyrana/pyrana_internal.h"
 #include "pyrana/video/video.h"
 
 #include <libavcodec/avcodec.h>
@@ -79,18 +80,13 @@ int PyrImage_Check(PyObject *o);
 
 int PyrImage_Setup(PyObject *m);
 
-typedef enum {
-    Pyr_VFRAME_ORIGIN_UNKNOWN = 0,
-    Pyr_VFRAME_ORIGIN_USER,
-    Pyr_VFRAME_ORIGIN_LIBAV
-} PyrVFrameOrigin;
 
 struct pyrvframeobject_ {
     PyObject_HEAD
     PyrImageObject *image;
     AVFrame *frame;
     int is_key;
-    PyrVFrameOrigin origin;
+    PyrFrameOrigin origin;
 };
 
 

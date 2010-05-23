@@ -53,7 +53,6 @@
  * garbage collected until all Planes originated from it are.
  */
 
-/*************************************************************************/
 
 static const enum PixelFormat g_pix_fmts[] = {
     PIX_FMT_NONE,
@@ -826,7 +825,7 @@ PyrVFrame_NewFromAVFrame(AVFrame *frame, const PyrImage *img)
 
     self = PyObject_New(PyrVFrameObject, &VFrame_Type);
     if (self) {
-        self->origin = Pyr_VFRAME_ORIGIN_LIBAV;
+        self->origin = Pyr_FRAME_ORIGIN_LIBAV;
         self->frame = frame;
         self->is_key = frame->key_frame;
         self->image = PyrImage_NewFromFrame(self, img);
@@ -840,7 +839,7 @@ static PyObject *
 PyrVFrame_GetImage(PyrVFrameObject *self)
 {
     PyrImageObject *image = self->image;
-    if (self->origin == Pyr_VFRAME_ORIGIN_LIBAV) {
+    if (self->origin == Pyr_FRAME_ORIGIN_LIBAV) {
         self->image->parent = self;
         Py_INCREF((PyObject*)self);
     }

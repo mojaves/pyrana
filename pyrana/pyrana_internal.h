@@ -30,13 +30,26 @@
 #include "pyrana/pyrana.h"
 #include "pyrana/errors.h"
 
-typedef struct {
+
+enum {
+    Pyr_BUF_SIZE = 128
+};
+
+typedef enum {
+    Pyr_FRAME_ORIGIN_UNKNOWN = 0,
+    Pyr_FRAME_ORIGIN_USER,
+    Pyr_FRAME_ORIGIN_LIBAV
+} PyrFrameOrigin;
+
+
+typedef struct pyrcodecobject_ PyrCodecObject;
+struct pyrcodecobject_ {
     PyObject_HEAD
     PyObject *parent; /* for decoders spawned from demuxers */
     AVCodecContext *ctx;
     AVCodec *codec;
     PyObject *params;
-} PyrCodecObject;
+};
 
 #endif /* PYRANA_INTERNAL_H */
 
