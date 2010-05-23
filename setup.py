@@ -73,7 +73,7 @@ pyrana_ext = Extension('pyrana',
                         'pyrana/format/packet.c',
                         'pyrana/video/video.c', 'pyrana/video/picture.c',
                         'pyrana/video/decoder.c',
-                        'pyrana/audio/audio.c'
+                        'pyrana/audio/audio.c', 'pyrana/audio/samples.c'
                        ],
                        include_dirs=inc_dirs,
                        library_dirs=lib_dirs,

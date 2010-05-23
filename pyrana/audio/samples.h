@@ -23,16 +23,49 @@
  * distribution.
  */ 
 
-#ifndef PYRANA_AUDIO_H
-#define PYRANA_AUDIO_H
 
-#include "pyrana/pyrana.h"
+#ifndef PYRANA_SAMPLES_H
+#define PYRANA_SAMPLES_H
+
+#include "pyrana/pyrana_internal.h"
+#include "pyrana/audio/audio.h"
+
+#include <libavcodec/avcodec.h>
 
 
+PyObject *PyrAudio_NewSampleFormats(void);
+PyObject *PyrAudio_NewUserSampleFormats(void);
 
-int PyrAudio_Setup(PyObject *m);
 
-#endif /* PYRANA_AUDIO_H */
+typedef struct {
+    int16_t *data;
+    int size_bytes;
+    enum SampleFormat sample_fmt;
+} PyrSamples;
+
+int PyrSamples_Init(PyrSamples *S,
+                    enum SampleFormat sample_fmt, int size_bytes);
+int PyrSamples_Fini(PyrSamples *S);
+
+
+typedef struct pyraframeobject_ PyrAFrameObject;
+struct pyraframeobject_ {
+    PyObject_HEAD
+    PyrSamples samples;
+    PyrFrameOrigin origin;
+    int64_t pts;
+};
+
+
+PyrAFrameObject *PyrAFrame_NewEmpty(int size_bytes);
+PyrAFrameObject *PyrAFrame_NewFromSamples(const PyrSamples *samp);
+
+int PyrAFrame_Check(PyObject *o);
+
+int PyrAFrame_Setup(PyObject *m);
+
+
+#endif /* PYRANA_SAMPLES_H */
 
 /* vim: set ts=4 sw=4 et */
 

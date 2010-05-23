@@ -24,13 +24,13 @@
  */ 
 
 #include "pyrana/audio/audio.h"
+#include "pyrana/audio/samples.h"
 
 
 #define SUB_MODULE_PYDOC "Not yet"
 
 #define SUB_MODULE_NAME MODULE_NAME".audio"
 
-/*************************************************************************/
 
 static PyObject *
 BuildCodecNamesInput(void)
@@ -87,8 +87,15 @@ PyrAudio_Setup(PyObject *m)
                                   NULL,
                                   SUB_MODULE_PYDOC);
     if (sm) {
-        PyModule_AddObject(sm, "input_codecs",  BuildCodecNamesInput());
+        PyModule_AddObject(sm, "input_codecs", BuildCodecNamesInput());
         PyModule_AddObject(sm, "output_codecs", BuildCodecNamesOutput());
+        PyModule_AddObject(sm, "sample_formats", PyrAudio_NewSampleFormats());
+        PyModule_AddObject(sm, "user_sample_formats",
+                           PyrAudio_NewUserSampleFormats());
+
+/*      not yet
+        PyrAFrame_Setup(sm);
+*/
 
         PyModule_AddObject(m, "audio", sm);
         ret = 0;
