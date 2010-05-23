@@ -461,7 +461,7 @@ Image_Init(PyrImageObject *self, PyObject *args, PyObject *kwds)
         ret = -1; 
     }
     else {
-        const char *name = PyString_AsString(pix_fmt_obj);
+        const char *name = PyString_AsString(pix_fmt_obj); /* FIXME */
         enum PixelFormat pix_fmt = FindPixFmtByName(name);
         if (!Image_AreParamsValid(self, width, height, pix_fmt)) {
             ret = -1;
@@ -585,8 +585,8 @@ PyrImage_GetPixFmt(PyrImageObject *self)
 
 static PyGetSetDef Image_get_set[] =
 {
-    { "width",        (getter)PyrImage_GetWidth,  NULL, "width."   },
-    { "height",       (getter)PyrImage_GetHeight, NULL, "height."  },
+    { "width", (getter)PyrImage_GetWidth, NULL, "width." },
+    { "height", (getter)PyrImage_GetHeight, NULL, "height." },
     { "pixel_format", (getter)PyrImage_GetPixFmt, NULL, "pixel format as string." },
     { NULL }, /* Sentinel */
 };
@@ -617,7 +617,7 @@ Image_Convert(PyrImageObject *self, PyObject *args)
 }
 
 
-static PyMethodDef Image_Methods[] =
+static PyMethodDef Image_methods[] =
 {
     {
         IMAGE_PLANE_NAME,
@@ -666,7 +666,7 @@ static PyTypeObject Image_Type =
     0,                                      /* tp_weaklistoffset */
     0,                                      /* tp_iter */
     0,                                      /* tp_iternext */
-    Image_Methods,                          /* tp_methods */
+    Image_methods,                          /* tp_methods */
     0,                                      /* tp_members */
     Image_get_set,                          /* tp_getset */
     0,                                      /* tp_base */
