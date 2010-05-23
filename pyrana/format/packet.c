@@ -203,7 +203,7 @@ PyrPacket_GetKey(PyrPacketObject *self)
 }
 
 static PyObject *
-PyrPacket_GetIdx(PyrPacketObject *self)
+PyrPacket_GetStreamId(PyrPacketObject *self)
 {
     return PyInt_FromLong(self->pkt.stream_index);
 }
@@ -225,8 +225,8 @@ static PyGetSetDef Packet_get_set[] =
 {
     { "data", (getter)PyrPacket_GetData, NULL, "packet data as binary string." },
     { "size", (getter)PyrPacket_GetSize, NULL, "packet data length." },
-    { "isKey", (getter)PyrPacket_GetKey, NULL, "is it a reference packet?" },
-    { "idx", (getter)PyrPacket_GetIdx, NULL, "packet stream index." },
+    { "is_key", (getter)PyrPacket_GetKey, NULL, "is it a reference packet?" },
+    { "stream_id", (getter)PyrPacket_GetStreamId, NULL, "packet stream index." },
     { "pts", (getter)PyrPacket_GetPts, NULL, "packet presentation timestamp." },
     { "dts", (getter)PyrPacket_GetDts, NULL, "packet decoding timestamp." },
     { NULL }, /* Sentinel */
