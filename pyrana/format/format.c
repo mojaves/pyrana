@@ -136,7 +136,7 @@ IsStreamable(PyObject *self, PyObject *args)
 }
 
 
-#define FIND_STREAM "FindStream"
+#define FIND_STREAM "find_stream"
 PyDoc_STRVAR(FindStream__doc__,
 FIND_STREAM"(streams, streamid, media) - TODO"
 );

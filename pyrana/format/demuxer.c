@@ -80,7 +80,7 @@ Demuxer_FillStreamInfo(PyObject *stream_info, AVCodecContext *ctx)
     Demuxer_SetAttribute(stream_info, "type",
                          PyInt_FromLong(ctx->codec_type));
     if (ctx->codec_type == CODEC_TYPE_VIDEO) {
-        Demuxer_SetAttribute(stream_info, "pixFmt",
+        Demuxer_SetAttribute(stream_info, "pixel_format",
                              PyString_FromString(avcodec_get_pix_fmt_name(ctx->pix_fmt)));
         if (ctx->width) {
             Demuxer_SetAttribute(stream_info, "width",
@@ -92,9 +92,10 @@ Demuxer_FillStreamInfo(PyObject *stream_info, AVCodecContext *ctx)
     if (ctx->codec_type == CODEC_TYPE_AUDIO) {
         Demuxer_SetAttribute(stream_info, "channels",
                              PyInt_FromLong(ctx->channels));
-        Demuxer_SetAttribute(stream_info, "sampleRate",
+        /* for uniformity with bitrate */
+        Demuxer_SetAttribute(stream_info, "samplerate",
                              PyInt_FromLong(ctx->sample_rate));
-        Demuxer_SetAttribute(stream_info, "sampleBytes",
+        Demuxer_SetAttribute(stream_info, "sample_bytes",
                              PyInt_FromLong(2));
         /* FIXME: BPP is hardcoded */
     }
