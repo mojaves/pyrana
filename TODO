@@ -1,16 +1,17 @@
 TODO (real)
-- port to PEP07
-- port to PY3
+- PY3 compatibility
+- PEP8-ize the testsuite
 
 BACKGROUND
-- more testing
+- more testing and more unit tests
+- measure test coverage
 - polishing
 
 ROADMAP
 - video decoding (in progress)
 - audio decoding
 - video encoding
-- muxing
+- muxing (in progress)
 - audio encoding
 - all the bits left
 
