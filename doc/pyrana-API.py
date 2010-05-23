@@ -45,13 +45,13 @@ def find_stream(streams, streamid, media):
     pass
 
 class Packet(object):
-    def __init__(self, idx, data, pts, dts, is_key):
+    def __init__(self, stream_id, data, pts, dts, is_key):
         """
         a Packet object represents an immutable, encoded packet of a
         multimedia stream.
         """
         pass
-    idx
+    stream_id
     pts
     dts
     is_key
