@@ -28,12 +28,12 @@ class ImageCommonBaseTestCase(object):
         self.failUnlessRaises(pyrana.SetupError, self._build_img,
                               self.width, self.height, ())
     def test_InitValues(self):
-        i = self._build_img(self.width, self.height, self.data, self.pix_fmt)
+        i = self._build_img(self.width, self.height, self.data, self.pixel_format)
         self.assertTrue(i.width == self.width)
         self.assertTrue(i.height == self.height)
-        self.assertTrue(i.pix_fmt == self.pix_fmt)
+        self.assertTrue(i.pixel_format == self.pixel_format)
         # gratuitous
-        self.assertTrue(i.pix_fmt in pyrana.video.user_pixel_formats)
+        self.assertTrue(i.pixel_format in pyrana.video.user_pixel_formats)
     def test_CannotResetWidth(self):
         i = self._build_img(self.width, self.height, self.data)
         self.assertTrue(i.width == self.width)
@@ -47,13 +47,13 @@ class ImageCommonBaseTestCase(object):
     def test_CannotResetPixFmt(self):
         i = self._build_img(self.width, self.height, self.data)
         self.assertTrue(i.width == self.width)
-        self.assertRaises(AttributeError, setattr, i, "pix_fmt", "something")
+        self.assertRaises(AttributeError, setattr, i, "pixel_format", "something")
         self.assertTrue(i.width == self.width)
  
 
 class ImageFromDataTestCase(ImageCommonBaseTestCase, unittest.TestCase):
     def setUp(self):
-        self.pix_fmt = "rgb24"
+        self.pixel_format = "rgb24"
         self.width, self.height = 320, 240
         self.data = "\0\0\0" * self.width * self.height
     def _build_img(self, w, h, d, n="rgb24"):
@@ -61,7 +61,7 @@ class ImageFromDataTestCase(ImageCommonBaseTestCase, unittest.TestCase):
 
 class ImageFromPlanesTestCase(ImageCommonBaseTestCase, unittest.TestCase):
     def setUp(self):
-        self.pix_fmt = "yuv420p"
+        self.pixel_format = "yuv420p"
         self.width, self.height = 320, 240
         self.data = [ "\0" * self.width * self.height,
                       "\0" * (self.width / 2 * self.height / 2),

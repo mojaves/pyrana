@@ -32,7 +32,7 @@ class VideoDecTestCase(unittest.TestCase):
         self.assertTrue(streaminfo["type"] == pyrana.MEDIA_VIDEO);
         self.assertTrue(img.width == streaminfo["width"])
         self.assertTrue(img.height == streaminfo["height"])
-        self.assertTrue(img.pixFmt == streaminfo["pixFmt"])
+        self.assertTrue(img.pixel_format == streaminfo["pixel_format"])
     
     def test_CreateVideoDec(self):
         makeDec("mpeg1video")
@@ -42,22 +42,22 @@ class VideoDecTestCase(unittest.TestCase):
         dmx = pyrana.format.Demuxer(open(samples["OGG_AV"], "rb"))
         self.assertTrue(len(dmx.streams) >= 1)
         j = pyrana.format.find_stream(dmx.streams, 0, pyrana.MEDIA_VIDEO);
-        dec = dmx.openDecoder(j)
+        dec = dmx.open_decoder(j)
         assertIsDecoder(dec)
     def test_FromDemuxerV(self):
         dmx = pyrana.format.Demuxer(open(samples["MPG_V"], "rb"))
         self.assertTrue(len(dmx.streams) == 1)
         j = pyrana.format.find_stream(dmx.streams, 0, pyrana.MEDIA_VIDEO);
-        dec = dmx.openDecoder(j)
+        dec = dmx.open_decoder(j)
         assertIsDecoder(dec)
     def test_DecodeSingleFrame(self):
         dmx = pyrana.format.Demuxer(open(samples["OGG_AV"], "rb"))
         self.assertTrue(len(dmx.streams) >= 1)
         j = pyrana.format.find_stream(dmx.streams, 0, pyrana.MEDIA_VIDEO);
         info = dmx.streams[j]
-        dec = dmx.openDecoder(j)
+        dec = dmx.open_decoder(j)
         assertIsDecoder(dec)
-        pkt = dmx.readFrame(j)
+        pkt = dmx.read_frame(j)
         frm = dec.decode(pkt)
         self.assertFrameOfStream(frm, info);
     def test_FlushEmptyCodec(self):

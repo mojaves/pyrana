@@ -57,15 +57,15 @@ class VFrameCommonBaseTestCase(object):
         j = f.image
         self.assertTrue(i.width == j.width)
         self.assertTrue(i.height == j.height)
-        self.assertTrue(i.pix_fmt == j.pix_fmt)
+        self.assertTrue(i.pixel_format == j.pixel_format)
     def test_GetImageLifeTime(self):
         i = self._new_img(400, 300)
         f = self._new_frame(i)
         del i
         j = f.image
-        self.assertTrue(j.pix_fmt == "rgb24")
+        self.assertTrue(j.pixel_format == "rgb24")
         del f
-        self.assertTrue(j.pix_fmt == "rgb24")
+        self.assertTrue(j.pixel_format == "rgb24")
         
 
 
