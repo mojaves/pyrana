@@ -8,9 +8,8 @@ Overview
 --------
 
 Pyrana is a python package designed to provides simple access to
-multimedia files. Pyrana is based on the FFmpeg[1] libraries, but
-provides an independent API. Wherever practical, Pyrana aims to
-be as much backward compatible as is possible to the Pymedia package[2].
+multimedia files. Pyrana is based on the FFmpeg (http://ffmpeg.org)
+libraries, but provides an independent API.
 
 
 License Notice
@@ -51,9 +50,12 @@ python setup.py install
 see http://docs.python.org/install/index.html for details.
 
 
-References
-----------
+See also
+--------
 
-[1] http://ffmpeg.org
-[2] http://pymedia.org
+If pyrana doesn't fit your needs, you may want to try the following:
+
+pymedia: http://pymedia.org (spiritual predecessor of pyrana)
+pyffmpeg: http://code.google.com/p/pyffmpeg/
+
 
