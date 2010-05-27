@@ -229,9 +229,9 @@ VDecoder_ValidParams(PyObject *params)
 {
     int valid = 1;
     if (params) {
-        /* FIXME: relax this constraint. A map-like is enough. */
-        if (!PyDict_Check(params)) {
-            PyErr_Format(PyExc_TypeError, "'params' argument has to be a dict");
+        if (!PyMapping_Check(params)) {
+            PyErr_Format(PyExc_TypeError,
+                         "'params' argument has to be a mapping");
             valid = 0;
         }
     }
