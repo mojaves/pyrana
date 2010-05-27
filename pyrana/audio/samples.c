@@ -35,16 +35,17 @@
 typedef struct {
     enum SampleFormat fmt;
     const char *name;
+    int sample_size; /* bytes */
 } SampleFormatDesc;
 
 static const SampleFormatDesc g_sample_fmts[] = {
-    { SAMPLE_FMT_NONE, "none" },
-    { SAMPLE_FMT_U8, "u8" },
-    { SAMPLE_FMT_S16, "s16" },
-    { SAMPLE_FMT_S32, "s32" },
-    { SAMPLE_FMT_FLT, "float" },
-    { SAMPLE_FMT_DBL, "double" },
-    { SAMPLE_FMT_NB, NULL },
+    { SAMPLE_FMT_NONE, "none", 0 },
+    { SAMPLE_FMT_U8, "u8", 1 },
+    { SAMPLE_FMT_S16, "s16", 2 },
+    { SAMPLE_FMT_S32, "s32", 4 },
+    { SAMPLE_FMT_FLT, "float", 4 },
+    { SAMPLE_FMT_DBL, "double", 8 },
+    { SAMPLE_FMT_NB, NULL, 0 },
 };
 
 
@@ -62,6 +63,34 @@ GetSampleFormatName(enum SampleFormat fmt)
 
     return name;
 }
+
+int
+GetSampleFormatSize(enum SampleFormat fmt)
+{
+    int size = 0;
+    switch (fmt) {
+      case SAMPLE_FMT_U8:
+        size = 1;
+        break;
+      case SAMPLE_FMT_S16:
+        size = 2;
+        break;
+      case SAMPLE_FMT_S32: /* fallthrough */
+      case SAMPLE_FMT_FLT:
+        size = 4;
+        break;
+      case SAMPLE_FMT_DBL:
+        size = 8;
+        break;
+      case SAMPLE_FMT_NONE: /* fallthrough */
+      case SAMPLE_FMT_NB: /* fallthrough */
+      default:
+        size = 0;
+        break;
+    }
+    return size;
+}
+
 
 static PyObject *
 BuildSampleFormatSet(const SampleFormatDesc g_sample_fmts[])
@@ -102,23 +131,30 @@ FindSampleFormatByName(const char *name)
 }
 
 
-int PyrSamples_Init(PyrSamples *S,
-                    enum SampleFormat sample_fmt, int size_bytes)
+int
+PyrSamples_Init(PyrSamples *S, 
+                enum SampleFormat sample_fmt,
+                int sample_rate, int channels)
 {
     int ret = -1;
-    if (S) {
+    int size_bytes = PyrSamples_FrameSize(sample_fmt,
+                                          sample_rate, channels);
+    if (S && size_bytes > 0) {
         memset(S, 0, sizeof(*S));
         S->data = av_malloc(size_bytes);
         if (S->data) {
             S->size_bytes = size_bytes;
             S->sample_fmt = sample_fmt;
+            S->sample_rate = sample_rate;
+            S->channels = channels;
             ret = 0;
         }
     }
     return ret;
 }
 
-int PyrSamples_Fini(PyrSamples *S)
+int
+PyrSamples_Fini(PyrSamples *S)
 {
     int ret = -1;
     if (S && S->data) {
@@ -127,6 +163,23 @@ int PyrSamples_Fini(PyrSamples *S)
     return ret;
 }
 
+int
+PyrSamples_Len(PyrSamples *S)
+{
+    int len = 0; /* FIXME */
+    if (S) {
+        len = S->size_bytes;
+    }
+    return len;
+}
+
+int
+PyrSamples_FrameSize(enum SampleFormat sample_fmt,
+                     int sample_rate, int channels)
+{
+    int samp_size = GetSampleFormatSize(sample_fmt);
+    return samp_size * sample_rate * channels;
+}
 
 PyObject *
 PyrAudio_NewSampleFormats(void)
@@ -141,7 +194,6 @@ PyrAudio_NewUserSampleFormats(void)
 }
 
 
-/*************************************************************************/
 
 
 static PyTypeObject AFrame_Type;
@@ -163,6 +215,52 @@ AFrame_Dealloc(PyrAFrameObject *self)
 }
 
 
+enum {
+    CHANNELS_MIN = 1,
+    CHANNELS_MAX = 6,
+    SAMPLE_RATE_MIN = 0,
+    SAMPLE_RATE_MAX = 48000
+};
+
+static int
+AFrame_ValidParams(PyrAFrameObject *self,
+                   PyObject *sample_fmt_obj,
+                   int channels, int sample_rate,
+                   enum SampleFormat *sample_fmt)
+{
+    int ret = 0;
+
+    if (channels < CHANNELS_MIN || channels > CHANNELS_MAX) {
+        PyErr_Format(PyrExc_SetupError,
+                     "bad channel count, not in range [%i, %i]",
+                     CHANNELS_MIN, CHANNELS_MAX);
+        ret = 1;
+    }
+    else if (sample_rate <= SAMPLE_RATE_MIN ||
+             sample_rate > SAMPLE_RATE_MAX) {
+        PyErr_Format(PyrExc_SetupError,
+                     "bad sample rate, not in range [%i, %i]",
+                     SAMPLE_RATE_MIN, SAMPLE_RATE_MAX);
+        ret = 1;
+    }
+    else {
+        const char *name = PyString_AsString(sample_fmt_obj); /* FIXME */
+        enum SampleFormat s_fmt = FindSampleFormatByName(name);
+
+        if (s_fmt == SAMPLE_FMT_NB) {
+            PyErr_Format(PyrExc_SetupError,
+                         "unrecognized sample format 0x%X", s_fmt);
+            ret = 1;
+        }
+        if (sample_fmt) {
+            *sample_fmt = s_fmt;
+        }
+    }
+    return ret;
+}
+
+
+
 #define AFRAME_NAME "Frame"
 PyDoc_STRVAR(AFrame__doc__,
 AFRAME_NAME" - N/A\n"
@@ -171,30 +269,39 @@ AFRAME_NAME" - N/A\n"
 static int
 AFrame_Init(PyrAFrameObject *self, PyObject *args, PyObject *kwds)
 {
-    int ret = 0, len = 0;
+    int ret = 0, len = 0, sample_rate = 0, channels = 0;
     char *buf = NULL;
     PY_LONG_LONG pts = 0;
     PyObject *sample_fmt_obj = NULL;
+    enum SampleFormat sample_fmt = SAMPLE_FMT_NONE;
 
-    if (!PyArg_ParseTuple(args, "s#LO:init",
-                          &buf, &len, &pts, &sample_fmt_obj)) {
+    if (!PyArg_ParseTuple(args, "s#LOii:init",
+                          &buf, &len, &pts, &sample_fmt_obj,
+                          &sample_rate, &channels)) {
         ret = -1; 
     }
-    else {
-        const char *name = PyString_AsString(sample_fmt_obj); /* FIXME */
-        enum SampleFormat sample_fmt = FindSampleFormatByName(name);
+    else if (AFrame_ValidParams(self, sample_fmt_obj, channels, sample_rate,
+                                &sample_fmt)) {
+        self->origin = Pyr_FRAME_ORIGIN_USER;
+        self->pts = pts;
+        ret = PyrSamples_Init(&(self->samples),
+                              sample_fmt, sample_rate, channels);
 
-        if (sample_fmt == SAMPLE_FMT_NB) {
+        if (ret != 0) {
             PyErr_Format(PyrExc_SetupError,
-                         "unrecognized sample format 0x%X", sample_fmt);
-            ret = -1;
+                         "samples initialization failed");
         }
         else {
-            self->origin = Pyr_FRAME_ORIGIN_USER;
-            self->pts = pts;
-            ret = PyrSamples_Init(&(self->samples), sample_fmt, len);
-
-            if (ret == 0) {
+            int samples_len = PyrSamples_Len(&(self->samples));
+            if (samples_len != len) {
+                PyErr_Format(PyrExc_SetupError,
+                            "inconsistent sample buffer"
+                            " (given=%i, expected=%i)",
+                            len, samples_len);
+                PyrSamples_Fini(&(self->samples));
+                ret = -1;
+            }
+            else {
                 memcpy(self->samples.data, buf, len); /* FIXME */
             }
         }
@@ -211,15 +318,18 @@ AFrame_Repr(PyrAFrameObject *self)
 
 
 PyrAFrameObject *
-PyrAFrame_NewEmpty(int size_bytes)
+PyrAFrame_NewEmpty(enum SampleFormat sample_fmt,
+                   int sample_rate, int channels)
 {
+    int size_bytes = PyrSamples_FrameSize(sample_fmt,
+                                          sample_rate, channels);
     PyrAFrameObject *self = NULL;
 
-    if (size_bytes) {
+    if (size_bytes > 0) {
         self = PyObject_New(PyrAFrameObject, &AFrame_Type);
         if (self) {
             int err = PyrSamples_Init(&(self->samples),
-                                      SAMPLE_FMT_S16, size_bytes);
+                                      sample_fmt, sample_rate, channels);
             if (!err) {
                 self->origin = Pyr_FRAME_ORIGIN_UNKNOWN;
                 self->pts = 0;
@@ -234,15 +344,15 @@ PyrAFrame_NewEmpty(int size_bytes)
 }
 
 PyrAFrameObject *
-PyrAFrame_NewFromSamples(const PyrSamples *samp)
+PyrAFrame_NewFromSamples(const PyrSamples *S)
 {
     PyrAFrameObject *self = NULL;
-    if (samp) {
-        self = PyrAFrame_NewEmpty(samp->size_bytes);
+    if (S) {
+        self = PyrAFrame_NewEmpty(S->sample_fmt, S->sample_rate, S->channels);
 
         if (self) {
-            memcpy(self->samples.data, samp->data, samp->size_bytes);
-            self->samples.sample_fmt = samp->sample_fmt;
+            memcpy(self->samples.data, S->data, S->size_bytes);
+            self->samples.sample_fmt = S->sample_fmt;
         }
     }
     return self;
@@ -308,6 +418,19 @@ PyrAFrame_GetSampleFormat(PyrAFrameObject *self)
     return PyString_FromString(fmt_name);
 }
 
+static PyObject *
+PyrAFrame_GetChannels(PyrAFrameObject *self)
+{
+    return PyInt_FromLong(self->samples.channels);
+}
+
+static PyObject *
+PyrAFrame_GetSampleRate(PyrAFrameObject *self)
+{
+    return PyInt_FromLong(self->samples.sample_rate);
+}
+
+
 
 static PyGetSetDef AFrame_get_set[] =
 {
@@ -316,7 +439,10 @@ static PyGetSetDef AFrame_get_set[] =
     { "data", (getter)PyrAFrame_GetData, NULL, "frame data as binary string." },
     { "size", (getter)PyrAFrame_GetSize, NULL, "frame size in bytes." }, 
     { "sample_format", (getter)PyrAFrame_GetSampleFormat, NULL,
-                        "frame sample format." }, 
+                        "frame sample format." },
+    { "sample_rate", (getter)PyrAFrame_GetSampleRate, NULL,
+                     "frame sample rate." },
+    { "channels", (getter)PyrAFrame_GetChannels, NULL, "frame channels." },
     { NULL }, /* Sentinel */
 };
 

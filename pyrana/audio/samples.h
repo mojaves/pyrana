@@ -33,6 +33,7 @@
 #include <libavcodec/avcodec.h>
 
 
+
 PyObject *PyrAudio_NewSampleFormats(void);
 PyObject *PyrAudio_NewUserSampleFormats(void);
 
@@ -41,11 +42,18 @@ typedef struct {
     int16_t *data;
     int size_bytes;
     enum SampleFormat sample_fmt;
+    int sample_rate;
+    int channels;
 } PyrSamples;
 
-int PyrSamples_Init(PyrSamples *S,
-                    enum SampleFormat sample_fmt, int size_bytes);
+
+int PyrSamples_FrameSize(enum SampleFormat sample_fmt,
+                         int sample_rate, int channels);
+int PyrSamples_Init(PyrSamples *S, 
+                    enum SampleFormat sample_fmt,
+                    int sample_rate, int channels);
 int PyrSamples_Fini(PyrSamples *S);
+int PyrSamples_Len(PyrSamples *S);
 
 
 typedef struct pyraframeobject_ PyrAFrameObject;
@@ -57,8 +65,9 @@ struct pyraframeobject_ {
 };
 
 
-PyrAFrameObject *PyrAFrame_NewEmpty(int size_bytes);
-PyrAFrameObject *PyrAFrame_NewFromSamples(const PyrSamples *samp);
+PyrAFrameObject *PyrAFrame_NewEmpty(enum SampleFormat sample_fmt,
+			            int sample_rate, int channels);
+PyrAFrameObject *PyrAFrame_NewFromSamples(const PyrSamples *S);
 
 int PyrAFrame_Check(PyObject *o);
 

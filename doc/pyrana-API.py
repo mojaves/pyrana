@@ -215,11 +215,13 @@ user_sample_formats = frozenset()
 
 # FIXME
 class Frame(object): # (V)
-    def __init__(self, data, pts, sample_format):
+    def __init__(self, data, pts, sample_format, sample_rate, channels):
         pass
     pts
     is_key #XXX
     sample_format
+    sample_rate
+    channels
     size # bytes (FIXME )
     data
     def resample(self, sample_format, ...): # XXX
