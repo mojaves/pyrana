@@ -40,15 +40,6 @@ enum {
 };
 
 
-static PyTypeObject DemuxerType;
-
-
-int
-PyrDemuxer_Check(PyObject *o)
-{
-    return PyObject_TypeCheck(o, &DemuxerType);
-}
-
 static int
 Demuxer_SetAttribute(PyObject *dict, const char *key, PyObject *val)
 {
@@ -445,6 +436,11 @@ static PyTypeObject DemuxerType =
     PyType_GenericNew,                      /* tp_new */
 };
 
+int
+PyrDemuxer_Check(PyObject *o)
+{
+    return PyObject_TypeCheck(o, &DemuxerType);
+}
 
 int
 PyrDemuxer_Setup(PyObject *m)

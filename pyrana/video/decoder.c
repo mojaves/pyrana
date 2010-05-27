@@ -32,16 +32,6 @@
 
 
 
-static PyTypeObject VDecoder_Type;
-
-
-int
-PyrCodec_Check(PyObject *o)
-{
-    return PyObject_TypeCheck(o, &VDecoder_Type);
-}
-
-
 #define VDECODER_PARAMS "params"
 PyDoc_STRVAR(VDecoder_Params__doc__,
 VDECODER_PARAMS" -> params\n"
@@ -279,6 +269,62 @@ VDecoder_Init(PyrCodecObject *self, PyObject *args, PyObject *kwds)
     return err;
 }
 
+
+static PyGetSetDef VDecoder_get_set[] =
+{
+    {
+        VDECODER_PARAMS,
+        (getter)VDecoder_GetParams,
+        NULL,
+        VDecoder_Params__doc__
+    },
+    { NULL }, /* Sentinel */
+};
+
+static PyTypeObject VDecoder_Type =
+{
+    PyObject_HEAD_INIT(NULL)
+    0,
+    VDECODER_NAME,
+    sizeof(PyrCodecObject),
+    0,
+    (destructor)VDecoder_Dealloc,           /* tp_Dealloc */
+    0,                                      /* tp_print */
+    0,                                      /* tp_getattr */
+    0,                                      /* tp_setattr */
+    0,                                      /* tp_compare */
+    0,                                      /* tp_repr */
+    0,                                      /* tp_as_number */
+    0,                                      /* tp_as_sequence */
+    0,                                      /* tp_as_mapping */
+    0,                                      /* tp_hash */
+    0,                                      /* tp_call */
+    0,                                      /* tp_str */
+    0,                                      /* tp_getattro */
+    0,                                      /* tp_setattro */
+    0,                                      /* tp_as_buffer */
+    Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE, /* tp_flags */
+    VDecoder__doc__,                        /* tp_doc */
+    0,                                      /* tp_traverse */
+    0,                                      /* tp_clear */
+    0,                                      /* tp_richcompare */
+    0,                                      /* tp_weaklistoffset */
+    0,                                      /* tp_iter */
+    0,                                      /* tp_iternext */
+    VDecoder_methods,                       /* tp_methods */
+    0,                                      /* tp_members */
+    VDecoder_get_set,                       /* tp_getset */
+    0,                                      /* tp_base */
+    0,                                      /* tp_dict */
+    0,                                      /* tp_descr_get */
+    0,                                      /* tp_descr_set */
+    0,                                      /* tp_dictoffset */
+    (initproc)VDecoder_Init,                /* tp_init */
+    PyType_GenericAlloc,                    /* tp_alloc */
+    PyType_GenericNew,                      /* tp_new */
+};
+
+
 static PyrDemuxerObject *
 PyrVDecoder_NarrowDemuxer(PyObject *dmx, int stream_id)
 {
@@ -337,59 +383,12 @@ PyrVDecoder_NewFromDemuxer(PyObject *dmx, int stream_id, PyObject *params)
 
 
 
-static PyGetSetDef VDecoder_get_set[] =
-{
-    {
-        VDECODER_PARAMS,
-        (getter)VDecoder_GetParams,
-        NULL,
-        VDecoder_Params__doc__
-    },
-    { NULL }, /* Sentinel */
-};
 
-static PyTypeObject VDecoder_Type =
+int
+PyrCodec_Check(PyObject *o)
 {
-    PyObject_HEAD_INIT(NULL)
-    0,
-    VDECODER_NAME,
-    sizeof(PyrCodecObject),
-    0,
-    (destructor)VDecoder_Dealloc,           /* tp_Dealloc */
-    0,                                      /* tp_print */
-    0,                                      /* tp_getattr */
-    0,                                      /* tp_setattr */
-    0,                                      /* tp_compare */
-    0,                                      /* tp_repr */
-    0,                                      /* tp_as_number */
-    0,                                      /* tp_as_sequence */
-    0,                                      /* tp_as_mapping */
-    0,                                      /* tp_hash */
-    0,                                      /* tp_call */
-    0,                                      /* tp_str */
-    0,                                      /* tp_getattro */
-    0,                                      /* tp_setattro */
-    0,                                      /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE, /* tp_flags */
-    VDecoder__doc__,                        /* tp_doc */
-    0,                                      /* tp_traverse */
-    0,                                      /* tp_clear */
-    0,                                      /* tp_richcompare */
-    0,                                      /* tp_weaklistoffset */
-    0,                                      /* tp_iter */
-    0,                                      /* tp_iternext */
-    VDecoder_methods,                       /* tp_methods */
-    0,                                      /* tp_members */
-    VDecoder_get_set,                       /* tp_getset */
-    0,                                      /* tp_base */
-    0,                                      /* tp_dict */
-    0,                                      /* tp_descr_get */
-    0,                                      /* tp_descr_set */
-    0,                                      /* tp_dictoffset */
-    (initproc)VDecoder_Init,                /* tp_init */
-    PyType_GenericAlloc,                    /* tp_alloc */
-    PyType_GenericNew,                      /* tp_new */
-};
+    return PyObject_TypeCheck(o, &VDecoder_Type);
+}
 
 
 int

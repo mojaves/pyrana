@@ -263,17 +263,6 @@ FindPixFmtByName(const char *name)
 /*************************************************************************/
 
 
-static PyTypeObject Image_Type;
-
-
-
-int
-PyrImage_Check(PyObject *o)
-{
-    return PyObject_TypeCheck(o, &Image_Type);
-}
-
-
 static void
 Image_Dealloc(PyrImageObject *self)
 {
@@ -502,25 +491,6 @@ Image_InitFromFrame(PyrImageObject *self, PyrVFrameObject *frame,
     self->image.pix_fmt = img->pix_fmt;
 }
 
-PyrImageObject *PyrImage_NewFromImage(const PyrImage *image)
-{
-    /* TODO */
-    return NULL;
-}
-
-PyrImageObject *PyrImage_NewFromFrame(PyrVFrameObject *frame,
-                                      const PyrImage *img)
-{
-    PyrImageObject *self = PyObject_New(PyrImageObject, &Image_Type);
-    if (self) {
-        Py_INCREF((PyObject*)frame);
-        self->parent = frame;
-
-        Image_InitFromFrame(self, frame, img);
-    }
-    return self;
-}
-
 static PyObject *
 Image_Repr(PyrImageObject *self)
 {
@@ -680,6 +650,34 @@ static PyTypeObject Image_Type =
 };
 
 
+PyrImageObject *
+PyrImage_NewFromImage(const PyrImage *image)
+{
+    /* TODO */
+    return NULL;
+}
+
+PyrImageObject *
+PyrImage_NewFromFrame(PyrVFrameObject *frame, const PyrImage *img)
+{
+    PyrImageObject *self = PyObject_New(PyrImageObject, &Image_Type);
+    if (self) {
+        Py_INCREF((PyObject*)frame);
+        self->parent = frame;
+
+        Image_InitFromFrame(self, frame, img);
+    }
+    return self;
+}
+
+
+
+int
+PyrImage_Check(PyObject *o)
+{
+    return PyObject_TypeCheck(o, &Image_Type);
+}
+
 int
 PyrImage_Setup(PyObject *m)
 {
@@ -693,17 +691,6 @@ PyrImage_Setup(PyObject *m)
 }
 
 /*************************************************************************/
-
-
-static PyTypeObject VFrame_Type;
-
-
-
-int
-PyrVFrame_Check(PyObject *o)
-{
-    return PyObject_TypeCheck(o, &VFrame_Type);
-}
 
 
 static void
@@ -818,23 +805,6 @@ VFrame_Repr(PyrVFrameObject *self)
 } 
 
 
-PyrVFrameObject *
-PyrVFrame_NewFromAVFrame(AVFrame *frame, const PyrImage *img)
-{
-    PyrVFrameObject *self = NULL;
-
-    self = PyObject_New(PyrVFrameObject, &VFrame_Type);
-    if (self) {
-        self->origin = Pyr_FRAME_ORIGIN_LIBAV;
-        self->frame = frame;
-        self->is_key = frame->key_frame;
-        self->image = PyrImage_NewFromFrame(self, img);
-        /* TODO: NewFromFrame can fail */
-    }
-    return self;
-}
-
-
 static PyObject *
 PyrVFrame_GetImage(PyrVFrameObject *self)
 {
@@ -947,6 +917,30 @@ static PyTypeObject VFrame_Type =
     PyType_GenericAlloc,                    /* tp_alloc */
     PyType_GenericNew,                      /* tp_new */
 };
+
+
+PyrVFrameObject *
+PyrVFrame_NewFromAVFrame(AVFrame *frame, const PyrImage *img)
+{
+    PyrVFrameObject *self = NULL;
+
+    self = PyObject_New(PyrVFrameObject, &VFrame_Type);
+    if (self) {
+        self->origin = Pyr_FRAME_ORIGIN_LIBAV;
+        self->frame = frame;
+        self->is_key = frame->key_frame;
+        self->image = PyrImage_NewFromFrame(self, img);
+        /* TODO: NewFromFrame can fail */
+    }
+    return self;
+}
+
+
+int
+PyrVFrame_Check(PyObject *o)
+{
+    return PyObject_TypeCheck(o, &VFrame_Type);
+}
 
 
 int

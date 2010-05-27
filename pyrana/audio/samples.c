@@ -194,19 +194,6 @@ PyrAudio_NewUserSampleFormats(void)
 }
 
 
-
-
-static PyTypeObject AFrame_Type;
-
-
-
-int
-PyrAFrame_Check(PyObject *o)
-{
-    return PyObject_TypeCheck(o, &AFrame_Type);
-}
-
-
 static void
 AFrame_Dealloc(PyrAFrameObject *self)
 {
@@ -315,48 +302,6 @@ AFrame_Repr(PyrAFrameObject *self)
 {
     return NULL;
 } 
-
-
-PyrAFrameObject *
-PyrAFrame_NewEmpty(enum SampleFormat sample_fmt,
-                   int sample_rate, int channels)
-{
-    int size_bytes = PyrSamples_FrameSize(sample_fmt,
-                                          sample_rate, channels);
-    PyrAFrameObject *self = NULL;
-
-    if (size_bytes > 0) {
-        self = PyObject_New(PyrAFrameObject, &AFrame_Type);
-        if (self) {
-            int err = PyrSamples_Init(&(self->samples),
-                                      sample_fmt, sample_rate, channels);
-            if (!err) {
-                self->origin = Pyr_FRAME_ORIGIN_UNKNOWN;
-                self->pts = 0;
-            }
-            else {
-                Py_DECREF(self);
-                self = NULL;
-            }
-        }
-    }
-    return self;
-}
-
-PyrAFrameObject *
-PyrAFrame_NewFromSamples(const PyrSamples *S)
-{
-    PyrAFrameObject *self = NULL;
-    if (S) {
-        self = PyrAFrame_NewEmpty(S->sample_fmt, S->sample_rate, S->channels);
-
-        if (self) {
-            memcpy(self->samples.data, S->data, S->size_bytes);
-            self->samples.sample_fmt = S->sample_fmt;
-        }
-    }
-    return self;
-}
 
 
 static Py_ssize_t
@@ -516,6 +461,54 @@ static PyTypeObject AFrame_Type =
     PyType_GenericAlloc,                    /* tp_alloc */
     PyType_GenericNew,                      /* tp_new */
 };
+
+
+PyrAFrameObject *
+PyrAFrame_NewEmpty(enum SampleFormat sample_fmt,
+                   int sample_rate, int channels)
+{
+    int size_bytes = PyrSamples_FrameSize(sample_fmt,
+                                          sample_rate, channels);
+    PyrAFrameObject *self = NULL;
+
+    if (size_bytes > 0) {
+        self = PyObject_New(PyrAFrameObject, &AFrame_Type);
+        if (self) {
+            int err = PyrSamples_Init(&(self->samples),
+                                      sample_fmt, sample_rate, channels);
+            if (!err) {
+                self->origin = Pyr_FRAME_ORIGIN_UNKNOWN;
+                self->pts = 0;
+            }
+            else {
+                Py_DECREF(self);
+                self = NULL;
+            }
+        }
+    }
+    return self;
+}
+
+PyrAFrameObject *
+PyrAFrame_NewFromSamples(const PyrSamples *S)
+{
+    PyrAFrameObject *self = NULL;
+    if (S) {
+        self = PyrAFrame_NewEmpty(S->sample_fmt, S->sample_rate, S->channels);
+
+        if (self) {
+            memcpy(self->samples.data, S->data, S->size_bytes);
+            self->samples.sample_fmt = S->sample_fmt;
+        }
+    }
+    return self;
+}
+
+int
+PyrAFrame_Check(PyObject *o)
+{
+    return PyObject_TypeCheck(o, &AFrame_Type);
+}
 
 
 int

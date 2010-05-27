@@ -29,7 +29,6 @@
 #include "pyrana/format/pyfileproto.h"
 
 
-static PyTypeObject MuxerType;
 
 
 #define MUXER_NAME "Muxer"
@@ -343,8 +342,7 @@ Muxer_Init(PyrMuxerObject *self, PyObject *args, PyObject *kwds)
     return 0;
 }
 
-/* ---------------------------------------------------------------------- */
-static PyTypeObject MuxerType =
+static PyTypeObject Muxer_Type =
 {
     PyObject_HEAD_INIT(NULL)
     0,
@@ -390,13 +388,13 @@ static PyTypeObject MuxerType =
 int 
 PyrMuxer_Setup(PyObject *m)
 {
-    if (PyType_Ready(&MuxerType) < 0) {
+    if (PyType_Ready(&Muxer_Type) < 0) {
         return -1;
     }
 
-    MuxerType.ob_type = &PyType_Type;
-    Py_INCREF((PyObject *)&MuxerType);
-    PyModule_AddObject(m, MUXER_NAME, (PyObject *)&MuxerType);
+    Muxer_Type.ob_type = &PyType_Type;
+    Py_INCREF((PyObject *)&Muxer_Type);
+    PyModule_AddObject(m, MUXER_NAME, (PyObject *)&Muxer_Type);
     return 0;
 }
 

@@ -31,73 +31,6 @@
 
 
 
-static PyTypeObject Packet_Type;
-
-
-
-int
-PyrPacket_Check(PyObject *o)
-{
-    return PyObject_TypeCheck(o, &Packet_Type);
-}
-
-
-PyrPacketObject *
-PyrPacket_NewEmpty(int size)
-{
-    PyrPacketObject *self = NULL;
-    
-    if (size) {
-        self = PyObject_New(PyrPacketObject, &Packet_Type);
-        if (self) {
-            int err = av_new_packet(&(self->pkt), size);
-            if (!err) {
-                self->len = 0;
-            }
-            else {
-                Py_DECREF(self);
-                self = NULL;
-            }
-        }
-    }
-    return self;
-
-}
-
-
-PyrPacketObject *
-PyrPacket_NewFromData(const uint8_t *data, int size)
-{
-    PyrPacketObject *self = PyrPacket_NewEmpty(size);
-    if (self) {
-        memcpy(self->pkt.data, data, size);
-        self->len = size;
-    }
-    return self;
-}
-
-
-PyrPacketObject * 
-PyrPacket_NewFromAVPacket(AVPacket *pkt)
-{
-    PyrPacketObject *self = NULL;
-    
-    if (pkt && pkt->size) {
-        self = PyrPacket_NewFromData(pkt->data, pkt->size);
-        if (self) {
-            self->pkt.pts = pkt->pts;
-            self->pkt.dts = pkt->dts;
-            self->pkt.pos = pkt->pos;
-            self->pkt.flags = pkt->flags;
-            self->pkt.duration = pkt->duration;
-            self->pkt.stream_index = pkt->stream_index;
-            /* FIXME: Is anything else needed? */
-        }
-    }
-    return self;
-}
-
-
 static void
 Packet_Dealloc(PyrPacketObject *self)
 {
@@ -286,6 +219,68 @@ static PyTypeObject Packet_Type =
     PyType_GenericNew,                      /* tp_new */
 };
 
+
+PyrPacketObject *
+PyrPacket_NewEmpty(int size)
+{
+    PyrPacketObject *self = NULL;
+    
+    if (size) {
+        self = PyObject_New(PyrPacketObject, &Packet_Type);
+        if (self) {
+            int err = av_new_packet(&(self->pkt), size);
+            if (!err) {
+                self->len = 0;
+            }
+            else {
+                Py_DECREF(self);
+                self = NULL;
+            }
+        }
+    }
+    return self;
+
+}
+
+
+PyrPacketObject *
+PyrPacket_NewFromData(const uint8_t *data, int size)
+{
+    PyrPacketObject *self = PyrPacket_NewEmpty(size);
+    if (self) {
+        memcpy(self->pkt.data, data, size);
+        self->len = size;
+    }
+    return self;
+}
+
+
+PyrPacketObject * 
+PyrPacket_NewFromAVPacket(AVPacket *pkt)
+{
+    PyrPacketObject *self = NULL;
+    
+    if (pkt && pkt->size) {
+        self = PyrPacket_NewFromData(pkt->data, pkt->size);
+        if (self) {
+            self->pkt.pts = pkt->pts;
+            self->pkt.dts = pkt->dts;
+            self->pkt.pos = pkt->pos;
+            self->pkt.flags = pkt->flags;
+            self->pkt.duration = pkt->duration;
+            self->pkt.stream_index = pkt->stream_index;
+            /* FIXME: Is anything else needed? */
+        }
+    }
+    return self;
+}
+
+
+int
+PyrPacket_Check(PyObject *o)
+{
+    return PyObject_TypeCheck(o, &Packet_Type);
+}
 
 int
 PyrPacket_Setup(PyObject *m)
