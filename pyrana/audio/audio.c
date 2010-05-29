@@ -93,9 +93,7 @@ PyrAudio_Setup(PyObject *m)
         PyModule_AddObject(sm, "user_sample_formats",
                            PyrAudio_NewUserSampleFormats());
 
-/*      not yet
         PyrAFrame_Setup(sm);
-*/
 
         PyModule_AddObject(m, "audio", sm);
         ret = 0;
