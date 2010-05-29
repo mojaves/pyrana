@@ -1,6 +1,9 @@
 TODO (real)
 - PY3 compatibility
 - PEP8-ize the testsuite
+- improve all the repr() functions
+- pyrana.*.Frame: str/as_bytes support
+- heading boilerplate
 
 BACKGROUND
 - more testing and more unit tests
