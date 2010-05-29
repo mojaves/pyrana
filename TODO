@@ -4,6 +4,7 @@ TODO (real)
 - improve all the repr() functions
 - pyrana.*.Frame: str/as_bytes support
 - heading boilerplate
+- when run.py silently dies
 
 BACKGROUND
 - more testing and more unit tests
