@@ -32,6 +32,14 @@
 
 /*************************************************************************/
 
+enum {
+    CHANNELS_MIN = 1,
+    CHANNELS_MAX = 6,
+    SAMPLE_RATE_MIN = 1000, /* kinda arbitrary */
+    SAMPLE_RATE_MAX = 96000
+};
+
+
 typedef struct {
     enum SampleFormat fmt;
     const char *name;
@@ -158,7 +166,8 @@ PyrSamples_Fini(PyrSamples *S)
 {
     int ret = -1;
     if (S && S->data) {
-        av_freep(S->data);
+        av_free(S->data);
+        S->data = NULL;
     }
     return ret;
 }
@@ -202,33 +211,26 @@ AFrame_Dealloc(PyrAFrameObject *self)
 }
 
 
-enum {
-    CHANNELS_MIN = 1,
-    CHANNELS_MAX = 6,
-    SAMPLE_RATE_MIN = 0,
-    SAMPLE_RATE_MAX = 48000
-};
-
 static int
 AFrame_ValidParams(PyrAFrameObject *self,
                    PyObject *sample_fmt_obj,
                    int channels, int sample_rate,
                    enum SampleFormat *sample_fmt)
 {
-    int ret = 0;
+    int valid = 1;
 
     if (channels < CHANNELS_MIN || channels > CHANNELS_MAX) {
         PyErr_Format(PyrExc_SetupError,
                      "bad channel count, not in range [%i, %i]",
                      CHANNELS_MIN, CHANNELS_MAX);
-        ret = 1;
+        valid = 0;
     }
     else if (sample_rate <= SAMPLE_RATE_MIN ||
              sample_rate > SAMPLE_RATE_MAX) {
         PyErr_Format(PyrExc_SetupError,
                      "bad sample rate, not in range [%i, %i]",
                      SAMPLE_RATE_MIN, SAMPLE_RATE_MAX);
-        ret = 1;
+        valid = 0;
     }
     else {
         const char *name = PyString_AsString(sample_fmt_obj); /* FIXME */
@@ -237,13 +239,13 @@ AFrame_ValidParams(PyrAFrameObject *self,
         if (s_fmt == SAMPLE_FMT_NB) {
             PyErr_Format(PyrExc_SetupError,
                          "unrecognized sample format 0x%X", s_fmt);
-            ret = 1;
+            valid = 0;
         }
         if (sample_fmt) {
             *sample_fmt = s_fmt;
         }
     }
-    return ret;
+    return valid;
 }
 
 
@@ -267,8 +269,11 @@ AFrame_Init(PyrAFrameObject *self, PyObject *args, PyObject *kwds)
                           &sample_rate, &channels)) {
         ret = -1; 
     }
-    else if (AFrame_ValidParams(self, sample_fmt_obj, channels, sample_rate,
-                                &sample_fmt)) {
+    else if (!AFrame_ValidParams(self, sample_fmt_obj, channels, sample_rate,
+                                 &sample_fmt)) {
+        ret = -1;
+    }
+    else {
         self->origin = Pyr_FRAME_ORIGIN_USER;
         self->pts = pts;
         ret = PyrSamples_Init(&(self->samples),
