@@ -1,4 +1,5 @@
 TODO (real)
+- kwd arguments.
 - PY3 compatibility
 - PEP8-ize the testsuite
 - improve all the repr() functions

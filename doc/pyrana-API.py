@@ -213,7 +213,7 @@ output_codecs       = frozenset()
 sample_formats      = frozenset()
 user_sample_formats = frozenset()
 
-# FIXME
+# FIXME: spawn Samples as Image for video.Frame?
 class Frame(object): # (V)
     def __init__(self, data, pts, sample_format, sample_rate, channels):
         pass
