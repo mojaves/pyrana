@@ -44,11 +44,12 @@ MUXER_NAME"(name) -> Muxer\n"
 static int
 Muxer_SetupCheck(PyrMuxerObject *self)
 {
+    int ret = 1;
     if (!self->oc->nb_streams) {
         PyErr_Format(PyrExc_SetupError, "Muxer not properly initialized");
-        return 0;
+        ret = 0;
     }
-    return 1;
+    return ret;
 }
 
 
@@ -65,7 +66,7 @@ Muxer_AddStream(PyrMuxerObject *self, PyObject *args)
     PyObject *params = NULL;
     int stream_id = -1;
 
-    if (!PyArg_ParseTuple(args, "i|O:addStream", &stream_id, &params)) {
+    if (!PyArg_ParseTuple(args, "i|O:"ADD_STREAM, &stream_id, &params)) {
         return NULL;
     }
 
@@ -90,7 +91,7 @@ Muxer_GetPts(PyrMuxerObject *self, PyObject *args)
         return NULL;
     }
 
-    if (!PyArg_ParseTuple(args, "i:getStreamPTS", &stream_id)) {
+    if (!PyArg_ParseTuple(args, "i:"GET_PTS, &stream_id)) {
         /* TODO exception? */
         return NULL;
     }
@@ -174,7 +175,7 @@ Muxer_WriteFrame(PyrMuxerObject *self, PyObject *args)
         return NULL;
     }
 
-    if (!PyArg_ParseTuple(args, "O:writeFrame", &obj)) {
+    if (!PyArg_ParseTuple(args, "O:"WRITE_FRAME, &obj)) {
         return NULL;
     }
 

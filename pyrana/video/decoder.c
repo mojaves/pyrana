@@ -95,7 +95,7 @@ VDecoder_Decode(PyrCodecObject *self, PyObject *args)
 {
     PyrPacketObject *packet = NULL;
 
-    if (!PyArg_ParseTuple(args, "O:decode", &packet)) {
+    if (!PyArg_ParseTuple(args, "O:"VDECODER_DECODE, &packet)) {
         return NULL;
     }
 

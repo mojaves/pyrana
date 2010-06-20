@@ -153,7 +153,7 @@ Demuxer_OpenDecoder(PyrDemuxerObject *self, PyObject *args)
     PyObject *dec = NULL;
     int stream_id = 0;
 
-    if (!PyArg_ParseTuple(args, "i|O:openDecoder", &stream_id, &params)) { 
+    if (!PyArg_ParseTuple(args, "i|O:"OPEN_DECODER, &stream_id, &params)) { 
         PyErr_Format(PyrExc_SetupError, "Wrong arguments");
         return NULL; 
     }
@@ -225,7 +225,7 @@ Demuxer_ReadFrame(PyrDemuxerObject *self, PyObject *args)
     PyrPacketObject *pkt = NULL;
     AVPacket packet;
 
-    if (!PyArg_ParseTuple(args, "|i:readFrame", &stream_id)) {
+    if (!PyArg_ParseTuple(args, "|i:"READ_FRAME, &stream_id)) {
         return NULL;
     }
 
