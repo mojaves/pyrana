@@ -104,7 +104,7 @@ PipeBridge_Read(URLContext *h, unsigned char *buf, int size)
 }
 
 static int 
-PipeBridge_Write(URLContext *h, unsigned char *buf, int size)
+PipeBridge_Write(URLContext *h, const unsigned char *buf, int size)
 {
     FILE *f = PyFile_AsFile(h->priv_data);
     size_t w = fwrite(buf, 1, size, f);
