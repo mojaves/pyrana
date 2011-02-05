@@ -32,7 +32,7 @@ in every major release.
 Requirements
 ------------
 
-* python >= 3.2 (don't forget the development package)
+* python >= 3.2 (do not forget the development package)
 * FFmpeg >= 0.6.1 (the last SVN/GIT snapshot is usually fine).
 * The usual build toolchain (gcc, make, development packages - install
 `build-essential` on ubuntu/debian)
@@ -43,21 +43,21 @@ Getting started
 
 To build the extension, just run
 
-python setup.py build
+`python setup.py build`
 
 to install it
 
-python setup.py install
+`python setup.py install`
 
-see http://docs.python.org/install/index.html for details.
+see [here](http://docs.python.org/install/index.html) for details.
 
 
 See also
 --------
 
-If pyrana doesn't fit your needs, you may want to try the following:
+If pyrana does not fit your needs, you may want to try the following:
 
-pymedia: http://pymedia.org (spiritual predecessor of pyrana)
-pyffmpeg: http://code.google.com/p/pyffmpeg/
+[pymedia](http://pymedia.org): spiritual predecessor of pyrana.
+[pyffmpeg](http://code.google.com/p/pyffmpeg/): a ffmpeg wrapper.
 
 
