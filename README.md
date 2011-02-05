@@ -1,7 +1,8 @@
-Pyrana - python package for simple manipulation of multimedia files
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-(C) 2010 Francesco Romani < fromani | gmail : com >
+Pyrana - python package for simple manipulation of multimedia files
+===================================================================
+
+(C) 2010-2011 Francesco Romani < fromani | gmail : com >
 
 
 Overview
@@ -31,14 +32,15 @@ in every major release.
 Requirements
 ------------
 
-python >= 2.6 (don't forget the development package)
-FFmpeg >= 0.50 (the last SVN/GIT snapshot is usually fine).
-The usual build toolchain (gcc, make, development packages - install
-`build-essential' on ubuntu/debian)
+* python >= 3.2 (don't forget the development package)
+* FFmpeg >= 0.6.1 (the last SVN/GIT snapshot is usually fine).
+* The usual build toolchain (gcc, make, development packages - install
+`build-essential` on ubuntu/debian)
 
 
 Getting started
 ---------------
+
 To build the extension, just run
 
 python setup.py build
