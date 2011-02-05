@@ -57,7 +57,7 @@ See also
 
 If pyrana does not fit your needs, you may want to try the following:
 
-[pymedia](http://pymedia.org): spiritual predecessor of pyrana.
-[pyffmpeg](http://code.google.com/p/pyffmpeg/): a ffmpeg wrapper.
+* [pymedia](http://pymedia.org): spiritual predecessor of pyrana.
+* [pyffmpeg](http://code.google.com/p/pyffmpeg/): a ffmpeg wrapper.
 
 
