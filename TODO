@@ -1,5 +1,5 @@
 TODO (real)
-- Move to py3k only
+- Move to py3.2+ (PEP 384) only
 -- code/setup.py updates
 -- API updates
 -- memoryview support
