@@ -57,8 +57,17 @@ def teardown(pyramod="pyrana.so"):
 
 
 def run(cpython, args):
-    args = [ cpython ] + list(args)
-    retcode = subprocess.call(args)
+    ret = 0
+    print cpython
+    print args
+    sys.exit(0)
+    p = subprocess.Popen(args, bufsize=-1, executable=cpython,
+                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    retcode = p.wait()
+    if retcode != 0:
+        sys.stderr.write(p.stderr.readlines())
+        ret = -1
+    return ret
 
 
 def _main(args):
@@ -70,7 +79,8 @@ def _main(args):
             raise RunTestError("cannot find python v%s" %(pyver))
 
         setup(pyrapath)
-        run(cpython, args)
+        for a in args:
+            run(cpython, [ a ])
         teardown()
     except RunTestError, ex:
         die(str(ex))
