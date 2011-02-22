@@ -2,7 +2,7 @@ from distutils.core import setup
 from distutils.core import Extension
 
 import sys
-import commands
+import subprocess
 import shutil
 import os
 import os.path
@@ -19,7 +19,7 @@ def pkginfo():
     return info
 
 def quote(s):
-    return "\"%s\"" %s    
+    return "\"%s\"" %s
 
 def version(info={}):
     if not info:
@@ -37,7 +37,10 @@ def pkgconfig(*packages, **kw):
     flag_map = {'-I': 'include_dirs', '-L': 'library_dirs', '-l': 'libraries'}
 #    for token in commands.getoutput("pkg-config --libs --cflags %s" % ' '.join(packages)).split():
     # ffmpeg pkg-config br^W^W oddity
-    for token in commands.getoutput("pkg-config --static --libs --cflags %s" % ' '.join(packages)).split():
+    cmdline = ["pkg-config", "--static", "--libs", "--cflags" ]
+    cmdline += list(packages)
+    for token in subprocess.check_output(cmdline).split():
+        # TODOpy3: bytes VS strings
         kw.setdefault(flag_map.get(token[:2]), []).append(token[2:])
     return kw
 
@@ -78,7 +81,11 @@ pyrana_ext = Extension('pyrana',
                        include_dirs=inc_dirs,
                        library_dirs=lib_dirs,
                        libraries=extra_libs,
-                       define_macros=[('PYRANA_VERSION_STRING', version(info)),]
+                       define_macros=[('PYRANA_VERSION_STRING', version(info)),
+# the buffer protocol isn't yet included into the PEP384,
+# but we really need it
+#                                      ('Py_LIMITED_API', 1),
+                                     ]
                       )
 
 setup(name='pyrana',

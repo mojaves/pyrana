@@ -23,7 +23,6 @@
  * distribution.
  */ 
 
-
 #include "pyrana/format/pyfileproto.h"
 
 #include <libavutil/avstring.h>
@@ -55,7 +54,7 @@ PyObject *
 PyrFileProto_GetFileKey(void)
 {
     static long int i = 0; /* FIXME */
-    PyObject *key = PyString_FromFormat("%ld", i++);
+    PyObject *key = PyUnicode_FromFormat("%ld", i++); /* TODOpy3 bytes? */
     return key;
 }
 
@@ -80,6 +79,66 @@ PyrFileProto_DelMappedFile(PyObject *key)
 
 /*************************************************************************/
 
+/* I believe in Harvey Dent^W^WDonald Knuth*/
+
+static int
+PyrReadBytes(PyObject *RawIOBase, unsigned char *buf, int size)
+{
+    PyObject *memview = NULL;
+    Py_buffer pybuf;
+    int r = -1;
+
+    memset(&pybuf, 0, sizeof(pybuf));
+    pybuf.buf = (void *)buf;
+    pybuf.len = size;
+    pybuf.readonly = 0;
+
+    memview = PyMemoryView_FromBuffer(&pybuf);
+    if (memview) {
+        PyObject *res = PyObject_CallMethod(RawIOBase,
+                                            "readinto", "O", memview);
+        if (res) {
+            if (PyLong_Check(res)) {
+                r = PyLong_AsLong(res);
+            }
+            Py_DECREF(res);
+        }
+        Py_DECREF(memview);
+    }
+
+    return r;
+}
+
+static int
+PyrWriteBytes(PyObject *RawIOBase, const unsigned char *buf, int size)
+{
+    PyObject *memview = NULL;
+    Py_buffer pybuf;
+    int w = -1;
+
+    memset(&pybuf, 0, sizeof(pybuf));
+    pybuf.buf = (void *)buf;
+    pybuf.len = size;
+    pybuf.readonly = 1;
+
+    memview = PyMemoryView_FromBuffer(&pybuf);
+    if (memview) {
+        PyObject *res = PyObject_CallMethod(RawIOBase,
+                                            "write", "O", memview);
+        if (res) {
+            if (PyLong_Check(res)) {
+                w = PyLong_AsLong(res);
+            }
+            Py_DECREF(res);
+        }
+        Py_DECREF(memview);
+    }
+
+    return w;
+}
+
+/*************************************************************************/
+
 
 static int 
 PipeBridge_Open(URLContext *h, const char *filename, int flags)
@@ -98,17 +157,13 @@ PipeBridge_Open(URLContext *h, const char *filename, int flags)
 static int 
 PipeBridge_Read(URLContext *h, unsigned char *buf, int size)
 {
-    FILE *f = PyFile_AsFile(h->priv_data);
-    size_t r = fread(buf, 1, size, f);
-    return (feof(f) || ferror(f)) ?-1 :r;
+    return PyrReadBytes(h->priv_data, buf, size);
 }
 
 static int 
 PipeBridge_Write(URLContext *h, const unsigned char *buf, int size)
 {
-    FILE *f = PyFile_AsFile(h->priv_data);
-    size_t w = fwrite(buf, 1, size, f);
-    return (ferror(f)) ?-1 :w;
+    return PyrWriteBytes(h->priv_data, buf, size);
 }
 
 static int 
@@ -152,8 +207,20 @@ FileBridge_Open(URLContext *h, const char *filename, int flags)
 static int64_t
 FileBridge_Seek(URLContext *h, int64_t pos, int whence)
 {
-    FILE *f = PyFile_AsFile(h->priv_data);
-    return fseek(f, pos, whence);
+    int64_t newpos = -1;
+    PyObject *IOBase = h->priv_data;
+    PyObject *res = NULL;
+    
+    res = PyObject_CallMethod(IOBase, "seek", "Li", pos, whence);
+
+    if (res) {
+        if (PyLong_Check(res)) {
+            newpos = PyLong_AsLongLong(res);
+        }
+        Py_DECREF(res);
+    }
+
+    return newpos;
 }
 
 static URLProtocol pyfile_protocol = {
@@ -174,8 +241,8 @@ PyrFileProto_Setup(void)
     int ret = -1;
     g_file_map = PyDict_New();
     if (g_file_map) {
-        av_register_protocol(&pypipe_protocol);
-        av_register_protocol(&pyfile_protocol);
+        av_register_protocol2(&pypipe_protocol, sizeof(pypipe_protocol));
+        av_register_protocol2(&pyfile_protocol, sizeof(pyfile_protocol));
         ret = 0;
     }
     return ret;

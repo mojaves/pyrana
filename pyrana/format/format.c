@@ -33,9 +33,9 @@
 #include "pyrana/format/muxer.h"
 
 
-#define SUB_MODULE_PYDOC "Not yet"
+#define FORMAT_SUBMODULE_PYDOC "Not yet"
 
-#define SUB_MODULE_NAME MODULE_NAME".format"
+#define FORMAT_SUBMODULE_NAME MODULE_NAME".format"
 
 
 
@@ -52,7 +52,7 @@ BuildFormatNamesInput(void)
     AVInputFormat *fmt = av_iformat_next(NULL);
 
     for (; fmt != NULL; fmt = av_iformat_next(fmt)) {
-        PyObject *name = PyString_FromString(fmt->name);
+        PyObject *name = PyUnicode_FromString(fmt->name);
         int err = PySet_Add(names, name);
         if (err) {
             Py_DECREF(names);
@@ -73,7 +73,7 @@ BuildFormatNamesOutput(void)
     AVOutputFormat *fmt = av_oformat_next(NULL);
 
     for (; fmt != NULL; fmt = av_oformat_next(fmt)) {
-        PyObject *name = PyString_FromString(fmt->name);
+        PyObject *name = PyUnicode_FromString(fmt->name);
         int err = PySet_Add(names, name);
         if (err) {
             Py_DECREF(names);
@@ -97,7 +97,7 @@ static int
 IsValidFormat(PyObject *fmts, const char *fmt)
 {
     int ret = 0;
-    PyObject *name = PyString_FromString(fmt);
+    PyObject *name = PyUnicode_FromString(fmt);
     ret = PySequence_Contains(fmts, name);
     Py_XDECREF(name);
     return ret;
@@ -146,7 +146,7 @@ FindStream(PyObject *self, PyObject *args)
 {
     int retsid = 0;
 
-    return PyInt_FromLong(retsid);
+    return PyLong_FromLong(retsid);
 }
 
 
@@ -171,9 +171,14 @@ int
 PyrFormat_Setup(PyObject *m)
 {
     int ret = -1;
-    PyObject *sm = Py_InitModule3(SUB_MODULE_NAME,
-                                  FormatFunctions,
-                                  SUB_MODULE_PYDOC);
+    struct PyModuleDef pyranaformatmodule = {
+        PyModuleDef_HEAD_INIT,
+        FORMAT_SUBMODULE_NAME,
+        FORMAT_SUBMODULE_PYDOC,
+        -1,
+        FormatFunctions,
+    };
+    PyObject *sm = PyModule_Create(&pyranaformatmodule);
     if (sm) {
         PyrFileProto_Setup();
 

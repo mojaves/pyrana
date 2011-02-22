@@ -50,7 +50,14 @@ static void Logger(void* ctx, int level, const char *fmt, va_list ap)
 PyMODINIT_FUNC
 initpyrana(void)
 {
-    PyObject *m = Py_InitModule3(MODULE_NAME, NULL, Pyrana_doc);
+    struct PyModuleDef pyranamodule = {
+        PyModuleDef_HEAD_INIT,
+        "pyrana",
+        Pyrana_doc,
+        -1,
+        NULL
+    };
+    PyObject *m = PyModule_Create(&pyranamodule);
     if (m) {
         avcodec_init();
         avcodec_register_all();
@@ -71,7 +78,7 @@ initpyrana(void)
         PyrVideo_Setup(m);
         PyrAudio_Setup(m);
     }
-    return;
+    return m;
 }
 
 

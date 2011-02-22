@@ -27,7 +27,6 @@
 #define PYRANA_COMMON_H
 
 #include <Python.h>
-#include <structmember.h>
 
 #include <libavutil/avutil.h>
 #include <libavcodec/avcodec.h>
