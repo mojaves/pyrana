@@ -38,7 +38,7 @@ def is_streamable(name) # (XXX!!!)
      """
      pass
 
-def find_stream(streams, streamid, media):
+def find_stream(streams, stream_id, media):
     """
     TODO
     """
@@ -60,19 +60,19 @@ class Packet(object):
 
 
 class Demuxer(object):
-	def __init__(self, f, name=""):
+	def __init__(self, src, name=""):
         """
-        Demuxer(file-like, name="")
+        Demuxer(src, name="")
         Initialize a new demuxer for the file type `name' (use "" (empty) for auto probing)
-        A Demuxer needs a file-like as a source of data. The file-like object must be
-        already open.
-        """   
+        A Demuxer needs a RawIOBase-compliant as a source of data.
+        The RawIOBase-compliant object must be already open.
+        """ 
         pass
-    def read_frame(self, streamid=pyrana.format.STREAM_ANY):
+    def read_frame(self, stream_id=pyrana.format.STREAM_ANY):
         """
-        read_frame(streamid=ANY) -> Packet Object
+        read_frame(stream_id=ANY) -> Packet Object
         reads and returns a new complete encoded frame (enclosed in a Packet) from the demuxer.
-        if the optional `streamid' argument is !ANY, returns a frame
+        if the optional `stream_id' argument is !ANY, returns a frame
         belonging to the specified streams.
 
         raises EndOfStreamError if
@@ -80,9 +80,9 @@ class Demuxer(object):
         - the streams ends.
         """
         raise NotImplementedError
-    def open_decoder(self, streamid, params={}):
+    def open_decoder(self, stream_id, params={}):
         """
-        open_decoder(streamid) -> Decoder instance
+        open_decoder(stream_id) -> Decoder instance
         create and returns a full-blown decoder Instance capable to decode the selected
         stream. Like doing things manually, just easily.
         """
@@ -94,29 +94,24 @@ class Demuxer(object):
         """
 
 class Muxer(object): # (XXX!)
-    """
-    as the old pyrana Muxer class, with the following changes:
-    write -> write_frame
-    start -> header (called implicitely at first write)
-    end   -> trailer (called implicitely at object del)
-    add flush() methods (guess what?)
-    a file-like is needed by the class constructor. The class guarantees that it will
-    use ONLY the write() method and perhaps the seek() method (see is_streamable() function).
-    all methods returning a stream will now returns None and will use the file-like instead.
-    all methods above can raise IOError.
-    """
-    def __init__(self, f, name):
+    def __init__(self, dst, name):
+        """
+        Muxer(dst, name="")
+        Initialize a new muxer for the file type `name'
+        A Muxer needs a RawIOBase-compliant as a sink of data.
+        The RawIOBase-compliant object must be already open.
+        """ 
         pass
-    def add_stream(self, streamid, params={}):
+    def add_stream(self, stream_id, params={}):
         pass
     def write_header(self):
         pass
     def write_trailer(self):
         pass
-    def write_frame(self, Packet):
+    def write_frame(self, packet):
         """requires an encoded frame enclosed in a Packet!"""
         pass
-    def get_pts(self, streamid):
+    def get_pts(self, stream_id):
         pass
     def flush(self):
         """flush() -> None"""
