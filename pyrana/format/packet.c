@@ -1,27 +1,27 @@
 /*
  * Pyrana - python package for simple manipulation of multimedia files
- * 
+ *
  * Copyright (c) <2010> <Francesco Romani>
- * 
+ *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
  * arising from the use of this software.
- * 
+ *
  * Permission is granted to anyone to use this software for any purpose,
  * including commercial applications, and to alter it and redistribute it
  * freely, subject to the following restrictions:
- * 
+ *
  * 1. The origin of this software must not be misrepresented; you must not
  * claim that you wrote the original software. If you use this software
  * in a product, an acknowledgment in the product documentation would be
  * appreciated but is not required.
- * 
+ *
  * 2. Altered source versions must be plainly marked as such, and must not be
  * misrepresented as being the original software.
- * 
+ *
  * 3. This notice may not be removed or altered from any source
  * distribution.
- */ 
+ */
 
 #include "pyrana/format/packet.h"
 
@@ -56,7 +56,7 @@ Packet_Init(PyrPacketObject *self, PyObject *args, PyObject *kwds)
     if (!PyArg_ParseTuple(args, "is#|LLi:init",
                           &stream_id, &buf, &len,
                           &pts, &dts, &is_key)) {
-        return -1; 
+        return -1;
     }
     err = av_new_packet(&self->pkt, len);
     if (!err) {
@@ -173,7 +173,7 @@ Packet_Repr(PyrPacketObject *self)
                                self->pkt.stream_index,
                                (self->pkt.flags & PKT_FLAG_KEY) ?"T" :"F",
                                self->pkt.size);
-} 
+}
 
 
 static PyTypeObject Packet_Type =
@@ -224,7 +224,7 @@ PyrPacketObject *
 PyrPacket_NewEmpty(int size)
 {
     PyrPacketObject *self = NULL;
-    
+
     if (size) {
         self = PyObject_New(PyrPacketObject, &Packet_Type);
         if (self) {
@@ -255,11 +255,11 @@ PyrPacket_NewFromData(const uint8_t *data, int size)
 }
 
 
-PyrPacketObject * 
+PyrPacketObject *
 PyrPacket_NewFromAVPacket(AVPacket *pkt)
 {
     PyrPacketObject *self = NULL;
-    
+
     if (pkt && pkt->size) {
         self = PyrPacket_NewFromData(pkt->data, pkt->size);
         if (self) {

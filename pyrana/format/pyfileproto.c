@@ -1,27 +1,27 @@
 /*
  * Pyrana - python package for simple manipulation of multimedia files
- * 
+ *
  * Copyright (c) <2010> <Francesco Romani>
- * 
+ *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
  * arising from the use of this software.
- * 
+ *
  * Permission is granted to anyone to use this software for any purpose,
  * including commercial applications, and to alter it and redistribute it
  * freely, subject to the following restrictions:
- * 
+ *
  * 1. The origin of this software must not be misrepresented; you must not
  * claim that you wrote the original software. If you use this software
  * in a product, an acknowledgment in the product documentation would be
  * appreciated but is not required.
- * 
+ *
  * 2. Altered source versions must be plainly marked as such, and must not be
  * misrepresented as being the original software.
- * 
+ *
  * 3. This notice may not be removed or altered from any source
  * distribution.
- */ 
+ */
 
 #include "pyrana/format/pyfileproto.h"
 
@@ -36,7 +36,7 @@
 
 static PyObject *g_file_map = NULL;
 
-/* 
+/*
  * Note: those bindings MUST have a lifecycle <= than the wrapping
  * Muxer/Demuxer object, so the INCREF/DECREF pair should'nt be
  * strictly needed.
@@ -54,11 +54,11 @@ PyObject *
 PyrFileProto_GetFileKey(void)
 {
     static long int i = 0; /* FIXME */
-    PyObject *key = PyUnicode_FromFormat("%ld", i++); /* TODOpy3 bytes? */
+    PyObject *key = PyBytes_FromFormat("%ld", i++);
     return key;
 }
 
-int 
+int
 PyrFileProto_AddMappedFile(PyObject *key, PyObject *obj)
 {
     if (!key || !obj) {
@@ -67,7 +67,7 @@ PyrFileProto_AddMappedFile(PyObject *key, PyObject *obj)
     return PyDict_SetItem(g_file_map, key, obj);
 }
 
-int 
+int
 PyrFileProto_DelMappedFile(PyObject *key)
 {
     int ret = 0;
@@ -82,7 +82,7 @@ PyrFileProto_DelMappedFile(PyObject *key)
 /* I believe in Harvey Dent^W^WDonald Knuth*/
 
 static int
-PyrReadBytes(PyObject *RawIOBase, unsigned char *buf, int size)
+ReadBytes(PyObject *rawiobase, unsigned char *buf, int size)
 {
     PyObject *memview = NULL;
     Py_buffer pybuf;
@@ -95,7 +95,7 @@ PyrReadBytes(PyObject *RawIOBase, unsigned char *buf, int size)
 
     memview = PyMemoryView_FromBuffer(&pybuf);
     if (memview) {
-        PyObject *res = PyObject_CallMethod(RawIOBase,
+        PyObject *res = PyObject_CallMethod(rawiobase,
                                             "readinto", "O", memview);
         if (res) {
             if (PyLong_Check(res)) {
@@ -110,7 +110,7 @@ PyrReadBytes(PyObject *RawIOBase, unsigned char *buf, int size)
 }
 
 static int
-PyrWriteBytes(PyObject *RawIOBase, const unsigned char *buf, int size)
+WriteBytes(PyObject *rawiobase, const unsigned char *buf, int size)
 {
     PyObject *memview = NULL;
     Py_buffer pybuf;
@@ -123,7 +123,7 @@ PyrWriteBytes(PyObject *RawIOBase, const unsigned char *buf, int size)
 
     memview = PyMemoryView_FromBuffer(&pybuf);
     if (memview) {
-        PyObject *res = PyObject_CallMethod(RawIOBase,
+        PyObject *res = PyObject_CallMethod(rawiobase,
                                             "write", "O", memview);
         if (res) {
             if (PyLong_Check(res)) {
@@ -140,7 +140,7 @@ PyrWriteBytes(PyObject *RawIOBase, const unsigned char *buf, int size)
 /*************************************************************************/
 
 
-static int 
+static int
 PipeBridge_Open(URLContext *h, const char *filename, int flags)
 {
     av_strstart(filename, "pypipe://", &filename);
@@ -154,19 +154,19 @@ PipeBridge_Open(URLContext *h, const char *filename, int flags)
     return ret;
 }
 
-static int 
+static int
 PipeBridge_Read(URLContext *h, unsigned char *buf, int size)
 {
-    return PyrReadBytes(h->priv_data, buf, size);
+    return ReadBytes(h->priv_data, buf, size);
 }
 
-static int 
+static int
 PipeBridge_Write(URLContext *h, const unsigned char *buf, int size)
 {
-    return PyrWriteBytes(h->priv_data, buf, size);
+    return WriteBytes(h->priv_data, buf, size);
 }
 
-static int 
+static int
 PipeBridge_Close(URLContext *h)
 {
     PyObject *obj = h->priv_data;
@@ -189,7 +189,7 @@ static URLProtocol pypipe_protocol = {
     PipeBridge_Close,
 };
 
-static int 
+static int
 FileBridge_Open(URLContext *h, const char *filename, int flags)
 {
     av_strstart(filename, "pyfile://", &filename);
@@ -208,10 +208,10 @@ static int64_t
 FileBridge_Seek(URLContext *h, int64_t pos, int whence)
 {
     int64_t newpos = -1;
-    PyObject *IOBase = h->priv_data;
+    PyObject *iobse = h->priv_data;
     PyObject *res = NULL;
-    
-    res = PyObject_CallMethod(IOBase, "seek", "Li", pos, whence);
+
+    res = PyObject_CallMethod(iobse, "seek", "Li", pos, whence);
 
     if (res) {
         if (PyLong_Check(res)) {
@@ -235,7 +235,7 @@ static URLProtocol pyfile_protocol = {
 
 /*************************************************************************/
 
-int 
+int
 PyrFileProto_Setup(void)
 {
     int ret = -1;

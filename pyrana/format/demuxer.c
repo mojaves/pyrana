@@ -1,27 +1,27 @@
 /*
  * Pyrana - python package for simple manipulation of multimedia files
- * 
+ *
  * Copyright (c) <2010> <Francesco Romani>
- * 
+ *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
  * arising from the use of this software.
- * 
+ *
  * Permission is granted to anyone to use this software for any purpose,
  * including commercial applications, and to alter it and redistribute it
  * freely, subject to the following restrictions:
- * 
+ *
  * 1. The origin of this software must not be misrepresented; you must not
  * claim that you wrote the original software. If you use this software
  * in a product, an acknowledgment in the product documentation would be
  * appreciated but is not required.
- * 
+ *
  * 2. Altered source versions must be plainly marked as such, and must not be
  * misrepresented as being the original software.
- * 
+ *
  * 3. This notice may not be removed or altered from any source
  * distribution.
- */ 
+ */
 
 
 #include "pyrana/format/demuxer.h"
@@ -59,35 +59,46 @@ GetCodecName(AVCodecContext *ctx)
         return c->name;
     }
     return ctx->codec_name;
-} 
+}
+
+
+static PyObject *
+UnicodeFromASCII(const char *S)
+{
+    int L = strlen(S);
+    return PyUnicode_DecodeASCII(S, L, "strict");
+}
 
 static void
 Demuxer_FillStreamInfo(PyObject *stream_info, AVCodecContext *ctx)
 {
-    Demuxer_SetAttribute(stream_info, "name",
-                         PyString_FromString(GetCodecName(ctx)));
+    const char *as = NULL;
+
+    as = GetCodecName(ctx);
+    Demuxer_SetAttribute(stream_info, "name", UnicodeFromASCII(as));
     Demuxer_SetAttribute(stream_info, "bitrate",
-                         PyInt_FromLong(ctx->bit_rate));
+                         PyLong_FromLong(ctx->bit_rate));
     Demuxer_SetAttribute(stream_info, "type",
-                         PyInt_FromLong(ctx->codec_type));
+                         PyLong_FromLong(ctx->codec_type));
     if (ctx->codec_type == CODEC_TYPE_VIDEO) {
+        as = avcodec_get_pix_fmt_name(ctx->pix_fmt);
         Demuxer_SetAttribute(stream_info, "pixel_format",
-                             PyString_FromString(avcodec_get_pix_fmt_name(ctx->pix_fmt)));
+                             UnicodeFromASCII(as));
         if (ctx->width) {
             Demuxer_SetAttribute(stream_info, "width",
-                                 PyInt_FromLong(ctx->width));
+                                 PyLong_FromLong(ctx->width));
             Demuxer_SetAttribute(stream_info, "height",
-                                 PyInt_FromLong(ctx->height));
+                                 PyLong_FromLong(ctx->height));
         }
     }
     if (ctx->codec_type == CODEC_TYPE_AUDIO) {
         Demuxer_SetAttribute(stream_info, "channels",
-                             PyInt_FromLong(ctx->channels));
+                             PyLong_FromLong(ctx->channels));
         /* for uniformity with bitrate */
         Demuxer_SetAttribute(stream_info, "samplerate",
-                             PyInt_FromLong(ctx->sample_rate));
+                             PyLong_FromLong(ctx->sample_rate));
         Demuxer_SetAttribute(stream_info, "sample_bytes",
-                             PyInt_FromLong(2));
+                             PyLong_FromLong(2));
         /* FIXME: BPP is hardcoded */
     }
     if (ctx->extradata && ctx->extradata_size) {
@@ -111,7 +122,7 @@ STREAMS" -> streams\n"
 static PyObject *
 Demuxer_GetStreams(PyrDemuxerObject *self)
 {
-    if (!self->streams) {    
+    if (!self->streams) {
         self->streams = PyTuple_New(self->ic->nb_streams);
         if (self->streams) {
             int i;
@@ -153,9 +164,9 @@ Demuxer_OpenDecoder(PyrDemuxerObject *self, PyObject *args)
     PyObject *dec = NULL;
     int stream_id = 0;
 
-    if (!PyArg_ParseTuple(args, "i|O:"OPEN_DECODER, &stream_id, &params)) { 
+    if (!PyArg_ParseTuple(args, "i|O:"OPEN_DECODER, &stream_id, &params)) {
         PyErr_Format(PyrExc_SetupError, "Wrong arguments");
-        return NULL; 
+        return NULL;
     }
     if (params && !PyMapping_Check(params)) {
         PyErr_Format(PyExc_TypeError,
@@ -174,7 +185,7 @@ Demuxer_OpenDecoder(PyrDemuxerObject *self, PyObject *args)
     if (self->ic->streams[stream_id]->codec->codec_type == CODEC_TYPE_VIDEO) {
         dec = (PyObject *)PyrVDecoder_NewFromDemuxer((PyObject*)self,
                                                      stream_id, params);
-    }
+    } /* TODO */
     else {
         PyErr_Format(PyrExc_SetupError,
                      "unsupported codec type for stream %i",
@@ -240,8 +251,7 @@ Demuxer_ReadFrame(PyrDemuxerObject *self, PyObject *args)
 
     if (ret < 0) {
         PyErr_Format(PyrExc_EOSError, "Stream end reached");
-    }
-    else {
+    } else {
         pkt = PyrPacket_NewFromAVPacket(&packet);
     }
     return (PyObject *)pkt;
@@ -295,7 +305,7 @@ static void
 Demuxer_Dealloc(PyrDemuxerObject *self)
 {
     int err;
-    
+
     if (self->ic) {
         av_close_input_file(self->ic); /* FIXME */
         self->ic = NULL;
@@ -319,20 +329,21 @@ Demuxer_Init(PyrDemuxerObject *self, PyObject *args, PyObject *kwds)
     char filebuf[Pyr_FILE_KEY_LEN] = { '\0' };
     AVInputFormat *ifmt = NULL;
     const char *name = NULL;
-    PyObject *src = NULL;
+    PyObject *rawiobase = NULL;
     int seeking = 0, ret = -1;
-    
-    if (!PyArg_ParseTuple(args, "O|s:init", &src, &name)) { 
+
+    /* TODOpy3 format */
+    if (!PyArg_ParseTuple(args, "O|s:init", &rawiobase, &name)) {
         PyErr_Format(PyrExc_SetupError, "Wrong arguments");
-        return -1; 
+        return -1;
     }
-    
+/*  TODOpy3: reimplement the check
     if (!PyFile_Check(src)) {
         PyErr_Format(PyExc_TypeError,
                      "`File' argument is not a file-like object");
         return -1;
     }
-
+*/
     if (name) {
         if (!PyrFormat_IsInput(name)) {
             PyErr_Format(PyrExc_UnsupportedError,
@@ -347,7 +358,7 @@ Demuxer_Init(PyrDemuxerObject *self, PyObject *args, PyObject *kwds)
         }
         seeking = PyrFormat_NeedSeeking(name);
     }
-    
+
     self->key = PyrFileProto_GetFileKey();
     if (!self->key) {
         PyErr_Format(PyExc_RuntimeError,
@@ -355,10 +366,10 @@ Demuxer_Init(PyrDemuxerObject *self, PyObject *args, PyObject *kwds)
         return -1;
     }
 
-    snprintf(filebuf, sizeof(filebuf), "%s://%s",
-             seeking ?"pyfile" :"pypipe",
-             PyString_AsString(self->key));
-    ret = PyrFileProto_AddMappedFile(self->key, src);
+    PyOS_snprintf(filebuf, sizeof(filebuf), "%s://%s",
+                  seeking ?"pyfile" :"pypipe",
+                  PyBytes_AsString(self->key));
+    ret = PyrFileProto_AddMappedFile(self->key, rawiobase);
     if (ret != 0) {
         PyErr_Format(PyExc_RuntimeError,
                      "Error setting up data source (binding)");
@@ -393,68 +404,47 @@ static PyGetSetDef Demuxer_get_set[] =
 };
 
 
-static PyTypeObject DemuxerType =
+static PyType_Slot DemuxerSlots[] =
 {
-    PyObject_HEAD_INIT(NULL)
-    0,
+    { Py_tp_dealloc,    Demuxer_Dealloc     },
+    { Py_tp_iter,       Demuxer_GetIter     },
+    { Py_tp_iternext,   Demuxer_Next        },
+    { Py_tp_init,       Demuxer_Init        },
+    { Py_tp_methods,    Demuxer_methods     },
+    { Py_tp_getset,     Demuxer_get_set     },
+    { Py_tp_doc,        Demuxer__doc__      },
+    { Py_tp_new,        PyType_GenericNew   },
+    { 0,                NULL                }
+};
+
+static PyType_Spec DemuxerSpec =
+{
     DEMUXER_NAME,
     sizeof(PyrDemuxerObject),
     0,
-    (destructor)Demuxer_Dealloc,            /* tp_dealloc */
-    0,                                      /* tp_print */
-    0,                                      /* tp_getattr */
-    0,                                      /* tp_setattr */
-    0,                                      /* tp_compare */
-    0,                                      /* tp_repr */
-    0,                                      /* tp_as_number */
-    0,                                      /* tp_as_sequence */
-    0,                                      /* tp_as_mapping */
-    0,                                      /* tp_hash */
-    0,                                      /* tp_call */
-    0,                                      /* tp_str */
-    0,                                      /* tp_getattro */
-    0,                                      /* tp_setattro */
-    0,                                      /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE, /* tp_flags */
-    Demuxer__doc__,                         /* tp_doc */
-    0,                                      /* tp_traverse */
-    0,                                      /* tp_clear */
-    0,                                      /* tp_richcompare */
-    0,                                      /* tp_weaklistoffset */
-    (getiterfunc)Demuxer_GetIter,           /* tp_iter */
-    (iternextfunc)Demuxer_Next,             /* tp_iternext */
-    Demuxer_methods,                        /* tp_methods */
-    0,                                      /* tp_members */
-    Demuxer_get_set,                        /* tp_getset */
-    0,                                      /* tp_base */
-    0,                                      /* tp_dict */
-    0,                                      /* tp_descr_get */
-    0,                                      /* tp_descr_set */
-    0,                                      /* tp_dictoffset */
-    (initproc)Demuxer_Init,                 /* tp_init */
-    PyType_GenericAlloc,                    /* tp_alloc */
-    PyType_GenericNew,                      /* tp_new */
+    Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE,
+    DemuxerSlots
 };
+
+/*************************************************************************/
+
+static PyObject *DemuxerType = NULL;
 
 int
 PyrDemuxer_Check(PyObject *o)
 {
-    return PyObject_TypeCheck(o, &DemuxerType);
+    /* TODOpy3 */
+    return PyObject_IsSubclass(o, DemuxerType);
 }
 
 int
 PyrDemuxer_Setup(PyObject *m)
 {
-    if (PyType_Ready(&DemuxerType) < 0) {
-        return -1;
-    }
-
-    DemuxerType.ob_type = &PyType_Type;
-    Py_INCREF((PyObject *)&DemuxerType);
-    PyModule_AddObject(m, DEMUXER_NAME, (PyObject *)&DemuxerType);
+    DemuxerType = PyType_FromSpec(&DemuxerSpec);
+    PyModule_AddObject(m, DEMUXER_NAME, DemuxerType);
     return 0;
 }
 
-
+/*************************************************************************/
 /* vim: set ts=4 sw=4 et */
 

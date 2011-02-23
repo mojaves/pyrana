@@ -1,27 +1,27 @@
 /*
  * Pyrana - python package for simple manipulation of multimedia files
- * 
+ *
  * Copyright (c) <2010> <Francesco Romani>
- * 
+ *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
  * arising from the use of this software.
- * 
+ *
  * Permission is granted to anyone to use this software for any purpose,
  * including commercial applications, and to alter it and redistribute it
  * freely, subject to the following restrictions:
- * 
+ *
  * 1. The origin of this software must not be misrepresented; you must not
  * claim that you wrote the original software. If you use this software
  * in a product, an acknowledgment in the product documentation would be
  * appreciated but is not required.
- * 
+ *
  * 2. Altered source versions must be plainly marked as such, and must not be
  * misrepresented as being the original software.
- * 
+ *
  * 3. This notice may not be removed or altered from any source
  * distribution.
- */ 
+ */
 
 #include "pyrana/format/muxer.h"
 #include "pyrana/format/packet.h"
@@ -53,7 +53,7 @@ Muxer_SetupCheck(PyrMuxerObject *self)
 }
 
 
-#define ADD_STREAM "add_stream" 
+#define ADD_STREAM "add_stream"
 PyDoc_STRVAR(Muxer_AddStream__doc__,
 ADD_STREAM"(codec_id, [codec_params]) -> stream index\n"
 "\n"
@@ -189,7 +189,7 @@ Muxer_WriteFrame(PyrMuxerObject *self, PyObject *args)
         /* exception already set, if any */
         return NULL;
     }
-    
+
     pkt = (PyrPacketObject *)obj;
     if (pkt->pkt.stream_index < 0
      || pkt->pkt.stream_index > self->oc->nb_streams) {
@@ -197,7 +197,7 @@ Muxer_WriteFrame(PyrMuxerObject *self, PyObject *args)
                      "Invalid stream index in packet data");
         return NULL;
     }
-    
+
     err = av_write_frame(self->oc, &(pkt->pkt)); /* XXX: I sense danger... */
     if (!err) {
         self->frames++;
@@ -289,16 +289,16 @@ Muxer_Init(PyrMuxerObject *self, PyObject *args, PyObject *kwds)
     int ret = -1;
     PyObject *src = NULL;
 
-    if (!PyArg_ParseTuple(args, "O|s:init", &src, &name)) { 
-        /* TODO */
-        return -1; 
-    }
-    
-    if (!PyFile_Check(src)) {
+    if (!PyArg_ParseTuple(args, "O|s:init", &src, &name)) {
         /* TODO */
         return -1;
     }
 
+/*  TODOpy3: reimplement the check
+    if (!PyFile_Check(src)) {
+        return -1;
+    }
+*/
     self->oc = avformat_alloc_context();
     if (!self->oc) {
         /* TODO */
@@ -312,7 +312,7 @@ Muxer_Init(PyrMuxerObject *self, PyObject *args, PyObject *kwds)
     }
 
     av_set_parameters(self->oc, NULL); /* TODO */
-   
+
     /* open the output file, if needed */
     if (!(self->oc->oformat->flags & AVFMT_NOFILE)) {
         char filebuf[Pyr_FILE_KEY_LEN + 1] = { '\0' };
@@ -322,11 +322,11 @@ Muxer_Init(PyrMuxerObject *self, PyObject *args, PyObject *kwds)
         if (!self->key) {
             /* TODO */
             return -1;
-        }    
+        }
 
-        snprintf(filebuf, sizeof(filebuf), "%s://%s",
-                 seeking ?"pyfile" :"pypipe",
-                 PyString_AsString(self->key));
+        PyOS_snprintf(filebuf, sizeof(filebuf), "%s://%s",
+                      seeking ?"pyfile" :"pypipe",
+                      PyBytes_AsString(self->key));
         ret = PyrFileProto_AddMappedFile(self->key, src);
         if (ret != 0) {
             return -1;
@@ -343,61 +343,44 @@ Muxer_Init(PyrMuxerObject *self, PyObject *args, PyObject *kwds)
     return 0;
 }
 
-static PyTypeObject Muxer_Type =
+static PyType_Slot MuxerSlots[] =
 {
-    PyObject_HEAD_INIT(NULL)
-    0,
+    { Py_tp_dealloc,    Muxer_Dealloc       },
+    { Py_tp_init,       Muxer_Init          },
+    { Py_tp_methods,    Muxer_methods       },
+    { Py_tp_doc,        Muxer__doc__        },
+    { Py_tp_new,        PyType_GenericNew   },
+    { 0,                NULL                }
+};
+
+static PyType_Spec MuxerSpec =
+{
     MUXER_NAME,
     sizeof(PyrMuxerObject),
     0,
-    (destructor)Muxer_Dealloc,              /* tp_dealloc */
-    0,                                      /* tp_print */
-    0,                                      /* tp_getattr */
-    0,                                      /* tp_setattr */
-    0,                                      /* tp_compare */
-    0,                                      /* tp_repr */
-    0,                                      /* tp_as_number */
-    0,                                      /* tp_as_sequence */
-    0,                                      /* tp_as_mapping */
-    0,                                      /* tp_hash */
-    0,                                      /* tp_call */
-    0,                                      /* tp_str */
-    0,                                      /* tp_getattro */
-    0,                                      /* tp_setattro */
-    0,                                      /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE, /* tp_flags */
-    Muxer__doc__,                           /* tp_doc */
-    0,                                      /* tp_traverse */
-    0,                                      /* tp_clear */
-    0,                                      /* tp_richcompare */
-    0,                                      /* tp_weaklistoffset */
-    0,                                      /* tp_iter */
-    0,                                      /* tp_iternext */
-    Muxer_methods,                          /* tp_methods */
-    0,                                      /* tp_members */
-    0,                                      /* tp_getset */
-    0,                                      /* tp_base */
-    0,                                      /* tp_dict */
-    0,                                      /* tp_descr_get */
-    0,                                      /* tp_descr_set */
-    0,                                      /* tp_dictoffset */
-    (initproc)Muxer_Init,                   /* tp_init */
-    0,                                      /* tp_alloc */
-    PyType_GenericNew,                      /* tp_new */
+    Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE,
+    MuxerSlots
 };
 
-int 
+/*************************************************************************/
+
+static PyObject *MuxerType = NULL;
+
+int
+PyrMuxer_Check(PyObject *o)
+{
+    /* TODOpy3 */
+    return PyObject_IsSubclass(o, MuxerType);
+}
+
+int
 PyrMuxer_Setup(PyObject *m)
 {
-    if (PyType_Ready(&Muxer_Type) < 0) {
-        return -1;
-    }
-
-    Muxer_Type.ob_type = &PyType_Type;
-    Py_INCREF((PyObject *)&Muxer_Type);
-    PyModule_AddObject(m, MUXER_NAME, (PyObject *)&Muxer_Type);
+    MuxerType = PyType_FromSpec(&MuxerSpec);
+    PyModule_AddObject(m, MUXER_NAME, MuxerType);
     return 0;
 }
 
+/*************************************************************************/
 /* vim: set ts=4 sw=4 et */
 
