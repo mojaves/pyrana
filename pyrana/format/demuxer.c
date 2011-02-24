@@ -433,8 +433,7 @@ static PyObject *DemuxerType = NULL;
 int
 PyrDemuxer_Check(PyObject *o)
 {
-    /* TODOpy3 */
-    return PyObject_IsSubclass(o, DemuxerType);
+    return (((void *)Py_TYPE(o)) == (void *)DemuxerType);
 }
 
 int

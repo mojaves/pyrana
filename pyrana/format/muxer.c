@@ -369,8 +369,7 @@ static PyObject *MuxerType = NULL;
 int
 PyrMuxer_Check(PyObject *o)
 {
-    /* TODOpy3 */
-    return PyObject_IsSubclass(o, MuxerType);
+    return (((void *)Py_TYPE(o)) == (void *)MuxerType);
 }
 
 int
