@@ -56,7 +56,7 @@ class Packet(object):
     dts
     is_key
     size
-    data
+    data # COPIES the content!
 
 
 class Demuxer(object):
