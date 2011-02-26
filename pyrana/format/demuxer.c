@@ -120,7 +120,7 @@ STREAMS" -> streams\n"
 "    height  - picture height if any"
 );
 static PyObject *
-Demuxer_GetStreams(PyrDemuxerObject *self)
+Demuxer_GetStreams(PyrDemuxerObject *self, void *closure)
 {
     if (!self->streams) {
         self->streams = PyTuple_New(self->ic->nb_streams);
@@ -400,8 +400,15 @@ Demuxer_Init(PyrDemuxerObject *self, PyObject *args, PyObject *kwds)
 
 static PyGetSetDef Demuxer_GetSet[] =
 {
-    { STREAMS, (getter)Demuxer_GetStreams, NULL, Demuxer_Streams__doc__ },
-    { NULL }, /* Sentinel */
+    {
+        STREAMS,
+        (getter)Demuxer_GetStreams,
+        NULL,
+        Demuxer_Streams__doc__
+    },
+    {
+        NULL, NULL, NULL, NULL
+    }, /* Sentinel */
 };
 
 
@@ -442,6 +449,7 @@ int
 PyrDemuxer_Setup(PyObject *m)
 {
     Demuxer_Type = PyType_FromSpec(&Demuxer_Spec);
+    PyType_Ready((PyTypeObject *)Demuxer_Type);
     PyModule_AddObject(m, DEMUXER_NAME, Demuxer_Type);
     return 0;
 }

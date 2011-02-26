@@ -524,19 +524,19 @@ Image_GetBuffer(PyrImageObject *self,
 }
 
 static PyObject *
-Image_GetWidth(PyrImageObject *self)
+Image_GetWidth(PyrImageObject *self, void *closure)
 {
     return PyLong_FromLong(self->image.width);
 }
 
 static PyObject *
-Image_GetHeight(PyrImageObject *self)
+Image_GetHeight(PyrImageObject *self, void *closure)
 {
     return PyLong_FromLong(self->image.height);
 }
 
 static PyObject *
-Image_GetPixFmt(PyrImageObject *self)
+Image_GetPixFmt(PyrImageObject *self, void *closure)
 {
     const char *fmt_name = avcodec_get_pix_fmt_name(self->image.pix_fmt);
     return PyUnicode_FromString(fmt_name);
@@ -639,6 +639,7 @@ PyrImage_Setup(PyObject *m)
     if (Image_Type) {
         /* UGLY hack. But we really need the Buffer Protocol. */
         Image_Type->ob_type->tp_as_buffer = &Image_AsBuffer;
+        PyType_Ready((PyTypeObject *)Image_Type);
         PyModule_AddObject(m, IMAGE_NAME, Image_Type);
         ret = 0;
     }
@@ -784,7 +785,7 @@ VFrame_Repr(PyrVFrameObject *self)
 
 
 static PyObject *
-PyrVFrame_GetImage(PyrVFrameObject *self)
+PyrVFrame_GetImage(PyrVFrameObject *self, void *closure)
 {
     PyrImageObject *image = self->image;
     if (self->origin == Pyr_FRAME_ORIGIN_LIBAV) {
@@ -796,44 +797,44 @@ PyrVFrame_GetImage(PyrVFrameObject *self)
 }
 
 static PyObject *
-PyrVFrame_GetKey(PyrVFrameObject *self)
+PyrVFrame_GetKey(PyrVFrameObject *self, void *closure)
 {
     return PyLong_FromLong(self->frame->key_frame);
 }
 
 
 static PyObject *
-PyrVFrame_GetPts(PyrVFrameObject *self)
+PyrVFrame_GetPts(PyrVFrameObject *self, void *closure)
 {
     return PyLong_FromLongLong(self->frame->pts);
 }
 
 static PyObject *
-PyrVFrame_GetTopFieldFirst(PyrVFrameObject *self)
+PyrVFrame_GetTopFieldFirst(PyrVFrameObject *self, void *closure)
 {
     return PyLong_FromLong(self->frame->top_field_first);
 }
 
 static PyObject *
-PyrVFrame_GetIsInterlaced(PyrVFrameObject *self)
+PyrVFrame_GetIsInterlaced(PyrVFrameObject *self, void *closure)
 {
     return PyLong_FromLong(self->frame->interlaced_frame);
 }
 
 static PyObject *
-PyrVFrame_GetPicType(PyrVFrameObject *self)
+PyrVFrame_GetPicType(PyrVFrameObject *self, void *closure)
 {
     return PyLong_FromLong(self->frame->pict_type);
 }
 
 static PyObject *
-PyrVFrame_GetCodedNum(PyrVFrameObject *self)
+PyrVFrame_GetCodedNum(PyrVFrameObject *self, void *closure)
 {
     return PyLong_FromLong(self->frame->coded_picture_number);
 }
 
 static PyObject *
-PyrVFrame_GetDisplayNum(PyrVFrameObject *self)
+PyrVFrame_GetDisplayNum(PyrVFrameObject *self, void *closure)
 {
     return PyLong_FromLong(self->frame->display_picture_number);
 }
@@ -841,15 +842,57 @@ PyrVFrame_GetDisplayNum(PyrVFrameObject *self)
 
 static PyGetSetDef VFrame_GetSet[] =
 {
-    { "image", (getter)PyrVFrame_GetImage, NULL, "frame image data" },
-    { "is_key", (getter)PyrVFrame_GetKey, NULL, "reference frame flag" },
-    { "pts", (getter)PyrVFrame_GetPts, NULL, "frame presentation timestamp." },
-    { "top_field_first", (getter)PyrVFrame_GetTopFieldFirst, NULL, "interlaced field order." },
-    { "is_interlaced", (getter)PyrVFrame_GetIsInterlaced, NULL, "interlace flag" },
-    { "pic_type", (getter)PyrVFrame_GetPicType, NULL, "picture type" },
-    { "coded_num", (getter)PyrVFrame_GetCodedNum, NULL, "encoded sequence number" },
-    { "display_num", (getter)PyrVFrame_GetDisplayNum, NULL, "display sequence number" },
-    { NULL }, /* Sentinel */
+    {
+        "image",
+        (getter)PyrVFrame_GetImage,
+        NULL,
+        "frame image data"
+    },
+    {
+        "is_key",
+        (getter)PyrVFrame_GetKey,
+        NULL,
+        "reference frame flag"
+    },
+    {
+        "pts",
+        (getter)PyrVFrame_GetPts,
+        NULL,
+        "frame presentation timestamp."
+    },
+    {
+        "top_field_first",
+        (getter)PyrVFrame_GetTopFieldFirst,
+        NULL,
+        "interlaced field order."
+    },
+    {
+        "is_interlaced",
+        (getter)PyrVFrame_GetIsInterlaced,
+        NULL,
+        "interlace flag"
+    },
+    {
+        "pic_type",
+        (getter)PyrVFrame_GetPicType,
+        NULL,
+        "picture type"
+    },
+    {
+        "coded_num",
+        (getter)PyrVFrame_GetCodedNum,
+        NULL,
+        "encoded sequence number"
+    },
+    {
+        "display_num",
+        (getter)PyrVFrame_GetDisplayNum,
+        NULL,
+        "display sequence number"
+    },
+    {
+        NULL, NULL, NULL, NULL
+    }, /* Sentinel */
 };
 
 static PyType_Slot VFrame_Slots[] =
@@ -887,6 +930,7 @@ int
 PyrVFrame_Setup(PyObject *m)
 {
     VFrame_Type = PyType_FromSpec(&VFrame_Spec);
+    PyType_Ready((PyTypeObject *)VFrame_Type);
     PyModule_AddObject(m, VFRAME_NAME, VFrame_Type);
     return 0;
 }

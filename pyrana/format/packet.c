@@ -97,7 +97,7 @@ Packet_GetBuffer(PyrPacketObject *self,
 
 
 static PyObject *
-PyrPacket_GetData(PyrPacketObject *self)
+PyrPacket_GetData(PyrPacketObject *self, void *closure)
 {
     /* FIXME: is that correct? */
     return PyBytes_FromStringAndSize((char *)self->pkt.data, self->pkt.size);
@@ -105,14 +105,14 @@ PyrPacket_GetData(PyrPacketObject *self)
 
 
 static PyObject *
-PyrPacket_GetSize(PyrPacketObject *self)
+PyrPacket_GetSize(PyrPacketObject *self, void *closure)
 {
     return PyLong_FromLong(self->pkt.size);
 }
 
 
 static PyObject *
-PyrPacket_GetKey(PyrPacketObject *self)
+PyrPacket_GetKey(PyrPacketObject *self, void *closure)
 {
     int is_key = 0;
     if (self->pkt.flags & PKT_FLAG_KEY) {
@@ -122,22 +122,23 @@ PyrPacket_GetKey(PyrPacketObject *self)
 }
 
 static PyObject *
-PyrPacket_GetStreamId(PyrPacketObject *self)
+PyrPacket_GetStreamId(PyrPacketObject *self, void *closure)
 {
     return PyLong_FromLong(self->pkt.stream_index);
 }
 
 static PyObject *
-PyrPacket_GetPts(PyrPacketObject *self)
+PyrPacket_GetPts(PyrPacketObject *self, void *closure)
 {
     return PyLong_FromLongLong(self->pkt.pts);
 }
 
 static PyObject *
-PyrPacket_GetDts(PyrPacketObject *self)
+PyrPacket_GetDts(PyrPacketObject *self, void *closure)
 {
     return PyLong_FromLongLong(self->pkt.dts);
 }
+
 
 static PyObject *
 Packet_Repr(PyrPacketObject *self)
@@ -157,13 +158,45 @@ static PyBufferProcs Packet_AsBuffer = {
 
 static PyGetSetDef Packet_GetSet[] =
 {
-    { "data", (getter)PyrPacket_GetData, NULL, "packet data as bytes (copy)." },
-    { "size", (getter)PyrPacket_GetSize, NULL, "packet data length." },
-    { "is_key", (getter)PyrPacket_GetKey, NULL, "is it a reference packet?" },
-    { "stream_id", (getter)PyrPacket_GetStreamId, NULL, "packet stream index." },
-    { "pts", (getter)PyrPacket_GetPts, NULL, "packet presentation timestamp." },
-    { "dts", (getter)PyrPacket_GetDts, NULL, "packet decoding timestamp." },
-    { NULL }, /* Sentinel */
+    {
+        "data",
+        (getter)PyrPacket_GetData,
+        NULL,
+        "packet data as bytes (copy)."
+    },
+    {
+        "size",
+        (getter)PyrPacket_GetSize,
+        NULL,
+        "packet data length."
+    },
+    {
+        "is_key",
+        (getter)PyrPacket_GetKey,
+        NULL,
+        "is it a reference packet?"
+    },
+    {
+        "stream_id",
+        (getter)PyrPacket_GetStreamId,
+        NULL,
+        "packet stream index."
+    },
+    {
+        "pts",
+        (getter)PyrPacket_GetPts,
+        NULL,
+        "packet presentation timestamp."
+    },
+    {
+        "dts",
+        (getter)PyrPacket_GetDts,
+        NULL,
+        "packet decoding timestamp."
+    },
+    {
+        NULL, NULL, NULL, NULL
+    }, /* Sentinel */
 };
 
 static PyType_Slot Packet_Slots[] =
@@ -206,6 +239,7 @@ PyrPacket_Setup(PyObject *m)
     if (Packet_Type) {
         /* UGLY hack. But we really need the Buffer Protocol. */
         Packet_Type->ob_type->tp_as_buffer = &Packet_AsBuffer;
+        PyType_Ready((PyTypeObject *)Packet_Type);
         PyModule_AddObject(m, PACKET_NAME, Packet_Type);
         ret = 0;
     }

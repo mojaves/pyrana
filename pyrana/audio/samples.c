@@ -1,27 +1,27 @@
 /*
  * Pyrana - python package for simple manipulation of multimedia files
- * 
+ *
  * Copyright (c) <2010-2011> <Francesco Romani>
- * 
+ *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
  * arising from the use of this software.
- * 
+ *
  * Permission is granted to anyone to use this software for any purpose,
  * including commercial applications, and to alter it and redistribute it
  * freely, subject to the following restrictions:
- * 
+ *
  * 1. The origin of this software must not be misrepresented; you must not
  * claim that you wrote the original software. If you use this software
  * in a product, an acknowledgment in the product documentation would be
  * appreciated but is not required.
- * 
+ *
  * 2. Altered source versions must be plainly marked as such, and must not be
  * misrepresented as being the original software.
- * 
+ *
  * 3. This notice may not be removed or altered from any source
  * distribution.
- */ 
+ */
 
 #include "pyrana/audio/samples.h"
 
@@ -115,7 +115,7 @@ BuildSampleFormatSet(const SampleFormatDesc g_sample_fmts[])
             return NULL;
         }
     }
- 
+
     ret = PyFrozenSet_New(names);
     Py_DECREF(names);
     return ret;
@@ -140,7 +140,7 @@ FindSampleFormatByName(const char *name)
 
 
 int
-PyrSamples_Init(PyrSamples *S, 
+PyrSamples_Init(PyrSamples *S,
                 enum SampleFormat sample_fmt,
                 int sample_rate, int channels)
 {
@@ -268,7 +268,7 @@ AFrame_Init(PyrAFrameObject *self, PyObject *args, PyObject *kwds)
     if (!PyArg_ParseTuple(args, "s#LOii:init",
                           &buf, &len, &pts, &sample_fmt_obj,
                           &sample_rate, &channels)) {
-        ret = -1; 
+        ret = -1;
     }
     else if (!AFrame_ValidParams(self, sample_fmt_obj, channels, sample_rate,
                                  &sample_fmt)) {
@@ -308,7 +308,7 @@ AFrame_Repr(PyrAFrameObject *self)
 {
     /* TODO */
     return NULL;
-} 
+}
 
 
 static int
@@ -390,16 +390,51 @@ AFrame_Resample(PyrAFrameObject *self, PyObject *args)
 
 static PyGetSetDef AFrame_GetSet[] =
 {
-    { "is_key", (getter)PyrAFrame_GetKey, NULL, "reference frame flag" },
-    { "pts", (getter)PyrAFrame_GetPts, NULL, "frame presentation timestamp." },
-    { "data", (getter)PyrAFrame_GetData, NULL, "frame data as binary string." },
-    { "size", (getter)PyrAFrame_GetSize, NULL, "frame size in bytes." }, 
-    { "sample_format", (getter)PyrAFrame_GetSampleFormat, NULL,
-                        "frame sample format." },
-    { "sample_rate", (getter)PyrAFrame_GetSampleRate, NULL,
-                     "frame sample rate." },
-    { "channels", (getter)PyrAFrame_GetChannels, NULL, "frame channels." },
-    { NULL }, /* Sentinel */
+    {
+        "is_key",
+        (getter)PyrAFrame_GetKey,
+        NULL,
+        "reference frame flag"
+    },
+    {
+        "pts",
+        (getter)PyrAFrame_GetPts,
+        NULL,
+        "frame presentation timestamp."
+    },
+    {
+        "data",
+        (getter)PyrAFrame_GetData,
+        NULL,
+        "frame data as binary string."
+    },
+    {
+        "size",
+        (getter)PyrAFrame_GetSize,
+        NULL,
+        "frame size in bytes."
+    },
+    {
+        "sample_format",
+        (getter)PyrAFrame_GetSampleFormat,
+        NULL,
+        "frame sample format."
+    },
+    {
+        "sample_rate",
+        (getter)PyrAFrame_GetSampleRate,
+        NULL,
+        "frame sample rate."
+    },
+    {
+        "channels",
+        (getter)PyrAFrame_GetChannels,
+        NULL,
+        "frame channels."
+    },
+    {
+        NULL, NULL, NULL, NULL
+    }, /* Sentinel */
 };
 
 static PyBufferProcs AFrame_AsBuffer = {
@@ -460,6 +495,7 @@ PyrAFrame_Setup(PyObject *m)
     if (AFrame_Type) {
         /* UGLY hack. But we really need the Buffer Protocol. */
         AFrame_Type->ob_type->tp_as_buffer = &AFrame_AsBuffer;
+        PyType_Ready((PyTypeObject *)AFrame_Type);
         PyModule_AddObject(m, AFRAME_NAME, AFrame_Type);
         ret = 0;
     }

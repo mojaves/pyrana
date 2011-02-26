@@ -377,6 +377,7 @@ int
 PyrMuxer_Setup(PyObject *m)
 {
     Muxer_Type = PyType_FromSpec(&Muxer_Spec);
+    PyType_Ready((PyTypeObject *)Muxer_Type);
     PyModule_AddObject(m, MUXER_NAME, Muxer_Type);
     return 0;
 }

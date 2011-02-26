@@ -39,7 +39,7 @@ VDECODER_PARAMS" -> params\n"
 "The content depends by the format being decoded.\n"
 );
 static PyObject *
-VDecoder_GetParams(PyrCodecObject *self)
+VDecoder_GetParams(PyrCodecObject *self, void *closure)
 {
     /* TODO */
     return NULL;
@@ -315,6 +315,7 @@ int
 PyrVDecoder_Setup(PyObject *m)
 {
     VDecoder_Type = PyType_FromSpec(&VDecoder_Spec);
+    PyType_Ready((PyTypeObject *)VDecoder_Type);
     PyModule_AddObject(m, VDECODER_NAME, VDecoder_Type);
     return 0;
 }
