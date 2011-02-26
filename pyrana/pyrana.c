@@ -60,7 +60,7 @@ static struct PyModuleDef pyranamodule = {
 
 
 PyMODINIT_FUNC
-initpyrana(void)
+PyInit_pyrana(void)
 {
     PyObject *m = PyModule_Create(&pyranamodule);
     if (m) {
