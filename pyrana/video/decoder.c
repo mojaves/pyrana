@@ -1,7 +1,7 @@
 /*
  * Pyrana - python package for simple manipulation of multimedia files
  * 
- * Copyright (c) <2010> <Francesco Romani>
+ * Copyright (c) <2010-2011> <Francesco Romani>
  * 
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -41,6 +41,7 @@ VDECODER_PARAMS" -> params\n"
 static PyObject *
 VDecoder_GetParams(PyrCodecObject *self)
 {
+    /* TODO */
     return NULL;
 }
 
@@ -130,26 +131,6 @@ VDecoder_Flush(PyrCodecObject *self, PyObject *args)
     }
     return frame;
 }
-
-
-
-static PyMethodDef VDecoder_methods[] =
-{
-    {
-        VDECODER_DECODE,
-        (PyCFunction)VDecoder_Decode,
-        METH_VARARGS,
-        VDecoder_Decode__doc__
-    },
-    {
-        VDECODER_FLUSH,
-        (PyCFunction)VDecoder_Flush,
-        METH_VARARGS,
-        VDecoder_Flush__doc__
-    },
-    { NULL, NULL }, /* Sentinel */
-};
-
 
 static void
 VDecoder_Dealloc(PyrCodecObject *self)
@@ -270,7 +251,25 @@ VDecoder_Init(PyrCodecObject *self, PyObject *args, PyObject *kwds)
 }
 
 
-static PyGetSetDef VDecoder_get_set[] =
+static PyMethodDef VDecoder_Methods[] =
+{
+    {
+        VDECODER_DECODE,
+        (PyCFunction)VDecoder_Decode,
+        METH_VARARGS,
+        VDecoder_Decode__doc__
+    },
+    {
+        VDECODER_FLUSH,
+        (PyCFunction)VDecoder_Flush,
+        METH_VARARGS,
+        VDecoder_Flush__doc__
+    },
+    { NULL, NULL }, /* Sentinel */
+};
+
+
+static PyGetSetDef VDecoder_GetSet[] =
 {
     {
         VDECODER_PARAMS,
@@ -281,48 +280,46 @@ static PyGetSetDef VDecoder_get_set[] =
     { NULL }, /* Sentinel */
 };
 
-static PyTypeObject VDecoder_Type =
+static PyType_Slot VDecoder_Slots[] =
 {
-    PyObject_HEAD_INIT(NULL)
-    0,
+    { Py_tp_dealloc,    VDecoder_Dealloc     },
+    { Py_tp_init,       VDecoder_Init        },
+    { Py_tp_methods,    VDecoder_Methods     },
+    { Py_tp_getset,     VDecoder_GetSet      },
+    { Py_tp_doc,        VDecoder__doc__      },
+    { Py_tp_alloc,      PyType_GenericAlloc, },
+    { Py_tp_new,        PyType_GenericNew    },
+    { 0,                NULL                 }
+};
+
+static PyType_Spec VDecoder_Spec =
+{
     VDECODER_NAME,
     sizeof(PyrCodecObject),
     0,
-    (destructor)VDecoder_Dealloc,           /* tp_Dealloc */
-    0,                                      /* tp_print */
-    0,                                      /* tp_getattr */
-    0,                                      /* tp_setattr */
-    0,                                      /* tp_compare */
-    0,                                      /* tp_repr */
-    0,                                      /* tp_as_number */
-    0,                                      /* tp_as_sequence */
-    0,                                      /* tp_as_mapping */
-    0,                                      /* tp_hash */
-    0,                                      /* tp_call */
-    0,                                      /* tp_str */
-    0,                                      /* tp_getattro */
-    0,                                      /* tp_setattro */
-    0,                                      /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE, /* tp_flags */
-    VDecoder__doc__,                        /* tp_doc */
-    0,                                      /* tp_traverse */
-    0,                                      /* tp_clear */
-    0,                                      /* tp_richcompare */
-    0,                                      /* tp_weaklistoffset */
-    0,                                      /* tp_iter */
-    0,                                      /* tp_iternext */
-    VDecoder_methods,                       /* tp_methods */
-    0,                                      /* tp_members */
-    VDecoder_get_set,                       /* tp_getset */
-    0,                                      /* tp_base */
-    0,                                      /* tp_dict */
-    0,                                      /* tp_descr_get */
-    0,                                      /* tp_descr_set */
-    0,                                      /* tp_dictoffset */
-    (initproc)VDecoder_Init,                /* tp_init */
-    PyType_GenericAlloc,                    /* tp_alloc */
-    PyType_GenericNew,                      /* tp_new */
+    Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE,
+    VDecoder_Slots
 };
+
+/*************************************************************************/
+
+static PyObject *VDecoder_Type = NULL;
+
+int
+PyrVDecoder_Check(PyObject *o)
+{
+    return (((void *)Py_TYPE(o)) == (void *)VDecoder_Type);
+}
+
+int
+PyrVDecoder_Setup(PyObject *m)
+{
+    VDecoder_Type = PyType_FromSpec(&VDecoder_Spec);
+    PyModule_AddObject(m, VDECODER_NAME, VDecoder_Type);
+    return 0;
+}
+
+/*************************************************************************/
 
 
 static PyrDemuxerObject *
@@ -353,7 +350,7 @@ PyrVDecoder_NewFromDemuxer(PyObject *dmx, int stream_id, PyObject *params)
     PyrDemuxerObject *demux = PyrVDecoder_NarrowDemuxer(dmx, stream_id);
 
     if (demux && VDecoder_ValidParams(params)) {
-        self = PyObject_New(PyrCodecObject, &VDecoder_Type);
+        self = PyObject_New(PyrCodecObject, (PyTypeObject *)VDecoder_Type);
         if (self) {
             AVCodec *codec = NULL;
             int err = 0;
@@ -380,30 +377,6 @@ PyrVDecoder_NewFromDemuxer(PyObject *dmx, int stream_id, PyObject *params)
     }
     return self;
 }
-
-
-
-
-int
-PyrCodec_Check(PyObject *o)
-{
-    return PyObject_TypeCheck(o, &VDecoder_Type);
-}
-
-
-int
-PyrVDecoder_Setup(PyObject *m)
-{
-    if (PyType_Ready(&VDecoder_Type) < 0) {
-        return -1;
-    }
-
-    VDecoder_Type.ob_type = &PyType_Type;
-    Py_INCREF((PyObject *)&VDecoder_Type);
-    PyModule_AddObject(m, VDECODER_NAME, (PyObject *)&VDecoder_Type);
-    return 0;
-}
-
 
 /* vim: set ts=4 sw=4 et */
 

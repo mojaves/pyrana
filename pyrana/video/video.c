@@ -1,7 +1,7 @@
 /*
  * Pyrana - python package for simple manipulation of multimedia files
  * 
- * Copyright (c) <2010> <Francesco Romani>
+ * Copyright (c) <2010-2011> <Francesco Romani>
  * 
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -28,9 +28,9 @@
 #include "pyrana/video/decoder.h"
 
 
-#define SUB_MODULE_PYDOC "Not yet"
+#define VIDEO_SUBMODULE_PYDOC "Not yet"
 
-#define SUB_MODULE_NAME MODULE_NAME".video"
+#define VIDEO_SUBMODULE_NAME MODULE_NAME".video"
 
 
 
@@ -43,7 +43,7 @@ BuildCodecNamesInput(void)
 
     for (; codec != NULL; codec = av_codec_next(codec)) {
         if (codec->type == CODEC_TYPE_VIDEO && codec->decode != NULL) {
-            PyObject *name = PyString_FromString(codec->name);
+            PyObject *name = PyUnicode_FromString(codec->name);
             int err = PySet_Add(names, name);
             if (err) {
                 Py_DECREF(names);
@@ -66,7 +66,7 @@ BuildCodecNamesOutput(void)
 
     for (; codec != NULL; codec = av_codec_next(codec)) {
         if (codec->type == CODEC_TYPE_VIDEO && codec->encode != NULL) {
-            PyObject *name = PyString_FromString(codec->name);
+            PyObject *name = PyUnicode_FromString(codec->name);
             int err = PySet_Add(names, name);
             if (err) {
                 Py_DECREF(names);
@@ -98,13 +98,24 @@ VideoConstants_Setup(PyObject *sm)
 }
 
 
+static struct PyModuleDef pyranavideomodule = {
+    PyModuleDef_HEAD_INIT,
+    VIDEO_SUBMODULE_NAME,
+    VIDEO_SUBMODULE_PYDOC,
+    -1,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL
+};
+
+
 int
 PyrVideo_Setup(PyObject *m)
 {
     int ret = -1;
-    PyObject *sm = Py_InitModule3(SUB_MODULE_NAME,
-                                  NULL,
-                                  SUB_MODULE_PYDOC);
+    PyObject *sm = PyModule_Create(&pyranavideomodule);
     if (sm) {
         PyModule_AddObject(sm, "input_codecs", BuildCodecNamesInput());
         PyModule_AddObject(sm, "output_codecs", BuildCodecNamesOutput());

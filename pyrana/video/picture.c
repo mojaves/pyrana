@@ -1,7 +1,7 @@
 /*
  * Pyrana - python package for simple manipulation of multimedia files
  * 
- * Copyright (c) <2010> <Francesco Romani>
+ * Copyright (c) <2010-2011> <Francesco Romani>
  * 
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -38,7 +38,7 @@
  * which is ultimately seen, and it has methods for the supported
  * transformations.
  *
- * Every Frame has-an Image, and it enriches that with
+ * Every Frame has-a Image, and it enriches that with
  * the metadata needed to properly place it into the video stream (e.g.
  * timing informations et.al.). A Frame has-an Image, so a Frame is
  * meaningless without an Image; however, the opposite is NOT true.
@@ -205,7 +205,7 @@ BuildPixelFormatSet(const enum PixelFormat g_pix_fmts[])
     PyObject *names = PySet_New(NULL);
     int i = 0;
     /* PIX_FMT_NONE deserves a special treatment */
-    PyObject *fmt_none = PyString_FromString("none");
+    PyObject *fmt_none = PyUnicode_FromString("none");
     int err = PySet_Add(names, fmt_none);
     if (err) {
         Py_DECREF(names);
@@ -214,7 +214,7 @@ BuildPixelFormatSet(const enum PixelFormat g_pix_fmts[])
 
     for (i = 1; !err && g_pix_fmts[i] != PIX_FMT_NB; i++) { /* FIXME */
         const char *fmt_name = avcodec_get_pix_fmt_name(g_pix_fmts[i]);
-        PyObject *name = PyString_FromString(fmt_name);
+        PyObject *name = PyUnicode_FromString(fmt_name);
         err = PySet_Add(names, name);
         if (err) {
             Py_DECREF(names);
@@ -450,7 +450,8 @@ Image_Init(PyrImageObject *self, PyObject *args, PyObject *kwds)
         ret = -1; 
     }
     else {
-        const char *name = PyString_AsString(pix_fmt_obj); /* FIXME */
+        PyObject *pix_fmt_name = PyUnicode_AsASCIIString(pix_fmt_obj);
+        const char *name = PyBytes_AsString(pix_fmt_name); /* FIXME */
         enum PixelFormat pix_fmt = FindPixFmtByName(name);
         if (!Image_AreParamsValid(self, width, height, pix_fmt)) {
             ret = -1;
@@ -498,68 +499,48 @@ Image_Repr(PyrImageObject *self)
     int err = GetPlanesInfo(self->image.pix_fmt,
                             self->image.width, self->image.height,
                             &plane_info);
-    return PyString_FromFormat("<Image size=%ix%i pix_fmt=%s hasPlanes=%s>",
-                               self->image.width, self->image.height,
-                               avcodec_get_pix_fmt_name(self->image.pix_fmt),
+    return PyUnicode_FromFormat("<Image size=%ix%i pix_fmt=%s hasPlanes=%s>",
+                                self->image.width, self->image.height,
+                                avcodec_get_pix_fmt_name(self->image.pix_fmt),
                                (!err && plane_info.plane_num > 1) ?"Y" :"N");
 } 
 
 
 
-
-static Py_ssize_t
-Image_GetBuf(PyrImageObject *self, Py_ssize_t segment, void **ptrptr)
+static int
+Image_GetBuffer(PyrImageObject *self,
+                Py_buffer *view, int flags)
 {
+    if (flags != PyBUF_SIMPLE) {
+        PyErr_Format(PyExc_BufferError, "unsupported request");
+        return -1;
+    }
+
+    memset(view, 0, sizeof(Py_buffer));
+
     /* TODO */
-    Py_ssize_t ret = -1;
-    return ret;
-}
 
-
-static Py_ssize_t
-Image_GetSegCount(PyrImageObject *self, Py_ssize_t *lenp)
-{
-    /* TODO */
-    return 0;
-}
-
-
-static PyBufferProcs Image_as_buffer = {
-    (readbufferproc)Image_GetBuf,    /* bf_getreadbuffer  */
-    0,                               /* bf_getwritebuffer */
-    (segcountproc)Image_GetSegCount, /* bf_getsegcount    */
-    (charbufferproc)Image_GetBuf,    /* bf_getcharbuffer  */
-};
-
-
-
-static PyObject *
-PyrImage_GetWidth(PyrImageObject *self)
-{
-    return PyInt_FromLong(self->image.width);
+    return -1;
 }
 
 static PyObject *
-PyrImage_GetHeight(PyrImageObject *self)
+Image_GetWidth(PyrImageObject *self)
 {
-    return PyInt_FromLong(self->image.height);
+    return PyLong_FromLong(self->image.width);
 }
 
 static PyObject *
-PyrImage_GetPixFmt(PyrImageObject *self)
+Image_GetHeight(PyrImageObject *self)
+{
+    return PyLong_FromLong(self->image.height);
+}
+
+static PyObject *
+Image_GetPixFmt(PyrImageObject *self)
 {
     const char *fmt_name = avcodec_get_pix_fmt_name(self->image.pix_fmt);
-    return PyString_FromString(fmt_name);
+    return PyUnicode_FromString(fmt_name);
 }
-
-
-static PyGetSetDef Image_get_set[] =
-{
-    { "width", (getter)PyrImage_GetWidth, NULL, "width." },
-    { "height", (getter)PyrImage_GetHeight, NULL, "height." },
-    { "pixel_format", (getter)PyrImage_GetPixFmt, NULL, "pixel format as string." },
-    { NULL }, /* Sentinel */
-};
 
 
 #define IMAGE_PLANE_NAME "plane"
@@ -587,7 +568,22 @@ Image_Convert(PyrImageObject *self, PyObject *args)
 }
 
 
-static PyMethodDef Image_methods[] =
+static PyGetSetDef Image_GetSet[] =
+{
+    { "width", (getter)Image_GetWidth, NULL, "width." },
+    { "height", (getter)Image_GetHeight, NULL, "height." },
+    { "pixel_format", (getter)Image_GetPixFmt, NULL, "pixel format as string." },
+    { NULL }, /* Sentinel */
+};
+
+static PyBufferProcs Image_AsBuffer = {
+    (getbufferproc)Image_GetBuffer, /* bf_getbuffer     */
+    NULL /* bf_releasebuffer */
+};
+
+
+
+static PyMethodDef Image_Methods[] =
 {
     {
         IMAGE_PLANE_NAME,
@@ -604,50 +600,54 @@ static PyMethodDef Image_methods[] =
     { NULL, NULL }, /* Sentinel */
 };
 
-
-
-static PyTypeObject Image_Type =
+static PyType_Slot Image_Slots[] =
 {
-    PyObject_HEAD_INIT(NULL)
-    0,
+    { Py_tp_dealloc,    Image_Dealloc       },
+    { Py_tp_repr,       Image_Repr          },
+/*    { Py_tp_as_buffer,  &Image_AsBuffer     },*/
+    { Py_tp_init,       Image_Init          },
+    { Py_tp_methods,    Image_Methods       },
+    { Py_tp_getset,     Image_GetSet        },
+    { Py_tp_doc,        Image__doc__        },
+    { Py_tp_alloc,      PyType_GenericAlloc },
+    { Py_tp_new,        PyType_GenericNew   },
+    { 0,                NULL                }
+};
+
+static PyType_Spec Image_Spec =
+{
     IMAGE_NAME,
     sizeof(PyrImageObject),
     0,
-    (destructor)Image_Dealloc,              /* tp_dealloc */
-    0,                                      /* tp_print */
-    0,                                      /* tp_getattr */
-    0,                                      /* tp_setattr */
-    0,                                      /* tp_compare */
-    (reprfunc)Image_Repr,                   /* tp_repr */
-    0,                                      /* tp_as_number */
-    0,                                      /* tp_as_sequence */
-    0,                                      /* tp_as_mapping */
-    0,                                      /* tp_hash */
-    0,                                      /* tp_call */
-    0,                                      /* tp_str */
-    0,                                      /* tp_getattro */
-    0,                                      /* tp_setattro */
-    &Image_as_buffer,                       /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE, /* tp_flags */
-    Image__doc__,                           /* tp_doc */
-    0,                                      /* tp_traverse */
-    0,                                      /* tp_clear */
-    0,                                      /* tp_richcompare */
-    0,                                      /* tp_weaklistoffset */
-    0,                                      /* tp_iter */
-    0,                                      /* tp_iternext */
-    Image_methods,                          /* tp_methods */
-    0,                                      /* tp_members */
-    Image_get_set,                          /* tp_getset */
-    0,                                      /* tp_base */
-    0,                                      /* tp_dict */
-    0,                                      /* tp_descr_get */
-    0,                                      /* tp_descr_set */
-    0,                                      /* tp_dictoffset */
-    (initproc)Image_Init,                   /* tp_init */
-    PyType_GenericAlloc,                    /* tp_alloc */
-    PyType_GenericNew,                      /* tp_new */
+    Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE,
+    Image_Slots
 };
+
+/*************************************************************************/
+
+static PyObject * Image_Type = NULL;
+
+int
+PyrImage_Check(PyObject *o)
+{
+    return (((void *)Py_TYPE(o)) == (void *)Image_Type);
+}
+
+int
+PyrImage_Setup(PyObject *m)
+{
+    int ret = -1;
+    Image_Type = PyType_FromSpec(&Image_Spec);
+    if (Image_Type) {
+        /* UGLY hack. But we really need the Buffer Protocol. */
+        Image_Type->ob_type->tp_as_buffer = &Image_AsBuffer;
+        PyModule_AddObject(m, IMAGE_NAME, Image_Type);
+        ret = 0;
+    }
+    return ret;
+}
+
+/*************************************************************************/
 
 
 PyrImageObject *
@@ -660,7 +660,7 @@ PyrImage_NewFromImage(const PyrImage *image)
 PyrImageObject *
 PyrImage_NewFromFrame(PyrVFrameObject *frame, const PyrImage *img)
 {
-    PyrImageObject *self = PyObject_New(PyrImageObject, &Image_Type);
+    PyrImageObject *self = PyObject_New(PyrImageObject, (PyTypeObject *)Image_Type);
     if (self) {
         Py_INCREF((PyObject*)frame);
         self->parent = frame;
@@ -668,26 +668,6 @@ PyrImage_NewFromFrame(PyrVFrameObject *frame, const PyrImage *img)
         Image_InitFromFrame(self, frame, img);
     }
     return self;
-}
-
-
-
-int
-PyrImage_Check(PyObject *o)
-{
-    return PyObject_TypeCheck(o, &Image_Type);
-}
-
-int
-PyrImage_Setup(PyObject *m)
-{
-    if (PyType_Ready(&Image_Type) < 0)
-        return -1;
-
-    Image_Type.ob_type = &PyType_Type;
-    Py_INCREF((PyObject *)&Image_Type);
-    PyModule_AddObject(m, IMAGE_NAME, (PyObject *)&Image_Type);
-    return 0;
 }
 
 /*************************************************************************/
@@ -712,13 +692,13 @@ IMAGE_NAME" - N/A\n"
 static int
 VFrame_Init(PyrVFrameObject *self, PyObject *args, PyObject *kwds)
 {
-    int ret = 0, is_key = 0, isInterlaced = 0, topFieldFirst = 0;
+    int ret = 0, is_key = 0, is_interlaced = 0, top_field_first = 0;
     PY_LONG_LONG pts = 0;
     PyObject *image = NULL;
 
     if (!PyArg_ParseTuple(args, "OLiii:init",
                           &image, &pts, &is_key,
-                          &isInterlaced, &topFieldFirst)) {
+                          &is_interlaced, &top_field_first)) {
         ret = -1; 
     }
     else if (!PyrImage_Check(image)) {
@@ -731,8 +711,8 @@ VFrame_Init(PyrVFrameObject *self, PyObject *args, PyObject *kwds)
        
         self->frame = avcodec_alloc_frame();
         self->frame->pts = pts;
-        self->frame->interlaced_frame = isInterlaced;
-        self->frame->top_field_first = topFieldFirst;
+        self->frame->interlaced_frame = is_interlaced;
+        self->frame->top_field_first = top_field_first;
 
         /* beware of the following */
         self->frame->key_frame = is_key;
@@ -796,12 +776,12 @@ VFrame_GetILaceDesc(PyrVFrameObject *self)
 static PyObject *
 VFrame_Repr(PyrVFrameObject *self)
 {
-    return PyString_FromFormat("<Video Frame #%i/%i type=%s key=%s ilace=%s>",
-                               self->frame->coded_picture_number,
-                               self->frame->display_picture_number,
-                               VFrame_GetPictDesc(self), 
-                               (self->frame->key_frame) ?"Y" :"N",
-                               VFrame_GetILaceDesc(self));
+    return PyUnicode_FromFormat("<Video Frame #%i/%i type=%s key=%s ilace=%s>",
+                                self->frame->coded_picture_number,
+                                self->frame->display_picture_number,
+                                VFrame_GetPictDesc(self), 
+                                (self->frame->key_frame) ?"Y" :"N",
+                                VFrame_GetILaceDesc(self));
 } 
 
 
@@ -820,7 +800,7 @@ PyrVFrame_GetImage(PyrVFrameObject *self)
 static PyObject *
 PyrVFrame_GetKey(PyrVFrameObject *self)
 {
-    return PyInt_FromLong(self->frame->key_frame);
+    return PyLong_FromLong(self->frame->key_frame);
 }
 
 
@@ -833,35 +813,35 @@ PyrVFrame_GetPts(PyrVFrameObject *self)
 static PyObject *
 PyrVFrame_GetTopFieldFirst(PyrVFrameObject *self)
 {
-    return PyInt_FromLong(self->frame->top_field_first);
+    return PyLong_FromLong(self->frame->top_field_first);
 }
 
 static PyObject *
 PyrVFrame_GetIsInterlaced(PyrVFrameObject *self)
 {
-    return PyInt_FromLong(self->frame->interlaced_frame);
+    return PyLong_FromLong(self->frame->interlaced_frame);
 }
 
 static PyObject *
 PyrVFrame_GetPicType(PyrVFrameObject *self)
 {
-    return PyInt_FromLong(self->frame->pict_type);
+    return PyLong_FromLong(self->frame->pict_type);
 }
 
 static PyObject *
 PyrVFrame_GetCodedNum(PyrVFrameObject *self)
 {
-    return PyInt_FromLong(self->frame->coded_picture_number);
+    return PyLong_FromLong(self->frame->coded_picture_number);
 }
 
 static PyObject *
 PyrVFrame_GetDisplayNum(PyrVFrameObject *self)
 {
-    return PyInt_FromLong(self->frame->display_picture_number);
+    return PyLong_FromLong(self->frame->display_picture_number);
 }
 
 
-static PyGetSetDef VFrame_get_set[] =
+static PyGetSetDef VFrame_GetSet[] =
 {
     { "image", (getter)PyrVFrame_GetImage, NULL, "frame image data" },
     { "is_key", (getter)PyrVFrame_GetKey, NULL, "reference frame flag" },
@@ -874,49 +854,46 @@ static PyGetSetDef VFrame_get_set[] =
     { NULL }, /* Sentinel */
 };
 
-
-static PyTypeObject VFrame_Type =
+static PyType_Slot VFrame_Slots[] =
 {
-    PyObject_HEAD_INIT(NULL)
-    0,
+    { Py_tp_dealloc,    VFrame_Dealloc      },
+    { Py_tp_repr,       VFrame_Repr         },
+    { Py_tp_init,       VFrame_Init         },
+    { Py_tp_getset,     VFrame_GetSet       },
+    { Py_tp_doc,        VFrame__doc__       },
+    { Py_tp_alloc,      PyType_GenericAlloc },
+    { Py_tp_new,        PyType_GenericNew   },
+    { 0,                NULL                }
+};
+
+static PyType_Spec VFrame_Spec =
+{
     VFRAME_NAME,
     sizeof(PyrVFrameObject),
     0,
-    (destructor)VFrame_Dealloc,             /* tp_dealloc */
-    0,                                      /* tp_print */
-    0,                                      /* tp_getattr */
-    0,                                      /* tp_setattr */
-    0,                                      /* tp_compare */
-    (reprfunc)VFrame_Repr,                  /* tp_repr */
-    0,                                      /* tp_as_number */
-    0,                                      /* tp_as_sequence */
-    0,                                      /* tp_as_mapping */
-    0,                                      /* tp_hash */
-    0,                                      /* tp_call */
-    0,                                      /* tp_str */
-    0,                                      /* tp_getattro */
-    0,                                      /* tp_setattro */
-    0,                                      /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE, /* tp_flags */
-    VFrame__doc__,                          /* tp_doc */
-    0,                                      /* tp_traverse */
-    0,                                      /* tp_clear */
-    0,                                      /* tp_richcompare */
-    0,                                      /* tp_weaklistoffset */
-    0,                                      /* tp_iter */
-    0,                                      /* tp_iternext */
-    0,                                      /* tp_methods */
-    0,                                      /* tp_members */
-    VFrame_get_set,                         /* tp_getset */
-    0,                                      /* tp_base */
-    0,                                      /* tp_dict */
-    0,                                      /* tp_descr_get */
-    0,                                      /* tp_descr_set */
-    0,                                      /* tp_dictoffset */
-    (initproc)VFrame_Init,                  /* tp_init */
-    PyType_GenericAlloc,                    /* tp_alloc */
-    PyType_GenericNew,                      /* tp_new */
+    Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE,
+    VFrame_Slots
 };
+
+/*************************************************************************/
+
+static PyObject * VFrame_Type = NULL;
+
+int
+PyrVFrame_Check(PyObject *o)
+{
+    return (((void *)Py_TYPE(o)) == (void *)VFrame_Type);
+}
+
+int
+PyrVFrame_Setup(PyObject *m)
+{
+    VFrame_Type = PyType_FromSpec(&VFrame_Spec);
+    PyModule_AddObject(m, VFRAME_NAME, VFrame_Type);
+    return 0;
+}
+
+/*************************************************************************/
 
 
 PyrVFrameObject *
@@ -924,7 +901,7 @@ PyrVFrame_NewFromAVFrame(AVFrame *frame, const PyrImage *img)
 {
     PyrVFrameObject *self = NULL;
 
-    self = PyObject_New(PyrVFrameObject, &VFrame_Type);
+    self = PyObject_New(PyrVFrameObject, (PyTypeObject*)VFrame_Type);
     if (self) {
         self->origin = Pyr_FRAME_ORIGIN_LIBAV;
         self->frame = frame;
@@ -934,28 +911,6 @@ PyrVFrame_NewFromAVFrame(AVFrame *frame, const PyrImage *img)
     }
     return self;
 }
-
-
-int
-PyrVFrame_Check(PyObject *o)
-{
-    return PyObject_TypeCheck(o, &VFrame_Type);
-}
-
-
-int
-PyrVFrame_Setup(PyObject *m)
-{
-    if (PyType_Ready(&VFrame_Type) < 0)
-        return -1;
-
-    VFrame_Type.ob_type = &PyType_Type;
-    Py_INCREF((PyObject *)&VFrame_Type);
-    PyModule_AddObject(m, VFRAME_NAME, (PyObject *)&VFrame_Type);
-    return 0;
-}
-
-
 
 /* vim: set ts=4 sw=4 et */
 
