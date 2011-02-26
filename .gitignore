@@ -1,4 +1,4 @@
 tags
 build/
 tests/helper.pyc
-
+tests/__pycache__
