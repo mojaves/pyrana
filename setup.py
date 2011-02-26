@@ -34,15 +34,17 @@ def version(info={}):
 
 # courtesy of http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/502261
 def pkgconfig(*packages, **kw):
-    flag_map = {'-I': 'include_dirs', '-L': 'library_dirs', '-l': 'libraries'}
-#    for token in commands.getoutput("pkg-config --libs --cflags %s" % ' '.join(packages)).split():
-    # ffmpeg pkg-config br^W^W oddity
+    flag_map = {b'-I': 'include_dirs', b'-L': 'library_dirs', b'-l': 'libraries'}
+    # ffmpeg pkg-config braindamage^W oddity
     cmdline = ["pkg-config", "--static", "--libs", "--cflags" ]
     cmdline += list(packages)
+    args = {}
     for token in subprocess.check_output(cmdline).split():
         # TODOpy3: bytes VS strings
-        kw.setdefault(flag_map.get(token[:2]), []).append(token[2:])
-    return kw
+        flag = flag_map.get(token[:2])
+        val = token[2:].decode('utf-8', 'strict')
+        args.setdefault(flag, []).append(val)
+    return args
 
 info = pkginfo()
 
@@ -66,7 +68,6 @@ for pkg_name in ("libavutil", "libavcodec", "libavformat"):
 inc_dirs = list(set(inc_dirs))
 lib_dirs = list(set(lib_dirs))
 extra_libs = list(set(extra_libs))
-
 
 pyrana_ext = Extension('pyrana',
                        [
