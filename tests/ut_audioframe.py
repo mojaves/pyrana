@@ -13,7 +13,7 @@ class AFrameTestCase(unittest.TestCase):
     def _new_blank_frame(self, fmt, bps, rate, chans, ts=pyrana.TS_NULL):
         try:
             return self._new_aframe(fmt, bps, rate, chans, ts)
-        except pyrana.PyranaError, x:
+        except pyrana.PyranaError as x:
             self.fail("failed creation from base string (%s,%i,%i,%i): %s" \
                       %(fmt, bps, rate, chans, str(x)))
 

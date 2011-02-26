@@ -7,7 +7,7 @@ class ImageCommonBaseTestCase(object):
     def test_NewFromValidString(self):
         try:
             self._build_img(self.width, self.height, self.data)
-        except pyrana.PyranaError, x:
+        except pyrana.PyranaError as x:
             self.fail("failed creation from simple string: %s" %str(x))
     def test_NewFromInvalidPixFmt(self):
         self.failUnlessRaises(pyrana.SetupError, self._build_img,
@@ -64,8 +64,8 @@ class ImageFromPlanesTestCase(ImageCommonBaseTestCase, unittest.TestCase):
         self.pixel_format = "yuv420p"
         self.width, self.height = 320, 240
         self.data = [ "\0" * self.width * self.height,
-                      "\0" * (self.width / 2 * self.height / 2),
-                      "\0" * (self.width / 2 * self.height / 2) ]
+                      "\0" * (self.width // 2 * self.height // 2),
+                      "\0" * (self.width // 2 * self.height // 2) ]
     def _build_img(self, w, h, d, n="yuv420p"):
         return pyrana.video.Image(w, h, n, d)
 

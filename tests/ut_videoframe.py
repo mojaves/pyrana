@@ -17,7 +17,7 @@ class VFrameCommonBaseTestCase(object):
     def test_NewFromImg(self):
         try:
             self._new_frame()
-        except pyrana.PyranaError, x:
+        except pyrana.PyranaError as x:
             self.fail("failed creation from simple data: %s" %str(x))
     def test_InitValues(self):
         f = self._new_frame()
