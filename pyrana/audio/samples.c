@@ -1,7 +1,7 @@
 /*
  * Pyrana - python package for simple manipulation of multimedia files
  * 
- * Copyright (c) <2010> <Francesco Romani>
+ * Copyright (c) <2010-2011> <Francesco Romani>
  * 
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -108,7 +108,7 @@ BuildSampleFormatSet(const SampleFormatDesc g_sample_fmts[])
     int i = 0, err = 0;
 
     for (i = 0; !err && g_sample_fmts[i].name != NULL; i++) { /* FIXME */
-        PyObject *name = PyString_FromString(g_sample_fmts[i].name);
+        PyObject *name = PyUnicode_FromString(g_sample_fmts[i].name);
         err = PySet_Add(names, name);
         if (err) {
             Py_DECREF(names);
@@ -233,7 +233,8 @@ AFrame_ValidParams(PyrAFrameObject *self,
         valid = 0;
     }
     else {
-        const char *name = PyString_AsString(sample_fmt_obj); /* FIXME */
+        PyObject *sample_fmt_name = PyUnicode_AsASCIIString(sample_fmt_obj);
+        const char *name = PyBytes_AsString(sample_fmt_name); /* FIXME */
         enum SampleFormat s_fmt = FindSampleFormatByName(name);
 
         if (s_fmt == SAMPLE_FMT_NB) {
@@ -305,39 +306,33 @@ AFrame_Init(PyrAFrameObject *self, PyObject *args, PyObject *kwds)
 static PyObject *
 AFrame_Repr(PyrAFrameObject *self)
 {
+    /* TODO */
     return NULL;
 } 
 
 
-static Py_ssize_t
-AFrame_GetBuf(PyrAFrameObject *self, Py_ssize_t segment, void **ptrptr)
+static int
+AFrame_GetBuffer(PyrAFrameObject *self,
+                 Py_buffer *view, int flags)
 {
+    if (flags != PyBUF_SIMPLE) {
+        PyErr_Format(PyExc_BufferError, "unsupported request");
+        return -1;
+    }
+
+    memset(view, 0, sizeof(Py_buffer));
+
     /* TODO */
-    Py_ssize_t ret = -1;
-    return ret;
+
+    return -1;
 }
 
-
-static Py_ssize_t
-AFrame_GetSegCount(PyrAFrameObject *self, Py_ssize_t *lenp)
-{
-    /* TODO */
-    return 0;
-}
-
-
-static PyBufferProcs AFrame_as_buffer = {
-    (readbufferproc)AFrame_GetBuf,    /* bf_getreadbuffer  */
-    0,                                /* bf_getwritebuffer */
-    (segcountproc)AFrame_GetSegCount, /* bf_getsegcount    */
-    (charbufferproc)AFrame_GetBuf,    /* bf_getcharbuffer  */
-};
 
 
 static PyObject *
 PyrAFrame_GetKey(PyrAFrameObject *self)
 {
-    return PyInt_FromLong(1); /* FIXME */
+    return PyLong_FromLong(1); /* FIXME */
 }
 
 
@@ -351,51 +346,34 @@ static PyObject *
 PyrAFrame_GetData(PyrAFrameObject *self)
 {
     /* FIXME: is that correct? */
-    return PyString_FromStringAndSize((char *)self->samples.data,
+    return PyUnicode_FromStringAndSize((char *)self->samples.data,
                                       self->samples.size_bytes);
 }
 
 static PyObject *
 PyrAFrame_GetSize(PyrAFrameObject *self)
 {
-    return PyInt_FromLong(self->samples.size_bytes);
+    return PyLong_FromLong(self->samples.size_bytes);
 }
 
 static PyObject *
 PyrAFrame_GetSampleFormat(PyrAFrameObject *self)
 {
     const char *fmt_name = GetSampleFormatName(self->samples.sample_fmt);
-    return PyString_FromString(fmt_name);
+    return PyUnicode_FromString(fmt_name);
 }
 
 static PyObject *
 PyrAFrame_GetChannels(PyrAFrameObject *self)
 {
-    return PyInt_FromLong(self->samples.channels);
+    return PyLong_FromLong(self->samples.channels);
 }
 
 static PyObject *
 PyrAFrame_GetSampleRate(PyrAFrameObject *self)
 {
-    return PyInt_FromLong(self->samples.sample_rate);
+    return PyLong_FromLong(self->samples.sample_rate);
 }
-
-
-
-static PyGetSetDef AFrame_get_set[] =
-{
-    { "is_key", (getter)PyrAFrame_GetKey, NULL, "reference frame flag" },
-    { "pts", (getter)PyrAFrame_GetPts, NULL, "frame presentation timestamp." },
-    { "data", (getter)PyrAFrame_GetData, NULL, "frame data as binary string." },
-    { "size", (getter)PyrAFrame_GetSize, NULL, "frame size in bytes." }, 
-    { "sample_format", (getter)PyrAFrame_GetSampleFormat, NULL,
-                        "frame sample format." },
-    { "sample_rate", (getter)PyrAFrame_GetSampleRate, NULL,
-                     "frame sample rate." },
-    { "channels", (getter)PyrAFrame_GetChannels, NULL, "frame channels." },
-    { NULL }, /* Sentinel */
-};
-
 
 #define AFRAME_RESAMPLE_NAME "resample"
 PyDoc_STRVAR(AFrame_Resample__doc__,
@@ -410,7 +388,27 @@ AFrame_Resample(PyrAFrameObject *self, PyObject *args)
 }
 
 
-static PyMethodDef AFrame_methods[] =
+static PyGetSetDef AFrame_GetSet[] =
+{
+    { "is_key", (getter)PyrAFrame_GetKey, NULL, "reference frame flag" },
+    { "pts", (getter)PyrAFrame_GetPts, NULL, "frame presentation timestamp." },
+    { "data", (getter)PyrAFrame_GetData, NULL, "frame data as binary string." },
+    { "size", (getter)PyrAFrame_GetSize, NULL, "frame size in bytes." }, 
+    { "sample_format", (getter)PyrAFrame_GetSampleFormat, NULL,
+                        "frame sample format." },
+    { "sample_rate", (getter)PyrAFrame_GetSampleRate, NULL,
+                     "frame sample rate." },
+    { "channels", (getter)PyrAFrame_GetChannels, NULL, "frame channels." },
+    { NULL }, /* Sentinel */
+};
+
+static PyBufferProcs AFrame_AsBuffer = {
+    (getbufferproc)AFrame_GetBuffer, /* bf_getbuffer     */
+    NULL /* bf_releasebuffer */
+};
+
+
+static PyMethodDef AFrame_Methods[] =
 {
     {
         AFRAME_RESAMPLE_NAME,
@@ -421,52 +419,54 @@ static PyMethodDef AFrame_methods[] =
     { NULL, NULL }, /* Sentinel */
 };
 
-
-
-
-static PyTypeObject AFrame_Type =
+static PyType_Slot AFrame_Slots[] =
 {
-    PyObject_HEAD_INIT(NULL)
-    0,
+    { Py_tp_dealloc,    AFrame_Dealloc      },
+    { Py_tp_repr,       AFrame_Repr         },
+/*    { Py_tp_as_buffer,  &AFrame_AsBuffer     },*/
+    { Py_tp_init,       AFrame_Init         },
+    { Py_tp_methods,    AFrame_Methods      },
+    { Py_tp_getset,     AFrame_GetSet       },
+    { Py_tp_doc,        AFrame__doc__       },
+    { Py_tp_alloc,      PyType_GenericAlloc },
+    { Py_tp_new,        PyType_GenericNew   },
+    { 0,                NULL                }
+};
+
+static PyType_Spec AFrame_Spec =
+{
     AFRAME_NAME,
     sizeof(PyrAFrameObject),
     0,
-    (destructor)AFrame_Dealloc,             /* tp_dealloc */
-    0,                                      /* tp_print */
-    0,                                      /* tp_getattr */
-    0,                                      /* tp_setattr */
-    0,                                      /* tp_compare */
-    (reprfunc)AFrame_Repr,                  /* tp_repr */
-    0,                                      /* tp_as_number */
-    0,                                      /* tp_as_sequence */
-    0,                                      /* tp_as_mapping */
-    0,                                      /* tp_hash */
-    0,                                      /* tp_call */
-    0,                                      /* tp_str */
-    0,                                      /* tp_getattro */
-    0,                                      /* tp_setattro */
-    &AFrame_as_buffer,                      /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE, /* tp_flags */
-    AFrame__doc__,                          /* tp_doc */
-    0,                                      /* tp_traverse */
-    0,                                      /* tp_clear */
-    0,                                      /* tp_richcompare */
-    0,                                      /* tp_weaklistoffset */
-    0,                                      /* tp_iter */
-    0,                                      /* tp_iternext */
-    AFrame_methods,                         /* tp_methods */
-    0,                                      /* tp_members */
-    AFrame_get_set,                         /* tp_getset */
-    0,                                      /* tp_base */
-    0,                                      /* tp_dict */
-    0,                                      /* tp_descr_get */
-    0,                                      /* tp_descr_set */
-    0,                                      /* tp_dictoffset */
-    (initproc)AFrame_Init,                  /* tp_init */
-    PyType_GenericAlloc,                    /* tp_alloc */
-    PyType_GenericNew,                      /* tp_new */
+    Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE,
+    AFrame_Slots
 };
 
+/*************************************************************************/
+
+static PyObject *AFrame_Type = NULL;
+
+int
+PyrAFrame_Check(PyObject *o)
+{
+    return (((void *)Py_TYPE(o)) == (void *)AFrame_Type);
+}
+
+int
+PyrAFrame_Setup(PyObject *m)
+{
+    int ret = -1;
+    AFrame_Type = PyType_FromSpec(&AFrame_Spec);
+    if (AFrame_Type) {
+        /* UGLY hack. But we really need the Buffer Protocol. */
+        AFrame_Type->ob_type->tp_as_buffer = &AFrame_AsBuffer;
+        PyModule_AddObject(m, AFRAME_NAME, AFrame_Type);
+        ret = 0;
+    }
+    return ret;
+}
+
+/*************************************************************************/
 
 PyrAFrameObject *
 PyrAFrame_NewEmpty(enum SampleFormat sample_fmt,
@@ -477,7 +477,7 @@ PyrAFrame_NewEmpty(enum SampleFormat sample_fmt,
     PyrAFrameObject *self = NULL;
 
     if (size_bytes > 0) {
-        self = PyObject_New(PyrAFrameObject, &AFrame_Type);
+        self = PyObject_New(PyrAFrameObject, (PyTypeObject *)AFrame_Type);
         if (self) {
             int err = PyrSamples_Init(&(self->samples),
                                       sample_fmt, sample_rate, channels);
@@ -508,27 +508,6 @@ PyrAFrame_NewFromSamples(const PyrSamples *S)
     }
     return self;
 }
-
-int
-PyrAFrame_Check(PyObject *o)
-{
-    return PyObject_TypeCheck(o, &AFrame_Type);
-}
-
-
-int
-PyrAFrame_Setup(PyObject *m)
-{
-    if (PyType_Ready(&AFrame_Type) < 0)
-        return -1;
-
-    AFrame_Type.ob_type = &PyType_Type;
-    Py_INCREF((PyObject *)&AFrame_Type);
-    PyModule_AddObject(m, AFRAME_NAME, (PyObject *)&AFrame_Type);
-    return 0;
-}
-
-
 
 /* vim: set ts=4 sw=4 et */
 
