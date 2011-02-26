@@ -81,6 +81,7 @@ Packet_GetBuffer(PyrPacketObject *self,
                  Py_buffer *view, int flags)
 {
     if (flags != PyBUF_SIMPLE) {
+        PyErr_Format(PyExc_BufferError, "unsupported request");
         return -1;
     }
 
@@ -167,14 +168,15 @@ static PyGetSetDef Packet_GetSet[] =
 
 static PyType_Slot Packet_Slots[] =
 {
-    { Py_tp_dealloc,    Packet_Dealloc      },
-    { Py_tp_init,       Packet_Init         },
-    { Py_tp_repr,       Packet_Repr         },
-/*    { Py_tp_as_buffer,  &Packet_AsBuffer   },*/
-    { Py_tp_getset,     Packet_GetSet       },
-    { Py_tp_doc,        Packet__doc__       },
-    { Py_tp_new,        PyType_GenericNew   },
-    { 0,                NULL                }
+    { Py_tp_dealloc,    Packet_Dealloc       },
+    { Py_tp_init,       Packet_Init          },
+    { Py_tp_repr,       Packet_Repr          },
+/*    { Py_tp_as_buffer,  &Packet_AsBuffer    },*/
+    { Py_tp_getset,     Packet_GetSet        },
+    { Py_tp_doc,        Packet__doc__        },
+    { Py_tp_alloc,      PyType_GenericAlloc, },
+    { Py_tp_new,        PyType_GenericNew    },
+    { 0,                NULL                 }
 };
 
 static PyType_Spec Packet_Spec =
@@ -223,7 +225,8 @@ PyrPacket_NewEmpty(int size)
             int err = av_new_packet(&(self->pkt), size);
             if (!err) {
                 self->len = 0;
-            } else {
+            }
+            else {
                 Py_DECREF(self);
                 self = NULL;
             }

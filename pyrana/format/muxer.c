@@ -343,40 +343,41 @@ Muxer_Init(PyrMuxerObject *self, PyObject *args, PyObject *kwds)
     return 0;
 }
 
-static PyType_Slot MuxerSlots[] =
+static PyType_Slot Muxer_Slots[] =
 {
     { Py_tp_dealloc,    Muxer_Dealloc       },
     { Py_tp_init,       Muxer_Init          },
     { Py_tp_methods,    Muxer_methods       },
     { Py_tp_doc,        Muxer__doc__        },
+    { Py_tp_alloc,      PyType_GenericAlloc },
     { Py_tp_new,        PyType_GenericNew   },
     { 0,                NULL                }
 };
 
-static PyType_Spec MuxerSpec =
+static PyType_Spec Muxer_Spec =
 {
     MUXER_NAME,
     sizeof(PyrMuxerObject),
     0,
     Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE,
-    MuxerSlots
+    Muxer_Slots
 };
 
 /*************************************************************************/
 
-static PyObject *MuxerType = NULL;
+static PyObject *Muxer_Type = NULL;
 
 int
 PyrMuxer_Check(PyObject *o)
 {
-    return (((void *)Py_TYPE(o)) == (void *)MuxerType);
+    return (((void *)Py_TYPE(o)) == (void *)Muxer_Type);
 }
 
 int
 PyrMuxer_Setup(PyObject *m)
 {
-    MuxerType = PyType_FromSpec(&MuxerSpec);
-    PyModule_AddObject(m, MUXER_NAME, MuxerType);
+    Muxer_Type = PyType_FromSpec(&Muxer_Spec);
+    PyModule_AddObject(m, MUXER_NAME, Muxer_Type);
     return 0;
 }
 

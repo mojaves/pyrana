@@ -251,7 +251,8 @@ Demuxer_ReadFrame(PyrDemuxerObject *self, PyObject *args)
 
     if (ret < 0) {
         PyErr_Format(PyrExc_EOSError, "Stream end reached");
-    } else {
+    }
+    else {
         pkt = PyrPacket_NewFromAVPacket(&packet);
     }
     return (PyObject *)pkt;
@@ -283,7 +284,7 @@ Demuxer_Next(PyrDemuxerObject *self)
 
 
 
-static PyMethodDef Demuxer_methods[] =
+static PyMethodDef Demuxer_Methods[] =
 {
     {
         READ_FRAME,
@@ -397,50 +398,51 @@ Demuxer_Init(PyrDemuxerObject *self, PyObject *args, PyObject *kwds)
 }
 
 
-static PyGetSetDef Demuxer_get_set[] =
+static PyGetSetDef Demuxer_GetSet[] =
 {
     { STREAMS, (getter)Demuxer_GetStreams, NULL, Demuxer_Streams__doc__ },
     { NULL }, /* Sentinel */
 };
 
 
-static PyType_Slot DemuxerSlots[] =
+static PyType_Slot Demuxer_Slots[] =
 {
     { Py_tp_dealloc,    Demuxer_Dealloc     },
     { Py_tp_iter,       Demuxer_GetIter     },
     { Py_tp_iternext,   Demuxer_Next        },
     { Py_tp_init,       Demuxer_Init        },
-    { Py_tp_methods,    Demuxer_methods     },
-    { Py_tp_getset,     Demuxer_get_set     },
+    { Py_tp_methods,    Demuxer_Methods     },
+    { Py_tp_getset,     Demuxer_GetSet      },
     { Py_tp_doc,        Demuxer__doc__      },
+    { Py_tp_alloc,      PyType_GenericAlloc },
     { Py_tp_new,        PyType_GenericNew   },
     { 0,                NULL                }
 };
 
-static PyType_Spec DemuxerSpec =
+static PyType_Spec Demuxer_Spec =
 {
     DEMUXER_NAME,
     sizeof(PyrDemuxerObject),
     0,
     Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE,
-    DemuxerSlots
+    Demuxer_Slots
 };
 
 /*************************************************************************/
 
-static PyObject *DemuxerType = NULL;
+static PyObject *Demuxer_Type = NULL;
 
 int
 PyrDemuxer_Check(PyObject *o)
 {
-    return (((void *)Py_TYPE(o)) == (void *)DemuxerType);
+    return (((void *)Py_TYPE(o)) == (void *)Demuxer_Type);
 }
 
 int
 PyrDemuxer_Setup(PyObject *m)
 {
-    DemuxerType = PyType_FromSpec(&DemuxerSpec);
-    PyModule_AddObject(m, DEMUXER_NAME, DemuxerType);
+    Demuxer_Type = PyType_FromSpec(&Demuxer_Spec);
+    PyModule_AddObject(m, DEMUXER_NAME, Demuxer_Type);
     return 0;
 }
 
