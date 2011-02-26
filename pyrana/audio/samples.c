@@ -493,8 +493,7 @@ PyrAFrame_Setup(PyObject *m)
     int ret = -1;
     AFrame_Type = PyType_FromSpec(&AFrame_Spec);
     if (AFrame_Type) {
-        /* UGLY hack. But we really need the Buffer Protocol. */
-        AFrame_Type->ob_type->tp_as_buffer = &AFrame_AsBuffer;
+        PyrInjectBufferProcs(AFrame_Type, &AFrame_AsBuffer);
         PyType_Ready((PyTypeObject *)AFrame_Type);
         PyModule_AddObject(m, AFRAME_NAME, AFrame_Type);
         ret = 0;

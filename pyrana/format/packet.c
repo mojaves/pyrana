@@ -24,6 +24,7 @@
  */
 
 #include "pyrana/format/packet.h"
+#include "pyrana/pyrana_internal.h"
 
 /* TODO:
  * - move pts, dts, is_key, ... as kwds?
@@ -237,8 +238,7 @@ PyrPacket_Setup(PyObject *m)
     int ret = -1;
     Packet_Type = PyType_FromSpec(&Packet_Spec);
     if (Packet_Type) {
-        /* UGLY hack. But we really need the Buffer Protocol. */
-        Packet_Type->ob_type->tp_as_buffer = &Packet_AsBuffer;
+        PyrInjectBufferProcs(Packet_Type, &Packet_AsBuffer);
         PyType_Ready((PyTypeObject *)Packet_Type);
         PyModule_AddObject(m, PACKET_NAME, Packet_Type);
         ret = 0;

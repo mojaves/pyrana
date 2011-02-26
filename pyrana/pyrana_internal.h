@@ -51,6 +51,9 @@ struct pyrcodecobject_ {
     PyObject *params;
 };
 
+
+void PyrInjectBufferProcs(PyObject *obj, PyBufferProcs *procs);
+
 #endif /* PYRANA_INTERNAL_H */
 
 /* vim: set ts=4 sw=4 et */

@@ -637,8 +637,7 @@ PyrImage_Setup(PyObject *m)
     int ret = -1;
     Image_Type = PyType_FromSpec(&Image_Spec);
     if (Image_Type) {
-        /* UGLY hack. But we really need the Buffer Protocol. */
-        Image_Type->ob_type->tp_as_buffer = &Image_AsBuffer;
+        PyrInjectBufferProcs(Image_Type, &Image_AsBuffer);
         PyType_Ready((PyTypeObject *)Image_Type);
         PyModule_AddObject(m, IMAGE_NAME, Image_Type);
         ret = 0;

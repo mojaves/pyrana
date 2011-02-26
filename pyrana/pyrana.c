@@ -40,6 +40,20 @@ PyDoc_STRVAR(Pyrana_doc,
 
 
 
+/*
+Temporary ugly hack until the Buffer Protocol gets included
+into the stable ABI (Python 3.3?)
+*/
+
+void
+PyrInjectBufferProcs(PyObject *obj, PyBufferProcs *procs)
+{
+    /* UGLY hack. But we really need the Buffer Protocol. */
+    PyHeapTypeObject *h = (PyHeapTypeObject *)obj;
+    h->ht_type.tp_as_buffer = procs;
+    return;
+}
+
 static void Logger(void* ctx, int level, const char *fmt, va_list ap)
 {
     /* discard everything */
