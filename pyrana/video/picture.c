@@ -581,8 +581,6 @@ static PyBufferProcs Image_AsBuffer = {
     NULL /* bf_releasebuffer */
 };
 
-
-
 static PyMethodDef Image_Methods[] =
 {
     {
@@ -625,7 +623,7 @@ static PyType_Spec Image_Spec =
 
 /*************************************************************************/
 
-static PyObject * Image_Type = NULL;
+static PyObject *Image_Type = NULL;
 
 int
 PyrImage_Check(PyObject *o)
@@ -877,7 +875,7 @@ static PyType_Spec VFrame_Spec =
 
 /*************************************************************************/
 
-static PyObject * VFrame_Type = NULL;
+static PyObject *VFrame_Type = NULL;
 
 int
 PyrVFrame_Check(PyObject *o)
