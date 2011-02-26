@@ -1,8 +1,5 @@
 TODO (real)
 - Move to py3.2+ (PEP 384) only
--- code/setup.py updates
--- API updates
--- memoryview support
 -- real `bytes' support
 -- move to unittest2
 - kwd arguments.
