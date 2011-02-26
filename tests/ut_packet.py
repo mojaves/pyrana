@@ -7,7 +7,7 @@ class PacketTestCase(unittest.TestCase):
     def test_NewFromString(self):
         try:
             f = pyrana.format.Packet(0, "a")
-        except pyrana.PyranaError, x:
+        except pyrana.PyranaError as x:
             self.fail("failed creation from simple string: %s" %str(x))
     def test_NewFromStringHuge(self):
         try:
@@ -18,11 +18,11 @@ class PacketTestCase(unittest.TestCase):
         try:
             f = pyrana.format.Packet(0, "a")
             g = pyrana.format.Packet(1, f)
-        except pyrana.PyranaError, x:
+        except pyrana.PyranaError as x:
             self.fail("failed creation from another packet")
     def test_DataValuesMatches(self):
         f = pyrana.format.Packet(0, "a")
-        self.assertTrue(f.data == "a")
+        self.assertTrue(f.data == b"a")
         self.assertTrue(f.size == 1)
     def test_DefaultValues(self):
         f = pyrana.format.Packet(0, "a")
@@ -57,17 +57,17 @@ class PacketTestCase(unittest.TestCase):
         self.assertRaises(AttributeError, setattr, f, "dts", 42)
         self.assertTrue(f.dts == pyrana.TS_NULL)
     def test_CannotResetData(self):
-        d = "O RLY?!?"
+        d = b"O RLY?!?"
         f = pyrana.format.Packet(0, d)
         self.assertTrue(f.data == d)
-        self.assertRaises(AttributeError, setattr, f, "data", "YA, RLY")
+        self.assertRaises(AttributeError, setattr, f, "data", b"YA, RLY")
         self.assertTrue(f.data == d)
     def test_CannotResetSize(self):
-        d = "YA, RLY!!!"
+        d = b"YA, RLY!!!"
         l = len(d)
         f = pyrana.format.Packet(0, d)
         self.assertTrue(f.size == l)
-        self.assertRaises(AttributeError, setattr, f, "size", len("YA, RLY"))
+        self.assertRaises(AttributeError, setattr, f, "size", len(b"YA, RLY"))
         self.assertTrue(f.size == l)
 
 

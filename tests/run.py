@@ -41,7 +41,7 @@ def die(msg):
 
 
 def pyrana_local_path():
-    pyrapath = glob.glob("../build/lib*/pyrana.so")[0]
+    pyrapath = glob.glob("../build/lib*/pyrana*.so")[0]
     if not os.path.exists(pyrapath):
         raise IOError("build pyrana first")
     return pyrapath
@@ -58,11 +58,8 @@ def teardown(pyramod="pyrana.so"):
 
 def run(cpython, args):
     ret = 0
-    print cpython
-    print args
-    sys.exit(0)
-    p = subprocess.Popen(args, bufsize=-1, executable=cpython,
-                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    p = subprocess.Popen(args, bufsize=-1, executable=cpython)#,
+#                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     retcode = p.wait()
     if retcode != 0:
         sys.stderr.write(p.stderr.readlines())
@@ -77,10 +74,14 @@ def _main(args):
         cpython = find_executable("python%s" %(pyver))
         if not cpython:
             raise RunTestError("cannot find python v%s" %(pyver))
+        else:
+            print("cpython=%s" %cpython)
 
         setup(pyrapath)
         for a in args:
+            print("running=%s" %a)
             run(cpython, [ a ])
+            print("runned=%s" %a)
         teardown()
     except RunTestError, ex:
         die(str(ex))
