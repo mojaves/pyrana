@@ -327,7 +327,7 @@ Muxer_Init(PyrMuxerObject *self, PyObject *args, PyObject *kwds)
         PyOS_snprintf(filebuf, sizeof(filebuf), "%s://%s",
                       seeking ?"pyfile" :"pypipe",
                       PyBytes_AsString(self->key));
-        ret = PyrFileProto_AddMappedFile(self->key, src);
+        ret = PyrFileProto_SetMappedFile(self->key, src);
         if (ret != 0) {
             return -1;
         }

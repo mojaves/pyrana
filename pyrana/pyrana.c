@@ -44,7 +44,6 @@ PyDoc_STRVAR(Pyrana_doc,
 Temporary ugly hack until the Buffer Protocol gets included
 into the stable ABI (Python 3.3?)
 */
-
 void
 PyrInjectBufferProcs(PyObject *obj, PyBufferProcs *procs)
 {
