@@ -34,11 +34,13 @@ enum {
 
 
 /* returns a NEW reference */
-PyObject *PyrFileProto_GetMappedFile(const char *filename);
-/* returns a NEW reference */
 PyObject *PyrFileProto_GetFileKey(void);
+/* returns a NEW reference */
 
-int PyrFileProto_AddMappedFile(PyObject *key, PyObject *obj);
+PyObject *PyrFileProto_GetMappedFile(PyObject *key);
+
+int PyrFileProto_SetMappedFile(PyObject *key, PyObject *obj);
+
 int PyrFileProto_DelMappedFile(PyObject *key);
 
 int PyrFileProto_Setup(void);
