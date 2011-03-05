@@ -43,9 +43,9 @@ static PyObject *g_file_map = NULL;
  */
 
 PyObject *
-PyrFileProto_GetMappedFile(const char *filename)
+PyrFileProto_GetMappedFile(PyObject *key)
 {
-    PyObject *obj = PyDict_GetItemString(g_file_map, filename);
+    PyObject *obj = PyDict_GetItem(g_file_map, key);
     Py_XINCREF(obj);
     return obj;
 }
@@ -59,7 +59,7 @@ PyrFileProto_GetFileKey(void)
 }
 
 int
-PyrFileProto_AddMappedFile(PyObject *key, PyObject *obj)
+PyrFileProto_SetMappedFile(PyObject *key, PyObject *obj)
 {
     if (!key || !obj) {
         return -1;
@@ -143,9 +143,14 @@ WriteBytes(PyObject *rawiobase, const unsigned char *buf, int size)
 static int
 PipeBridge_Open(URLContext *h, const char *filename, int flags)
 {
-    av_strstart(filename, "pypipe://", &filename);
-    PyObject *obj = PyrFileProto_GetMappedFile(filename);
     int ret = -1;
+    const char *keyname = NULL;
+    PyObject *key = NULL;
+    PyObject *obj = NULL;
+
+    av_strstart(filename, "pypipe://", &keyname);
+    key = PyBytes_FromString(keyname);
+    obj = PyrFileProto_GetMappedFile(key);
     if (obj) {
         h->priv_data = obj;
         h->is_streamed = 1;
@@ -192,9 +197,14 @@ static URLProtocol pypipe_protocol = {
 static int
 FileBridge_Open(URLContext *h, const char *filename, int flags)
 {
-    av_strstart(filename, "pyfile://", &filename);
-    PyObject *obj = PyrFileProto_GetMappedFile(filename);
     int ret = -1;
+    const char *keyname = NULL;
+    PyObject *key = NULL;
+    PyObject *obj = NULL;
+
+    av_strstart(filename, "pyfile://", &keyname);
+    key = PyBytes_FromString(keyname);
+    obj = PyrFileProto_GetMappedFile(key);
     if (obj) {
         h->priv_data = obj;
         h->is_streamed = 0;
@@ -208,10 +218,10 @@ static int64_t
 FileBridge_Seek(URLContext *h, int64_t pos, int whence)
 {
     int64_t newpos = -1;
-    PyObject *iobse = h->priv_data;
+    PyObject *iobase = h->priv_data;
     PyObject *res = NULL;
 
-    res = PyObject_CallMethod(iobse, "seek", "Li", pos, whence);
+    res = PyObject_CallMethod(iobase, "seek", "Li", pos, whence);
 
     if (res) {
         if (PyLong_Check(res)) {
