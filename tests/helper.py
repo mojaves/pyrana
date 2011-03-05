@@ -3,12 +3,12 @@
 import pyrana
 import os
 import os.path
-import ConfigParser
+import configparser
 import unittest
 
 
 def get_samples_path(cfg="samples.cfg"):
-    parser = ConfigParser.ConfigParser()
+    parser = configparser.ConfigParser()
     parser.read(cfg)
     basepath = parser.get("Samples", "samples_dir")
     res = {}
@@ -20,22 +20,22 @@ def get_samples_path(cfg="samples.cfg"):
 
 def get_stream_info(samples):
     return {"OGG_AV":({
-                        'name'       : 'theora',
-                        'type'       : pyrana.MEDIA_VIDEO,
-                        'pixFmt'     : 'yuv420p',
-                        'width'      : 1280,
-                        'height'     : 720,
-                        'bitrate'    : 0,
-                        'extraData'  : None,
+                        'name'        : 'theora',
+                        'type'        : pyrana.MEDIA_VIDEO,
+                        'pixel_format': 'yuv420p',
+                        'width'       : 1280,
+                        'height'      : 720,
+                        'bit_rate'    : 0,
+                        'extra_data'  : None,
                     },
                     {
-                        'name'       : 'vorbis',
-                        'type'       : pyrana.MEDIA_AUDIO,
-                        'channels'   : 2,
-                        'bitrate'    : 192000,
-                        'sampleRate' : 48000,
-                        'sampleBytes': 2,
-                        'extraData'  : None,
+                        'name'        : 'vorbis',
+                        'type'        : pyrana.MEDIA_AUDIO,
+                        'channels'    : 2,
+                        'bit_rate'    : 192000,
+                        'sample_rate' : 48000,
+                        'sample_bytes': 2,
+                        'extra_data'  : None,
                     })
             }
 
@@ -45,12 +45,12 @@ class BaseFormatTestCase(unittest.TestCase):
         for st, ex in zip(got, expected):
             self.assertTrue(len(st) == len(ex))
             for k in ex:
-                if k == 'extraData':
+                if k == 'extra_data':
                     # we can't compare extradata (yet)
                     continue
-                self.failUnlessEqual(ex[k], st[k],
-                                     "'%s' is different: ref='%s' got='%s'" \
-                                     %(k, ex[k], st[k]))
+                self.assertEqual(ex[k], st[k],
+                                 "'%s' is different: ref='%s' got='%s'" \
+                                 %(k, ex[k], st[k]))
 
 
 
