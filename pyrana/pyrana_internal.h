@@ -49,10 +49,22 @@ struct pyrcodecobject_ {
     AVCodecContext *ctx;
     AVCodec *codec;
     PyObject *params;
+
+    int (*SetParamsDefault)(PyrCodecObject *self);
+    int (*SetParamsUser)(PyrCodecObject *self, PyObject *params);
+    int (*AreValidParams)(PyrCodecObject *self, PyObject *params);
+    
+    AVCodec *(*FindAVCodecByName)(const char *name);
+
+    const char *tag;
 };
 
 
 void PyrInjectBufferProcs(PyObject *obj, PyBufferProcs *procs);
+
+void PyrVCodec_Dealloc(PyrCodecObject *self);
+int PyrVCodec_Open(PyrCodecObject *self, PyObject *params, AVCodec *codec);
+int PyrVCodec_Init(PyrCodecObject *self, PyObject *args, PyObject *kwds);
 
 #endif /* PYRANA_INTERNAL_H */
 
