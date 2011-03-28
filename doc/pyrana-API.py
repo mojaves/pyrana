@@ -1,4 +1,4 @@
-# Revision 1.5.0 - 20110224
+# Revision 1.5.1 - 20110306
 #
 # beware: the following is Python-like PSEUDO-code
 #
@@ -165,7 +165,6 @@ class Frame(object):
 
 class Decoder(object):
     """
-    Like the old Pyrana class,
     - add the 'params' property (read-only preferred alias for getParams)
     - no conversion/scaling will be performed
     - add flush() operation
@@ -180,11 +179,12 @@ class Decoder(object):
         return Frame # ...
     params
         """dict, read-only"""
+    extra_data
+        """bytes, read-write"""
 
 
 class Encoder(object):
     """
-    Like the old Pyrana class,
     - add the 'params' property (read-only preferred alias for getParams)
     - no conversion/scaling will be performed
     - add flush() operation
@@ -199,6 +199,8 @@ class Encoder(object):
         return Packet # ...
     params
         """dict, read-only"""
+    extra_data
+        """bytes, read-only"""
 
 
 #pyrana.audio
