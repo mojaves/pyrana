@@ -333,7 +333,7 @@ Muxer_Init(PyrMuxerObject *self, PyObject *args, PyObject *kwds)
         }
 
         strncpy(self->oc->filename, filebuf, Pyr_FILE_KEY_LEN);
-        ret = url_fopen(&(self->oc->pb), filebuf, URL_WRONLY);
+        ret = avio_open(&(self->oc->pb), filebuf, URL_WRONLY);
         if (ret < 0) {
             /* FIXME */
         }

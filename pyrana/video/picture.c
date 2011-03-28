@@ -116,7 +116,7 @@ static const enum PixelFormat g_pix_fmts[] = {
     PIX_FMT_YUV422P16BE,
     PIX_FMT_YUV444P16LE,
     PIX_FMT_YUV444P16BE,
-    PIX_FMT_NB,
+    PIX_FMT_NB, /* FIXME TODO */
 };
 
 static const enum PixelFormat g_user_pix_fmts[] = {
@@ -130,7 +130,7 @@ static const enum PixelFormat g_user_pix_fmts[] = {
     PIX_FMT_RGBA,
     PIX_FMT_ABGR,
     PIX_FMT_BGRA,
-    PIX_FMT_NB,
+    PIX_FMT_NB, /* FIXME TODO */
 };
 
 #define FILL_INFO(INF, W, H, BPP) do { \

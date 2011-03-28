@@ -125,11 +125,11 @@ BuildSampleFormatSet(const SampleFormatDesc g_sample_fmts[])
 static enum SampleFormat
 FindSampleFormatByName(const char *name)
 {
-    enum SampleFormat fmt = PIX_FMT_NB;
+    enum SampleFormat fmt = SAMPLE_FMT_NB; /* FIXME TODO */
     if (name) {
         int i;
-        /* FIXME */
-        for (i = 0; fmt == PIX_FMT_NB && g_sample_fmts[i].name != NULL; i++) {
+        /* FIXME TODO */
+        for (i = 0; fmt == SAMPLE_FMT_NB && g_sample_fmts[i].name != NULL; i++) {
             if (!strcmp(g_sample_fmts[i].name, name)) {
                 fmt = g_sample_fmts[i].fmt;
             }
