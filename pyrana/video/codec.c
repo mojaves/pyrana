@@ -66,6 +66,21 @@ PyrVCodec_Open(PyrCodecObject *self, PyObject *params, AVCodec *codec)
 }
 
 int
+PyrVCodec_AreValidParams(PyrCodecObject *self, PyObject *params)
+{
+    int valid = 1;
+    if (params) {
+        if (!PyMapping_Check(params)) {
+            PyErr_Format(PyExc_TypeError,
+                         "'params' argument has to be a mapping");
+            valid = 0;
+        }
+    }
+    return valid;
+}
+
+
+int
 PyrVCodec_Init(PyrCodecObject *self, PyObject *args, PyObject *kwds)
 {
     int err = -1;
@@ -77,7 +92,7 @@ PyrVCodec_Init(PyrCodecObject *self, PyObject *args, PyObject *kwds)
         return err; 
     }
 
-    if (self->ValidParams(self, params)) {
+    if (self->AreValidParams(self, params)) {
         AVCodec *codec = self->FindAVCodecByName(name);
         if (!codec) {
             PyErr_Format(PyrExc_SetupError,
@@ -100,4 +115,21 @@ PyrVCodec_Init(PyrCodecObject *self, PyObject *args, PyObject *kwds)
     return err;
 }
 
+/*************************************************************************/
+
+void
+avpicture_softref(AVPicture *dst, AVPicture *src)
+{
+    dst->data[0] = src->data[0];
+    dst->data[1] = src->data[1];
+    dst->data[2] = src->data[2];
+    dst->data[3] = src->data[3];
+
+    dst->linesize[0] = src->linesize[0];
+    dst->linesize[1] = src->linesize[1];
+    dst->linesize[2] = src->linesize[2];
+    dst->linesize[3] = src->linesize[3];
+}
+
+/* vim: set ts=4 sw=4 et */
 

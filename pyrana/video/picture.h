@@ -83,8 +83,12 @@ int PyrImage_Setup(PyObject *m);
 
 struct pyrvframeobject_ {
     PyObject_HEAD
-    PyrImageObject *image;
-    AVFrame *frame;
+    PyrImageObject *image; /* guaranteed to be valid regardless
+                              the origin of the frame
+                            */
+    AVFrame *frame;        /* could be NULL if the frame origin
+                              isn't a pyrana.video.Decoder
+                            */
     int is_key;
     PyrFrameOrigin origin;
 };

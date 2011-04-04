@@ -467,26 +467,11 @@ Image_Init(PyrImageObject *self, PyObject *args, PyObject *kwds)
     return ret;
 }
 
-/* This name mimics the libav* ones */
-static void
-avpicture_softref(AVPicture *pict, AVFrame *frame)
-{
-    pict->data[0] = frame->data[0];
-    pict->data[1] = frame->data[1];
-    pict->data[2] = frame->data[2];
-    pict->data[3] = frame->data[3];
-
-    pict->linesize[0] = frame->linesize[0];
-    pict->linesize[1] = frame->linesize[1];
-    pict->linesize[2] = frame->linesize[2];
-    pict->linesize[3] = frame->linesize[3];
-}
-
 static void
 Image_InitFromFrame(PyrImageObject *self, PyrVFrameObject *frame,
                     const PyrImage *img)
 {
-    avpicture_softref(&(self->image.picture), frame->frame);
+    avpicture_softref(&(self->image.picture), (AVPicture *)frame->frame);
     self->image.width = img->width;
     self->image.height = img->height;
     self->image.pix_fmt = img->pix_fmt;
@@ -670,6 +655,10 @@ PyrImage_NewFromFrame(PyrVFrameObject *frame, const PyrImage *img)
 
 /*************************************************************************/
 
+/* it is the responsability of the VFrame to properly and optimally
+   allign (and pad if needed) the image/planes data, by delegating to the
+   Image anything needed.
+ */
 
 static void
 VFrame_Dealloc(PyrVFrameObject *self)

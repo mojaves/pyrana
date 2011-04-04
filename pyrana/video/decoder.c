@@ -169,17 +169,10 @@ VDecoder_SetParamsUser(PyrCodecObject *self, PyObject *params)
 }
 
 static int
-VDecoder_ValidParams(PyrCodecObject *self, PyObject *params)
+VDecoder_AreValidParams(PyrCodecObject *self, PyObject *params)
 {
-    int valid = 1;
-    if (params) {
-        if (!PyMapping_Check(params)) {
-            PyErr_Format(PyExc_TypeError,
-                         "'params' argument has to be a mapping");
-            valid = 0;
-        }
-    }
-    return valid;
+    /* just delegate it */
+    return PyrVCodec_AreValidParams(self, params);
 }
 
 #define VDECODER_NAME "Decoder"
@@ -192,7 +185,7 @@ VDecoder_Init(PyrCodecObject *self, PyObject *args, PyObject *kwds)
 {
     self->SetParamsDefault = VDecoder_SetParamsDefault;
     self->SetParamsUser = VDecoder_SetParamsUser;
-    self->AreValidParams = VDecoder_ValidParams;
+    self->AreValidParams = VDecoder_AreValidParams;
         
     self->FindAVCodecByName = avcodec_find_decoder_by_name;
 
@@ -307,7 +300,7 @@ PyrVDecoder_NewFromDemuxer(PyObject *dmx, int stream_id, PyObject *params)
     PyrCodecObject *self = NULL;
     PyrDemuxerObject *demux = PyrVDecoder_NarrowDemuxer(dmx, stream_id);
 
-    if (demux && VDecoder_ValidParams(self, params)) {
+    if (demux && VDecoder_AreValidParams(self, params)) {
         self = PyObject_New(PyrCodecObject, (PyTypeObject *)VDecoder_Type);
         if (self) {
             AVCodec *codec = NULL;

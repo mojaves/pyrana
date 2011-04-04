@@ -1,27 +1,27 @@
 /*
  * Pyrana - python package for simple manipulation of multimedia files
- * 
+ *
  * Copyright (c) <2010-2011> <Francesco Romani>
- * 
+ *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
  * arising from the use of this software.
- * 
+ *
  * Permission is granted to anyone to use this software for any purpose,
  * including commercial applications, and to alter it and redistribute it
  * freely, subject to the following restrictions:
- * 
+ *
  * 1. The origin of this software must not be misrepresented; you must not
  * claim that you wrote the original software. If you use this software
  * in a product, an acknowledgment in the product documentation would be
  * appreciated but is not required.
- * 
+ *
  * 2. Altered source versions must be plainly marked as such, and must not be
  * misrepresented as being the original software.
- * 
+ *
  * 3. This notice may not be removed or altered from any source
  * distribution.
- */ 
+ */
 
 
 #include "pyrana/video/encoder.h"
@@ -30,10 +30,9 @@
 
 typedef struct pyrencoderobject_ PyrEncoderObject;
 struct pyrencoderobject_ {
-    PyrCodecObjet C;
-
-    AVFrame frame;
+    PyrCodecObject C;
     /* TODO */
+    AVPacket *pkt; /* for the output buffer */
 };
 
 
@@ -63,12 +62,54 @@ VEncoder_GetExtraData(PyrCodecObject *self, void *closure)
 }
 
 
+static void
+VEncoder_SetupFrame(PyrEncoderObject *self, AVFrame *frame)
+{
+    if (!self || !frame) {
+        return;
+    }
+    /* TODO */
+    return;
+}
+
+static void
+VEncoder_SetupPacket(PyrEncoderObject *self, PyrPacketObject *pkt)
+{
+    if (!self || !pkt) {
+        return;
+    }
+    /* TODO */
+    return;
+}
 
 static PyObject *
 VEncoder_EncodePacket(PyrEncoderObject *self, PyrVFrameObject *vframe)
 {
-    /* TODO */
-    return NULL;
+    PyrPacketObject *pkt = NULL;
+    PyrImage *img = &vframe->image->image;
+    int size = avpicture_get_size(img->pix_fmt, img->width, img->height);
+    int len = 0;
+    AVFrame frame;
+
+    avcodec_get_frame_defaults(&frame);
+
+    if (!self->pkt) {
+        av_new_packet(self->pkt, size);
+    } else if (self->pkt->size < size) {
+        av_grow_packet(self->pkt, size - self->pkt->size);
+    }
+
+    avpicture_softref((AVPicture *)&frame, &img->picture);
+    VEncoder_SetupFrame(self, &frame);
+
+    len = avcodec_encode_video(self->C.ctx,
+                               self->pkt->data, self->pkt->size,
+                               &frame);
+    if (len > 0) {
+        pkt = PyrPacket_NewFromData(self->pkt->data, len);
+        VEncoder_SetupPacket(self, pkt);
+    }
+    return (PyObject *)pkt;
 }
 
 
@@ -109,10 +150,11 @@ VEncoder_Flush(PyrEncoderObject *self, PyObject *args)
     return NULL;
 }
 
-static void
+static int
 VEncoder_SetParamsDefault(PyrCodecObject *self)
 {
-    avcodec_get_context_defaults(&self->ctx);
+    avcodec_get_context_defaults(self->ctx);
+
     self->ctx->mb_qmin                 = 2;
     self->ctx->mb_qmax                 = 31;
     self->ctx->max_qdiff               = 3;
@@ -163,52 +205,21 @@ VEncoder_SetParamsDefault(PyrCodecObject *self)
     self->ctx->quantizer_noise_shaping = 0;
     self->ctx->flags                   = 0;
 
-    return;
+    return 0;
 }
 
-static void
+static int
 VEncoder_SetParamsUser(PyrCodecObject *self, PyObject *params)
 {
     /* TODO */
-    return;
-}
-
-/* FIXME: ugly, inexpressive name */
-static int
-VEncoder_InitCodec(PyrCodecObject *self, AVCodec *codec, PyObject *params)
-{
-    int ret = -1;
-
-    if (codec) {
-        self->codec = codec;
-
-        VEncoder_SetParamsDefault(self);
-        VEncoder_SetParamsUser(self, params);
-
-        avcodec_thread_init(self->ctx, self->thread_count);
-
-        ret = avcodec_open(self->ctx, self->codec);
-        if (ret < 0) {
-            PyErr_Format(PyrExc_SetupError,
-                         "Could not initialize the '%s' codec.",
-                         self->codec->name);
-        }
-    }
-    return ret;
+    return 0;
 }
 
 static int
-VEncoder_ValidParams(PyObject *params)
+VEncoder_AreValidParams(PyrCodecObject *self, PyObject *params)
 {
-    int valid = 1;
-    if (params) {
-        if (!PyMapping_Check(params)) {
-            PyErr_Format(PyExc_TypeError,
-                         "'params' argument has to be a mapping");
-            valid = 0;
-        }
-    }
-    return valid;
+    /* TODO */
+    return 1;
 }
 
 #define VENCODER_NAME "Decoder"
@@ -219,40 +230,25 @@ VENCODER_NAME"(format_name [, params]) -> encoder\n"
 static int
 VEncoder_Init(PyrCodecObject *self, PyObject *args, PyObject *kwds)
 {
-    int err = -1;
-    const char *name = NULL;
-    PyObject *params = NULL;
+    self->SetParamsDefault = VEncoder_SetParamsDefault;
+    self->SetParamsUser = VEncoder_SetParamsUser;
+    self->AreValidParams = VEncoder_AreValidParams;
 
-    if (!PyArg_ParseTuple(args, "s|O:init", &name, &params)) { 
-        PyErr_Format(PyrExc_SetupError, "Wrong arguments");
-        return err; 
-    }
+    self->FindAVCodecByName = avcodec_find_encoder_by_name;
 
-    if (VEncoder_ValidParams(params)) {
-        AVCodec *codec = avcodec_find_encoder_by_name(name);
-        if (!codec) {
-            PyErr_Format(PyrExc_SetupError, "unkown encoder `%s'", name);
-        }
-        else {
-            self->SetParamsDefault = VDecoder_SetParamsDefault;
-            self->SetParamsUser = VDecoder_SetParamsUser
+    self->tag = "encoder";
 
-            self->parent = NULL;
-            self->ctx = avcodec_alloc_context();
-
-            if (!self->ctx) {
-                PyErr_Format(PyrExc_SetupError,
-                            "unable to alloc the avcodec context");
-            }
-            else {
-                err = PyrVCodec_Open(self, codec, params);
-                /* exception already set */
-            }
-        }
-    }
-    return err;
+    return PyrVCodec_Init(self, args, kwds);
 }
 
+void
+VEncoder_Dealloc(PyrEncoderObject *self)
+{
+    if (self->pkt) {
+        av_free_packet(self->pkt);
+    }
+    PyrVCodec_Dealloc((PyrCodecObject *)self);
+}
 
 static PyMethodDef VEncoder_Methods[] =
 {
@@ -329,6 +325,5 @@ PyrVEncoder_Setup(PyObject *m)
     return 0;
 }
 
-/*************************************************************************/
 /* vim: set ts=4 sw=4 et */
 

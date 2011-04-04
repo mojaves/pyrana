@@ -50,6 +50,9 @@ struct pyrcodecobject_ {
     AVCodec *codec;
     PyObject *params;
 
+    int thread_count;
+
+    /* FIXME: case */
     int (*SetParamsDefault)(PyrCodecObject *self);
     int (*SetParamsUser)(PyrCodecObject *self, PyObject *params);
     int (*AreValidParams)(PyrCodecObject *self, PyObject *params);
@@ -62,9 +65,17 @@ struct pyrcodecobject_ {
 
 void PyrInjectBufferProcs(PyObject *obj, PyBufferProcs *procs);
 
+
 void PyrVCodec_Dealloc(PyrCodecObject *self);
 int PyrVCodec_Open(PyrCodecObject *self, PyObject *params, AVCodec *codec);
 int PyrVCodec_Init(PyrCodecObject *self, PyObject *args, PyObject *kwds);
+int PyrVCodec_AreValidParams(PyrCodecObject *self, PyObject *params);
+
+/*************************************************************************/
+
+void avpicture_softref(AVPicture *dst, AVPicture *src);
+
+/*************************************************************************/
 
 #endif /* PYRANA_INTERNAL_H */
 
