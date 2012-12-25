@@ -2,7 +2,7 @@ Metadata-Version: 1.0
 Name: pyrana
 Version: 0.0.6
 Summary: Pyrana package for simple manipulation of multimedia files
-Home-page: http://github.com/mojaves/pyrana
+Home-page: http://bitbucket.org/france/pyrana
 Author: Francesco Romani
 Author-email: fromani@gmail.com
 License: ZLIB

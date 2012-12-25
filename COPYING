@@ -1,6 +1,22 @@
 Pyrana - python package for simple manipulation of multimedia files
+===================================================================
 
-Copyright (c) <2010-2011> <Francesco Romani>
+CAUTION:
+--------
+pyrana itself is zlib-licensed. However, it links to the ffmpeg
+libraries which, depending on the build configuration, can be
+LGPL or GPL. As result, the whole package will become LGPL or GPL.
+Check the license of the libraries you're currently using.
+
+Short version:
+--------------
+ZLIB license (any use is allowed as long as you don't
+remove or alter the copyright notice nor claim you wrote the code.
+
+Long version:
+-------------
+
+Copyright (c) <2010-2012> <Francesco Romani>
 
 This software is provided 'as-is', without any express or implied
 warranty. In no event will the authors be held liable for any damages

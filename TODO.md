@@ -1,3 +1,20 @@
+Milestone #1
+------------
+
+* build again against python 3.2 and the last stable release of ffmpeg.
+* cleanup the project
+* fully functional demuxer and example application
+
+Milestone #2
+------------
+
+* functional demuxing/decoding layer.
+
+
+
+Shoplist
+--------
+
 TODO (real)
 - Move to py3.2+ (PEP 384) only
 -- real `bytes' support
