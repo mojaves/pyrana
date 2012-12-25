@@ -1,10 +1,30 @@
-Metadata-Version: 1.0
-Name: pyrana
+Metadata-Version: 1.1
+Name: pymedia-pyrana
 Version: 0.0.6
-Summary: Pyrana package for simple manipulation of multimedia files
+Summary: Package for simple manipulation of multimedia files
 Home-page: http://bitbucket.org/france/pyrana
 Author: Francesco Romani
 Author-email: fromani@gmail.com
-License: ZLIB
-Description: UNKNOWN
-Platform: UNKNOWN
+License: zlib
+Description: 
+        Pyrana is a python package designed to provides simple access to
+        multimedia files. Pyrana is based on the FFmpeg (http://ffmpeg.org)
+        libraries, but provides an independent API.
+        
+Platform: posix
+Classifier: Development Status :: 2 - Pre-Alpha
+Classifier: Environment :: Other Environment
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: zlib/libpng License
+Classifier: Operating System :: POSIX
+Classifier: Programming Language :: C
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: Implementation :: CPython
+Classifier: Topic :: Multimedia :: Graphics
+Classifier: Topic :: Multimedia :: Graphics :: Graphics Conversion
+Classifier: Topic :: Multimedia :: Sound/Audio
+Classifier: Topic :: Multimedia :: Sound/Audio :: Capture/Recording
+Classifier: Topic :: Multimedia :: Video :: Conversion
+Classifier: Topic :: Software Development :: Libraries
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Classifier: Topic :: Utilities
