@@ -1,8 +1,8 @@
 Metadata-Version: 1.1
 Name: pymedia-pyrana
-Version: 0.0.6
+Version: 0.1.0
 Summary: Package for simple manipulation of multimedia files
-Home-page: http://bitbucket.org/france/pyrana
+Home-page: http://bitbucket.org/mojaves/pyrana
 Author: Francesco Romani
 Author-email: fromani@gmail.com
 License: zlib
@@ -17,9 +17,8 @@ Classifier: Environment :: Other Environment
 Classifier: Intended Audience :: Developers
 Classifier: License :: OSI Approved :: zlib/libpng License
 Classifier: Operating System :: POSIX
-Classifier: Programming Language :: C
+Classifier: Programming Language :: Python
 Classifier: Programming Language :: Python :: 3
-Classifier: Programming Language :: Python :: Implementation :: CPython
 Classifier: Topic :: Multimedia :: Graphics
 Classifier: Topic :: Multimedia :: Graphics :: Graphics Conversion
 Classifier: Topic :: Multimedia :: Sound/Audio

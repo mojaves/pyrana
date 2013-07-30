@@ -2,7 +2,7 @@
 Pyrana - python package for simple manipulation of multimedia files
 ===================================================================
 
-(C) 2010-2012 Francesco Romani < fromani | gmail : com >
+(C) 2010-2013 Francesco Romani < fromani | gmail : com >
 
 
 Overview
@@ -39,23 +39,14 @@ in every major release.
 Requirements
 ------------
 
-* python at least 3.2 (do not forget the development package)
+* (c)python at least 3.2
 * [FFmpeg](http://ffmpeg.org) at least 1.0.0 (the last SVN/GIT snapshot is usually fine).
   [libav](http://libav.org) unsupported. May or may not work.
-* The usual build toolchain (gcc, make, development packages - install
-`build-essential` on ubuntu/debian)
+* [cffi](http://cffi.readthedocs.org/en/release-0.6/)
 
 
 Getting started
 ---------------
-
-To build the extension, just run
-
-`python setup.py build`
-
-to install it
-
-`python setup.py install`
 
 see [here](http://docs.python.org/install/index.html) for details.
 
