@@ -3,7 +3,7 @@
 import pyrana
 import unittest
 
-class PacketTestCase(unittest.TestCase):
+class TestPacket(unittest.TestCase):
     def test_NewFromString(self):
         try:
             f = pyrana.format.Packet(0, "a")
