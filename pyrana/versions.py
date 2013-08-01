@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import namedtuple
+from collections import namedtuple
 import cffi
 
 
@@ -17,16 +17,19 @@ def ffmpeg_versions():
     ver.cdef("unsigned avcodec_version(void);")
     ver.cdef("unsigned avformat_version(void);")
     ver.cdef("unsigned avutil_version(void);")
-    lavc = ver.dlopen("/usr/lib/libavcodec.so.52")
-    lavf = ver.dlopen("/usr/lib/libavformat.so.52")
-    lavu = ver.dlopen("/usr/lib/libavutil.so.50")
+    lavc = ver.dlopen("libavcodec.so")
+    lavf = ver.dlopen("libavformat.so")
+    lavu = ver.dlopen("libavutil.so")
     return (lavc.avcodec_version(),
             lavf.avformat_version(),
             lavu.avutil_version())
 
 
 def autoverify():
-    lavc, lavf, lavu = ffmpeg_versions()
+    try:
+        lavc, lavf, lavu = ffmpeg_versions()
+    except OSError:
+        raise RuntimeError("missing libraries")
     if lavc < av_version_pack(54, 0, 0):
         raise RuntimeError("unsupported libavcodec: found=%u required=%u")
     if lavf < av_version_pack(54, 0, 0):
