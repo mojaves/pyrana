@@ -1,24 +1,26 @@
 
-from pyrana.base import TS_NULL
-
 STREAM_ANY = -1
+TS_NULL = 0x8000000000000000
 
-input_formats  = frozenset()
+
+input_formats = frozenset()
 output_formats = frozenset()
 
 
 def is_streamable(name):
-     """
-     is_streamable(name) -> Bool
-     tells if a given format is streamable (-> needs seek()) or not.
-     """
-     pass
+    """
+    is_streamable(name) -> Bool
+    tells if a given format is streamable (do NOT need seek()) or not.
+    """
+    return False # TODO
+
 
 def find_stream(streams, stream_id, media):
     """
     TODO
     """
     pass
+
 
 class Packet:
     """
@@ -71,15 +73,18 @@ class Demuxer(object):
     def __init__(self, src, name=None):
         """
         Demuxer(src, name="")
-        Initialize a new demuxer for the file type `name' (use "" (empty) for auto probing)
+        Initialize a new demuxer for the file type `name' (use "" (empty)
+        for auto probing).
         A Demuxer needs a RawIOBase-compliant as a source of data.
         The RawIOBase-compliant object must be already open.
-        """ 
+        """
         pass
+
     def read_frame(self, stream_id=STREAM_ANY):
         """
         read_frame(stream_id=ANY) -> Packet Object
-        reads and returns a new complete encoded frame (enclosed in a Packet) from the demuxer.
+        reads and returns a new complete encoded frame (enclosed in a Packet)
+        from the demuxer.
         if the optional `stream_id' argument is !ANY, returns a frame
         belonging to the specified streams.
 
@@ -88,11 +93,13 @@ class Demuxer(object):
         - the streams ends.
         """
         raise NotImplementedError
+
     def open_decoder(self, stream_id, params={}):
         """
         open_decoder(stream_id) -> Decoder instance
-        create and returns a full-blown decoder Instance capable to decode the selected
-        stream. Like doing things manually, just easily.
+        create and returns a full-blown decoder Instance capable
+        to decode the selected stream.
+        Like doing things manually, just easily.
         """
         raise NotImplementedError
 #    streams
@@ -102,6 +109,7 @@ class Demuxer(object):
 #        (as in old pyrana, no changes)
 #        """
 
+
 class Muxer(object): # (XXX!)
     def __init__(self, dst, name):
         """
@@ -109,20 +117,25 @@ class Muxer(object): # (XXX!)
         Initialize a new muxer for the file type `name'
         A Muxer needs a RawIOBase-compliant as a sink of data.
         The RawIOBase-compliant object must be already open.
-        """ 
+        """
         pass
+
     def add_stream(self, stream_id, params={}):
         pass
+
     def write_header(self):
         pass
+
     def write_trailer(self):
         pass
+
     def write_frame(self, packet):
         """requires an encoded frame enclosed in a Packet!"""
         pass
+
     def get_pts(self, stream_id):
         pass
+
     def flush(self):
         """flush() -> None"""
         pass
-

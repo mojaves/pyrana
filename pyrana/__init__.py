@@ -16,6 +16,7 @@ if platform.python_implementation() == 'CPython':
         raise RuntimeError("CPython < 3.2 not supported")
 
 # backward compatibility
-from pyrana.base import *
+from pyrana.format import TS_NULL
+from pyrana.base import setup
 
 __all__ = ['versions', 'format']
