@@ -3,7 +3,7 @@
 import pyrana
 import unittest
 
-class CommonTestCase(unittest.TestCase):
+class TestCommonData(unittest.TestCase):
     def _assertValidCollection(self, col):
         self.assertTrue(len(col) > 0)
     def _assertValidCollectionItems(self, col):
