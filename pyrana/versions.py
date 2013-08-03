@@ -32,9 +32,9 @@ def ffmpeg_versions():
     ver.cdef("unsigned avcodec_version(void);")
     ver.cdef("unsigned avformat_version(void);")
     ver.cdef("unsigned avutil_version(void);")
-    lavc = ver.dlopen("libavcodec.so")
-    lavf = ver.dlopen("libavformat.so")
-    lavu = ver.dlopen("libavutil.so")
+    lavc = ver.dlopen("avcodec")
+    lavf = ver.dlopen("avformat")
+    lavu = ver.dlopen("avutil")
     return (lavc.avcodec_version(),
             lavf.avformat_version(),
             lavu.avutil_version())
