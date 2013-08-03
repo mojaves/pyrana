@@ -3,8 +3,8 @@ STREAM_ANY = -1
 TS_NULL = 0x8000000000000000
 
 
-input_formats = frozenset()
-output_formats = frozenset()
+INPUT_FORMATS = frozenset()
+OUTPUT_FORMATS = frozenset()
 
 
 def is_streamable(name):
@@ -12,7 +12,7 @@ def is_streamable(name):
     is_streamable(name) -> Bool
     tells if a given format is streamable (do NOT need seek()) or not.
     """
-    return False # TODO
+    return name in INPUT_FORMATS or name in OUTPUT_FORMATS  # TODO
 
 
 def find_stream(streams, stream_id, media):
@@ -69,7 +69,7 @@ class Packet:
         return len(self._data)
 
 
-class Demuxer(object):
+class Demuxer:
     def __init__(self, src, name=None):
         """
         Demuxer(src, name="")
@@ -94,23 +94,27 @@ class Demuxer(object):
         """
         raise NotImplementedError
 
-    def open_decoder(self, stream_id, params={}):
+    def open_decoder(self, stream_id, params=None):
         """
         open_decoder(stream_id) -> Decoder instance
         create and returns a full-blown decoder Instance capable
         to decode the selected stream.
         Like doing things manually, just easily.
         """
+        params = {} if params is None else params
         raise NotImplementedError
-#    streams
-#        """
-#        streams: read-only attribute
-#        list of StreamInfo objects describing the streams found by the demuxer
-#        (as in old pyrana, no changes)
-#        """
+
+    @property
+    def streams(self):
+        """
+        streams: read-only attribute
+        list of StreamInfo objects describing the streams found by the demuxer
+        (as in old pyrana, no changes)
+        """
+        return []
 
 
-class Muxer(object): # (XXX!)
+class Muxer:
     def __init__(self, dst, name):
         """
         Muxer(dst, name="")
@@ -120,8 +124,9 @@ class Muxer(object): # (XXX!)
         """
         pass
 
-    def add_stream(self, stream_id, params={}):
-        pass
+    def add_stream(self, stream_id, params=None):
+        params = {} if params is None else params
+        # TODO
 
     def write_header(self):
         pass
