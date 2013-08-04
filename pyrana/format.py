@@ -1,3 +1,7 @@
+"""
+this module provides the transport layer facilities.
+(WRITEME)
+"""
 
 STREAM_ANY = -1
 TS_NULL = 0x8000000000000000
