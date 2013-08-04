@@ -101,7 +101,9 @@ class Demuxer:
         A Demuxer needs a RawIOBase-compliant as a source of data.
         The RawIOBase-compliant object must be already open.
         """
-        pass
+        name = "" if name is None else name
+        self._src = src
+        self._dmx = None
 
     def read_frame(self, stream_id=STREAM_ANY):
         """
@@ -148,22 +150,43 @@ class Muxer:
         pass
 
     def add_stream(self, stream_id, params=None):
+        """
+        setup the muxer to handle the given stream.
+        The stream will be bound to the logical id `stream_id'.
+        pass a `params' dict to fill the detail of
+        the new stream.
+        """
         params = {} if params is None else params
         raise NotImplementedError
 
     def write_header(self):
+        """
+        write the stream header on media.
+        """
         raise NotImplementedError
 
     def write_trailer(self):
+        """
+        write the stream trailer on media.
+        """
         raise NotImplementedError
 
     def write_frame(self, packet):
-        """requires an encoded frame enclosed in a Packet!"""
+        """
+        requires an encoded frame enclosed in a Packet!
+        """
         raise NotImplementedError
 
     def get_pts(self, stream_id):
+        """
+        returns the last PTS written for the given stream.
+        """
         raise NotImplementedError
 
     def flush(self):
-        """flush() -> None"""
+        """
+        immediately writes ay buffered data on the
+        underlying file(-like).
+        Blocking.
+        """
         pass
