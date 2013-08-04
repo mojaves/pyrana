@@ -50,26 +50,45 @@ class Packet:
 
     @property
     def stream_id(self):
+        """
+        the identifier of the logical stream which this packet belongs to.
+        """
         return self._stream_id
 
     @property
     def pts(self):
+        """
+        the Presentation TimeStamp of this packet.
+        """
         return self._pts
 
     @property
     def dts(self):
+        """
+        the Decoding TimeStamp of this packet.
+        """
         return self._dts
 
     @property
     def data(self):
+        """
+        the raw data (bytes) this packet carries.
+        """
         return self._data
 
     @property
     def is_key(self):
+        """
+        boolean flag. Is this packe a key frame?
+        (provided by libav*)
+        """
         return self._is_key
 
     @property
     def size(self):
+        """
+        Size of the packet data (bytes)
+        """
         return len(self._data)
 
 
@@ -130,20 +149,20 @@ class Muxer:
 
     def add_stream(self, stream_id, params=None):
         params = {} if params is None else params
-        # TODO
+        raise NotImplementedError
 
     def write_header(self):
-        pass
+        raise NotImplementedError
 
     def write_trailer(self):
-        pass
+        raise NotImplementedError
 
     def write_frame(self, packet):
         """requires an encoded frame enclosed in a Packet!"""
-        pass
+        raise NotImplementedError
 
     def get_pts(self, stream_id):
-        pass
+        raise NotImplementedError
 
     def flush(self):
         """flush() -> None"""
