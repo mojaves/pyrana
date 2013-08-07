@@ -6,6 +6,10 @@ libraries, but provides an independent API.
 
 import platform
 
+# enforce the platform conformancy.
+# we don't support python 2.7 (yet?) so we want to be
+# really sure and surely loud about the fact we think
+# is not going to work.
 if platform.python_implementation() == 'CPython':
     if platform.python_version_tuple() < ('3', '2'):
         raise RuntimeError("CPython < 3.2 not supported")
