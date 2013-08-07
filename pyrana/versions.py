@@ -7,7 +7,7 @@ the current environment.
 DO NOT USE at your own risk! :)
 """
 
-import cffi
+import pyrana.ff
 
 
 def av_version_pack(major, minor, micro):
@@ -24,22 +24,6 @@ def av_version_unpack(version):
     return (version >> 16) & 0xFF, (version >> 8) & 0xFF, (version) & 0xFF
 
 
-def ffmpeg_versions():
-    """
-    retrieves the (packed) versions of the libraries used by pyrana.
-    """
-    ver = cffi.FFI()
-    ver.cdef("unsigned avcodec_version(void);")
-    ver.cdef("unsigned avformat_version(void);")
-    ver.cdef("unsigned avutil_version(void);")
-    lavc = ver.dlopen("avcodec")
-    lavf = ver.dlopen("avformat")
-    lavu = ver.dlopen("avutil")
-    return (lavc.avcodec_version(),
-            lavf.avformat_version(),
-            lavu.avutil_version())
-
-
 def autoverify():
     """
     verifies the environment.
@@ -47,8 +31,9 @@ def autoverify():
     libraries needed by pyrana.
     Otherwise raises RuntimeError.
     """
+    ff = pyrana.ff.FF()
     try:
-        lavc, lavf, lavu = ffmpeg_versions()
+        lavc, lavf, lavu = ff.versions()
     except OSError:
         raise RuntimeError("missing libraries")
     if lavc < av_version_pack(54, 0, 0):

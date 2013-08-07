@@ -3,12 +3,50 @@ this module provides the transport layer facilities.
 (WRITEME)
 """
 
+import pyrana.errors
+import pyrana.ff
+
+
 STREAM_ANY = -1
 TS_NULL = 0x8000000000000000
+PKT_SIZE = 4096
 
 
 INPUT_FORMATS = frozenset()
 OUTPUT_FORMATS = frozenset()
+
+
+def _iter_fmts(ffi, format_next):
+    """
+    generator. Produces the names as strings
+    of all the format supported by libavformat.
+    """
+    fmt = format_next(ffi.NULL)
+    while fmt != ffi.NULL:
+        name = ffi.string(fmt.name)
+        yield name.decode('utf-8'), fmt
+        fmt = format_next(fmt)
+    raise StopIteration
+
+
+def _formats(ff):
+    """
+    builds the sets of the formats supported by
+    libavformat, and which, in turn, by pyrana.
+    """
+    next_in = ff.lavf.av_iformat_next
+    next_out = ff.lavf.av_oformat_next
+    return ([x for x, _ in _iter_fmts(ff.ffi, next_in)],
+            [x for x, _ in _iter_fmts(ff.ffi, next_out)])
+
+
+def _find_fmt_by_name(name, next_fmt):
+    ff = pyrana.ff.FF()
+    for fname, fdesc in _iter_fmts(ff.ffi, next_fmt):
+        if name == fname:
+            return fdesc
+    raise pyrana.errors.UnsupportedError
+    
 
 
 def is_streamable(name):
@@ -33,6 +71,7 @@ class Packet:
     """
     def __init__(self, stream_id, data,
                  pts=TS_NULL, dts=TS_NULL, is_key=False):
+        self._ff = pyrana.ff.FF()
         self._stream_id = stream_id
         self._pts = pts
         self._dts = dts
@@ -92,6 +131,72 @@ class Packet:
         return len(self._data)
 
 
+class Buffer:
+    def __init__(self, size=PKT_SIZE):
+        self._ff = pyrana.ff.FF()
+        self._size = size
+        self._data = self._ff.lavu.av_malloc(size)
+    def __del__(self):
+        self._ff.lavu.av_free(self._buf)
+    def __len__(self):
+        return self._size
+    @property
+    def data(self):
+        return self._ff.ffi.buffer(self._data)
+    @property
+    def cdata(self):
+        return self._data
+
+
+def _read(handle, buf, buf_size):
+    ff = pyrana.ff.FF()
+    src = ff.ffi.from_handle(handle)
+    rbuf = ff.ffi.buffer(buf, buf_size)
+    src.readinto(rbuf)
+
+
+def _write(handle, buf, buf_size):
+    ff = pyrana.ff.FF()
+    dst = ff.ffi.from_handle(handle)
+    wbuf = ff.ffi.buffer(buf, buf_size)
+    dst.write(rbuf)
+
+
+def _seek(handle, offset, whence):
+    ff = pyrana.ff.FF()
+    src = ff.ffi.from_handle(handle)
+    src.seek(offset, whence)
+
+
+class IOSource:
+    def __init__(self, src, seekable=True, bufsize=PKT_SIZE):
+        self.avio = None
+        self._ff = pyrana.ff.FF()
+        self._buf = Buffer(bufsize)
+        self._src = src
+        self._open(src, seekable)
+
+    def __del__(self):
+        self._close()
+
+    def _open(self, src, seekable):
+        ffi = self._ff.ffi
+        read = ffi.callback("int(void *, uint8_t *, int)", _read)
+        seek = ffi.NULL
+        if seekable:
+            seek = ffi.callback("int64_t(void *, int64_t, int)", _seek)
+        self.avio = self._ff.lavf.avio_alloc_context(self._buf.cdata,
+                                                     self._buf.size,
+                                                     0,
+                                                     ffi.new_handle(self._src),
+                                                     read,
+                                                     ffi.NULL,
+                                                     seek)
+
+    def _close(self):
+        self._ff.lavu.av_free(self.avio)                
+
+
 class Demuxer:
     def __init__(self, src, name=None):
         """
@@ -101,9 +206,21 @@ class Demuxer:
         A Demuxer needs a RawIOBase-compliant as a source of data.
         The RawIOBase-compliant object must be already open.
         """
-        name = "" if name is None else name
-        self._src = src
-        self._dmx = None
+        self._ff = pyrana.ff.FF()
+        avf = self._ff.lavf  # shortcut
+        ffi = self._ff.ffi   # shortcut
+        fmt = ffi.NULL
+        if name is not None:
+            fmt = _find_fmt_by_name(name, avf.av_iformat_next)
+        self._src = IOSource(src)
+        self._ctx = avf.avformat_alloc_context()
+        self._ctx.pb = self._src.avio
+        err = avf.avformat_open_input(ffi.addressof(self._ctx),
+                                      "",
+                                      fmt,
+                                      ffi.NULL)
+        if err:
+            raise pyrana.errors.SetupError()
 
     def read_frame(self, stream_id=STREAM_ANY):
         """
