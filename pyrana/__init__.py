@@ -37,4 +37,4 @@ def setup():
     pyrana.format.OUTPUT_FORMATS = frozenset(ofmts)
 
 
-__all__ = ['versions', 'format']
+__all__ = ['versions', 'format', 'audio', 'video']
