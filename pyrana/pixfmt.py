@@ -1,4 +1,4 @@
-from flufl.enum import IntEnum
+from enum import IntEnum
 
 class PixelFormat(IntEnum):
     AV_PIX_FMT_NONE = -1
