@@ -32,7 +32,7 @@ def setup():
     ff = pyrana.ff.FF()
     ff.lavc.avcodec_register_all()
     ff.lavf.av_register_all()
-    ifmts, ofmts = _formats(ff)
+    ifmts, ofmts = pyrana.format._formats(ff)
     pyrana.format.INPUT_FORMATS = frozenset(ifmts)
     pyrana.format.OUTPUT_FORMATS = frozenset(ofmts)
 
