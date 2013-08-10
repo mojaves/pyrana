@@ -121,8 +121,7 @@ class Muxer(object): # (XXX!)
 
 input_codecs       = frozenset()
 output_codecs      = frozenset()
-pixel_formats      = frozenset()
-user_pixel_formats = frozenset()
+pixel_formats      = Enum
 
 
 class Plane(object):
@@ -207,8 +206,7 @@ class Encoder(object):
 
 input_codecs        = frozenset()
 output_codecs       = frozenset()
-sample_formats      = frozenset()
-user_sample_formats = frozenset()
+sample_formats      = Enum
 
 # FIXME: spawn Samples as Image for video.Frame?
 class Frame(object): # (V)
