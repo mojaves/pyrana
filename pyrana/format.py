@@ -137,8 +137,11 @@ class Buffer:
         self._size = size
         self._data = self._ff.lavu.av_malloc(size)
     def __del__(self):
-        self._ff.lavu.av_free(self._buf)
+        self._ff.lavu.av_free(self._data)
     def __len__(self):
+        return self._size
+    @property
+    def size(self):
         return self._size
     @property
     def data(self):
