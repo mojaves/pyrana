@@ -31,9 +31,9 @@ def autoverify():
     libraries needed by pyrana.
     Otherwise raises RuntimeError.
     """
-    ff = pyrana.ff.getFF()
+    ffh = pyrana.ff.get_handle()
     try:
-        lavc, lavf, lavu = ff.versions()
+        lavc, lavf, lavu = ffh.versions()
     except OSError:
         raise RuntimeError("missing libraries")
     if lavc < av_version_pack(54, 0, 0):
