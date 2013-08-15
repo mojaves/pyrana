@@ -1,1 +1,4 @@
-from pyrana.pixfmt import PixelFormat
+from pyrana.pixelfmt import PixelFormat
+
+INPUT_CODECS = frozenset()
+OUTPUT_CODECS = frozenset()
