@@ -31,24 +31,24 @@ def _iter_fmts(ffi, format_next):
     raise StopIteration
 
 
-def _formats(ff):
+def all_formats():
     """
     builds the sets of the formats supported by
     libavformat, and which, in turn, by pyrana.
     """
-    next_in = ff.lavf.av_iformat_next
-    next_out = ff.lavf.av_oformat_next
-    return ([x for x, _ in _iter_fmts(ff.ffi, next_in)],
-            [x for x, _ in _iter_fmts(ff.ffi, next_out)])
+    ffh = pyrana.ff.get_handle()
+    next_in = ffh.lavf.av_iformat_next
+    next_out = ffh.lavf.av_oformat_next
+    return ([x for x, _ in _iter_fmts(ffh.ffi, next_in)],
+            [x for x, _ in _iter_fmts(ffh.ffi, next_out)])
 
 
 def _find_fmt_by_name(name, next_fmt):
-    ff = pyrana.ff.getFF()
-    for fname, fdesc in _iter_fmts(ff.ffi, next_fmt):
+    ffh = pyrana.ff.get_handle()
+    for fname, fdesc in _iter_fmts(ffh.ffi, next_fmt):
         if name == fname:
             return fdesc
     raise pyrana.errors.UnsupportedError
-    
 
 
 def is_streamable(name):
@@ -73,7 +73,7 @@ class Packet:
     """
     def __init__(self, stream_id, data,
                  pts=TS_NULL, dts=TS_NULL, is_key=False):
-        self._ff = pyrana.ff.getFF()
+        self._ff = pyrana.ff.get_handle()
         self._stream_id = stream_id
         self._pts = pts
         self._dts = dts
@@ -135,49 +135,53 @@ class Packet:
 
 class Buffer:
     def __init__(self, size=PKT_SIZE):
-        self._ff = pyrana.ff.getFF()
+        self._ff = pyrana.ff.get_handle()
         self._size = size
         self._data = self._ff.lavu.av_malloc(size)
+
     def __del__(self):
         self._ff.lavu.av_free(self._data)
+
     def __len__(self):
         return self._size
+
     @property
     def size(self):
         return self._size
+
     @property
     def data(self):
         return self._ff.ffi.buffer(self._data)
+
     @property
     def cdata(self):
         return self._data
 
 
 def _read(handle, buf, buf_size):
-    print('_read(%s, %s, %s)' % (handle, buf, buf_size))
-    ff = pyrana.ff.getFF()
-    src = ff.ffi.from_handle(handle)
-    rbuf = ff.ffi.buffer(buf, buf_size)
+    ffh = pyrana.ff.get_handle()
+    src = ffh.ffi.from_handle(handle)
+    rbuf = ffh.ffi.buffer(buf, buf_size)
     src.readinto(rbuf)
 
 
 def _write(handle, buf, buf_size):
-    ff = pyrana.ff.getFF()
-    dst = ff.ffi.from_handle(handle)
-    wbuf = ff.ffi.buffer(buf, buf_size)
+    ffh = pyrana.ff.get_handle()
+    dst = ffh.ffi.from_handle(handle)
+    wbuf = ffh.ffi.buffer(buf, buf_size)
     dst.write(rbuf)
 
 
 def _seek(handle, offset, whence):
-    ff = pyrana.ff.getFF()
-    src = ff.ffi.from_handle(handle)
+    ffh = pyrana.ff.get_handle()
+    src = ffh.ffi.from_handle(handle)
     src.seek(offset, whence)
 
 
 class IOSource:
     def __init__(self, src, seekable=True, bufsize=PKT_SIZE):
         self.avio = None
-        self._ff = pyrana.ff.getFF()
+        self._ff = pyrana.ff.get_handle()
         self._buf = Buffer(bufsize)
         self._src = src
         self._open(src, seekable)
@@ -202,7 +206,7 @@ class IOSource:
         print(ffi.new_handle(self._src))
 
     def _close(self):
-        self._ff.lavu.av_free(self.avio)                
+        self._ff.lavu.av_free(self.avio)
 
 
 # see avformat for the meaning of the flags
@@ -231,13 +235,13 @@ class Demuxer:
         A Demuxer needs a RawIOBase-compliant as a source of data.
         The RawIOBase-compliant object must be already open.
         """
-        self._ff = pyrana.ff.getFF()
+        self._ff = pyrana.ff.get_handle()
         avf = self._ff.lavf  # shortcut
         ffi = self._ff.ffi   # shortcut
         fmt = ffi.NULL
         if name is not None:
             fmt = _find_fmt_by_name(name, avf.av_iformat_next)
-        self._pctx = ffi.new('AVFormatContext **') # FIXME explain
+        self._pctx = ffi.new('AVFormatContext **')  # FIXME explain
         self._src = IOSource(src)
         self._pctx[0] = avf.avformat_alloc_context()
         self._pctx[0].pb = self._src.avio

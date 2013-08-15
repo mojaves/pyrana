@@ -5,6 +5,7 @@ exception, not to raise them. However, doing so should'nt
 harm anyone.
 """
 
+
 class PyranaError(Exception):
     """
     Root of the pyrana error tree.
