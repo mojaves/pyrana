@@ -33,8 +33,9 @@ def enumvalue(en):
 
 ast = pycparser.parse_file('/usr/include/libavutil/pixfmt.h', use_cpp=True)
 count = 0
-print('from enum import IntEnum\n')
+print('from enum import IntEnum\n\n')
 print('class PixelFormat(IntEnum):')
+print('    """wraps the Pixel Formats in libavutil/pixfmt.h"""')
 for x in ast.ext[0].type.values.enumerators:
     if x.value:
         value = enumvalue(x)
