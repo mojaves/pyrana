@@ -29,7 +29,7 @@ def setup():
     And this includes constants too.
     """
     pyrana.versions.autoverify()
-    ff = pyrana.ff.FF()
+    ff = pyrana.ff.getFF()
     ff.lavc.avcodec_register_all()
     ff.lavf.av_register_all()
     ifmts, ofmts = pyrana.format._formats(ff)

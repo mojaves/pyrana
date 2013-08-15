@@ -31,7 +31,7 @@ def autoverify():
     libraries needed by pyrana.
     Otherwise raises RuntimeError.
     """
-    ff = pyrana.ff.FF()
+    ff = pyrana.ff.getFF()
     try:
         lavc, lavf, lavu = ff.versions()
     except OSError:
