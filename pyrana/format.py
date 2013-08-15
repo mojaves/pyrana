@@ -3,6 +3,8 @@ this module provides the transport layer facilities.
 (WRITEME)
 """
 
+from enum import IntEnum
+
 import pyrana.errors
 import pyrana.ff
 
@@ -41,7 +43,7 @@ def _formats(ff):
 
 
 def _find_fmt_by_name(name, next_fmt):
-    ff = pyrana.ff.FF()
+    ff = pyrana.ff.getFF()
     for fname, fdesc in _iter_fmts(ff.ffi, next_fmt):
         if name == fname:
             return fdesc
@@ -71,7 +73,7 @@ class Packet:
     """
     def __init__(self, stream_id, data,
                  pts=TS_NULL, dts=TS_NULL, is_key=False):
-        self._ff = pyrana.ff.FF()
+        self._ff = pyrana.ff.getFF()
         self._stream_id = stream_id
         self._pts = pts
         self._dts = dts
@@ -133,7 +135,7 @@ class Packet:
 
 class Buffer:
     def __init__(self, size=PKT_SIZE):
-        self._ff = pyrana.ff.FF()
+        self._ff = pyrana.ff.getFF()
         self._size = size
         self._data = self._ff.lavu.av_malloc(size)
     def __del__(self):
@@ -152,21 +154,22 @@ class Buffer:
 
 
 def _read(handle, buf, buf_size):
-    ff = pyrana.ff.FF()
+    print('_read(%s, %s, %s)' % (handle, buf, buf_size))
+    ff = pyrana.ff.getFF()
     src = ff.ffi.from_handle(handle)
     rbuf = ff.ffi.buffer(buf, buf_size)
     src.readinto(rbuf)
 
 
 def _write(handle, buf, buf_size):
-    ff = pyrana.ff.FF()
+    ff = pyrana.ff.getFF()
     dst = ff.ffi.from_handle(handle)
     wbuf = ff.ffi.buffer(buf, buf_size)
     dst.write(rbuf)
 
 
 def _seek(handle, offset, whence):
-    ff = pyrana.ff.FF()
+    ff = pyrana.ff.getFF()
     src = ff.ffi.from_handle(handle)
     src.seek(offset, whence)
 
@@ -174,7 +177,7 @@ def _seek(handle, offset, whence):
 class IOSource:
     def __init__(self, src, seekable=True, bufsize=PKT_SIZE):
         self.avio = None
-        self._ff = pyrana.ff.FF()
+        self._ff = pyrana.ff.getFF()
         self._buf = Buffer(bufsize)
         self._src = src
         self._open(src, seekable)
@@ -195,9 +198,28 @@ class IOSource:
                                                      read,
                                                      ffi.NULL,
                                                      seek)
+        print(self.avio)
+        print(ffi.new_handle(self._src))
 
     def _close(self):
         self._ff.lavu.av_free(self.avio)                
+
+
+# see avformat for the meaning of the flags
+class FormatFlags(IntEnum):
+    AVFMT_FLAG_GENPTS = 0x0001
+    AVFMT_FLAG_IGNIDX = 0x0002
+    AVFMT_FLAG_NONBLOCK = 0x0004
+    AVFMT_FLAG_IGNDTS = 0x0008
+    AVFMT_FLAG_NOFILLIN = 0x0010
+    AVFMT_FLAG_NOPARSE = 0x0020
+    AVFMT_FLAG_NOBUFFER = 0x0040
+    AVFMT_FLAG_CUSTOM_IO = 0x0080
+    AVFMT_FLAG_DISCARD_CORRUPT = 0x0100
+    AVFMT_FLAG_MP4A_LATM = 0x8000
+    AVFMT_FLAG_SORT_DTS = 0x10000
+    AVFMT_FLAG_PRIV_OPT = 0x20000
+    AVFMT_FLAG_KEEP_SIDE_DATA = 0x40000
 
 
 class Demuxer:
@@ -209,19 +231,20 @@ class Demuxer:
         A Demuxer needs a RawIOBase-compliant as a source of data.
         The RawIOBase-compliant object must be already open.
         """
-        self._ff = pyrana.ff.FF()
+        self._ff = pyrana.ff.getFF()
         avf = self._ff.lavf  # shortcut
         ffi = self._ff.ffi   # shortcut
         fmt = ffi.NULL
         if name is not None:
             fmt = _find_fmt_by_name(name, avf.av_iformat_next)
+        self._pctx = ffi.new('AVFormatContext **') # FIXME explain
         self._src = IOSource(src)
-        self._ctx = avf.avformat_alloc_context()
-        self._ctx.pb = self._src.avio
-        err = avf.avformat_open_input(ffi.addressof(self._ctx),
-                                      "",
-                                      fmt,
-                                      ffi.NULL)
+        self._pctx[0] = avf.avformat_alloc_context()
+        self._pctx[0].pb = self._src.avio
+        self._pctx[0].flags |= FormatFlags.AVFMT_FLAG_CUSTOM_IO
+        filename = bytes()
+
+        err = avf.avformat_open_input(self._pctx, filename, fmt, ffi.NULL)
         if err:
             raise pyrana.errors.SetupError()
 
