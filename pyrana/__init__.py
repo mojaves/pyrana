@@ -28,11 +28,11 @@ def setup():
     of the pyrana package.
     And this includes constants too.
     """
+    import pyrana.format
+    import pyrana.versions
     pyrana.versions.autoverify()
-    ff = pyrana.ff.getFF()
-    ff.lavc.avcodec_register_all()
-    ff.lavf.av_register_all()
-    ifmts, ofmts = pyrana.format._formats(ff)
+    pyrana.ff.setup()
+    ifmts, ofmts = pyrana.format.all_formats()
     pyrana.format.INPUT_FORMATS = frozenset(ifmts)
     pyrana.format.OUTPUT_FORMATS = frozenset(ofmts)
 
