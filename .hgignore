@@ -1,4 +1,5 @@
 MANIFEST
 .tox
+.coverage
 pyrana/__pycache__
 tests/__pycache__
