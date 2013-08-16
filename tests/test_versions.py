@@ -8,7 +8,7 @@ class TestCommonData(unittest.TestCase):
         super().__init__(*args, **kwargs)
         pyrana.setup()
 
-    def test_PlatformCPy3x(self):
+    def test_platform_CPy3x(self):
         class MockPlat:
             def python_implementation(self):
                 return 'CPython'
@@ -19,7 +19,7 @@ class TestCommonData(unittest.TestCase):
         pyrana._enforce_platform(MockPlat())
         assert(True)
 
-    def test_PlatformCPy31(self):
+    def test_platform_CPy31(self):
         class MockPlat:
             def python_implementation(self):
                 return 'CPython'
@@ -30,7 +30,7 @@ class TestCommonData(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             pyrana._enforce_platform(MockPlat())
 
-    def test_PlatformCPy2x(self):
+    def test_platform_CPy2x(self):
         class MockPlat:
             def python_implementation(self):
                 return 'CPython'
