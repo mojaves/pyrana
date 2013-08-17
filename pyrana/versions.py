@@ -7,6 +7,7 @@ the current environment.
 DO NOT USE at your own risk! :)
 """
 
+from pyrana.errors import LibraryVersionError
 import pyrana.ff
 
 
@@ -24,24 +25,25 @@ def av_version_unpack(version):
     return (version >> 16) & 0xFF, (version >> 8) & 0xFF, (version) & 0xFF
 
 
-def autoverify():
+def autoverify(ffh=None):
     """
     verifies the environment.
     If everything is fine, just returns the (packed) versions of the
     libraries needed by pyrana.
-    Otherwise raises RuntimeError.
+    Otherwise raises LibraryVersionError.
     """
-    ffh = pyrana.ff.get_handle()
+    if ffh is None:
+        ffh = pyrana.ff.get_handle()
     try:
         lavc, lavf, lavu = ffh.versions()
     except OSError:
-        raise RuntimeError("missing libraries")
+        raise LibraryVersionError("missing libraries")
     if lavc < av_version_pack(54, 0, 0):
-        raise RuntimeError("unsupported libavcodec: found=%u required=%u")
+        raise LibraryVersionError("unsupported libavcodec: found=%u required=%u")
     if lavf < av_version_pack(54, 0, 0):
-        raise RuntimeError("unsupported libavformat (too old")
+        raise LibraryVersionError("unsupported libavformat (too old")
     if lavu < av_version_pack(52, 0, 0):
-        raise RuntimeError("unsupported libavutil (too old")
+        raise LibraryVersionError("unsupported libavutil (too old")
     return (av_version_unpack(lavc),
             av_version_unpack(lavf),
             av_version_unpack(lavu))
