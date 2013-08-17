@@ -11,28 +11,30 @@ class PyranaError(Exception):
     Root of the pyrana error tree.
     You should'nt use it directly, not even in an except clause.
     """
-    pass
+
+
+class LibraryVersionError(PyranaError):
+    """
+    Missing the right library version for the expected dependency.
+    """
 
 
 class EOSError(PyranaError):
     """
     End Of Stream. Kinda more akin to StopIteration than EOFError.
     """
-    pass
 
 
 class NeedFeedError(PyranaError):
     """
     More data is needed to obtain a Frame or a Packet.
     """
-    pass
 
 
 class ProcessingError(PyranaError):
     """
     Runtime processing error.
     """
-    pass
 
 
 class SetupError(PyranaError):
@@ -40,7 +42,6 @@ class SetupError(PyranaError):
     Error while setting up a pyrana object.
     Check again the parameters.
     """
-    pass
 
 
 class UnsupportedError(PyranaError):
@@ -48,4 +49,3 @@ class UnsupportedError(PyranaError):
     Requested an unsupported feature.
     Did you properly initialized everything?
     """
-    pass
