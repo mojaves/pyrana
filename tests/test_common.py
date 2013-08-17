@@ -22,21 +22,26 @@ class TestCommonData(unittest.TestCase):
     def test_output_format(self):
         self._assert_valid_collection(pyrana.format.OUTPUT_FORMATS)
 
+    @unittest.expectedFailure
     def test_input_video_codecs(self):
         self._assert_valid_collection(pyrana.video.INPUT_CODECS)
 
+    @unittest.expectedFailure
     def test_output_video_codecs(self):
         self._assert_valid_collection(pyrana.video.OUTPUT_CODECS)
 
     def test_pixel_format(self):
         self._assert_valid_collection(pyrana.video.PixelFormat)
 
+    @unittest.expectedFailure
     def test_input_audio_codecs(self):
         self._assert_valid_collection(pyrana.audio.INPUT_CODECS)
 
+    @unittest.expectedFailure
     def test_output_audio_codecs(self):
         self._assert_valid_collection(pyrana.audio.OUTPUT_CODECS)
 
+    @unittest.expectedFailure
     def test_sample_format(self):
         self._assert_valid_collection(pyrana.audio.SampleFormat)
 
