@@ -42,7 +42,6 @@ class TestCommonData(unittest.TestCase):
         pyrana.setup()
 
     # this can fail, but it should not.
-    @unittest.expectedFailure
     def test_autoverify_sys(self):
         pyrana.versions.autoverify()
         assert(True)

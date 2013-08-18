@@ -120,7 +120,7 @@ class Packet:
     @property
     def is_key(self):
         """
-        boolean flag. Is this packe a key frame?
+        boolean flag. Is this packet a key frame?
         (provided by libav*)
         """
         return self._is_key
@@ -151,7 +151,7 @@ class Buffer:
 
     @property
     def data(self):
-        return self._ff.ffi.buffer(self._data)
+        return self._ff.ffi.buffer(self._data, self._size)
 
     @property
     def cdata(self):
