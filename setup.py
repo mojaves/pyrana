@@ -1,5 +1,10 @@
 from distutils.core import setup
 
+
+with open('requirements.txt', 'rt') as reqs:
+    required = reqs.read().splitlines()
+
+
 setup(name='pymedia2-pyrana',
       version='0.1.0',
       description='Package for simple manipulation of multimedia files',
@@ -15,6 +20,7 @@ libraries, but provides an independent API.
       author_email = 'fromani@gmail.com',
       url='http://bitbucket.org/mojaves/pyrana',
       packages=['pyrana'],
+      install_requires=required,
       classifiers = [
         'Development Status :: 2 - Pre-Alpha',
         'Environment :: Other Environment',
@@ -23,7 +29,6 @@ libraries, but provides an independent API.
         'Operating System :: POSIX',
         'Programming Language :: C',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: Implementation :: CPython',
         'Topic :: Multimedia :: Graphics',
         'Topic :: Multimedia :: Graphics :: Graphics Conversion',
         'Topic :: Multimedia :: Sound/Audio',
