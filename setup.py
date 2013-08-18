@@ -1,8 +1,12 @@
 from distutils.core import setup
 
 
-with open('requirements.txt', 'rt') as reqs:
-    required = reqs.read().splitlines()
+def dependencies():
+    try:
+        with open('requirements.txt', 'rt') as reqs:
+            return reqs.read().splitlines()
+    except IOError:
+        return []
 
 
 setup(name='pymedia2-pyrana',
@@ -20,7 +24,7 @@ libraries, but provides an independent API.
       author_email = 'fromani@gmail.com',
       url='http://bitbucket.org/mojaves/pyrana',
       packages=['pyrana'],
-      install_requires=required,
+      install_requires=dependencies(),
       classifiers = [
         'Development Status :: 2 - Pre-Alpha',
         'Environment :: Other Environment',
