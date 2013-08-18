@@ -180,14 +180,14 @@ def _seek(handle, offset, whence):
 
 class IOSource:
     def __init__(self, src, seekable=True, bufsize=PKT_SIZE):
-        self.avio = None
         self._ff = pyrana.ff.get_handle()
+        self.avio = self._ff.ffi.NULL
         self._buf = Buffer(bufsize)
         self._src = src
         self._open(src, seekable)
 
     def __del__(self):
-        self._close()
+        self.close()
 
     def _open(self, src, seekable):
         ffi = self._ff.ffi
@@ -202,11 +202,10 @@ class IOSource:
                                                      read,
                                                      ffi.NULL,
                                                      seek)
-        print(self.avio)
-        print(ffi.new_handle(self._src))
 
-    def _close(self):
+    def close(self):
         self._ff.lavu.av_free(self.avio)
+        self.avio = self._ff.ffi.NULL
 
 
 # see avformat for the meaning of the flags
@@ -227,7 +226,7 @@ class FormatFlags(IntEnum):
 
 
 class Demuxer:
-    def __init__(self, src, name=None):
+    def __init__(self, src, name=None, delay_open=False):
         """
         Demuxer(src, name="")
         Initialize a new demuxer for the file type `name' (use "" (empty)
@@ -236,16 +235,21 @@ class Demuxer:
         The RawIOBase-compliant object must be already open.
         """
         self._ff = pyrana.ff.get_handle()
-        avf = self._ff.lavf  # shortcut
-        ffi = self._ff.ffi   # shortcut
-        fmt = ffi.NULL
-        if name is not None:
-            fmt = _find_fmt_by_name(name, avf.av_iformat_next)
-        self._pctx = ffi.new('AVFormatContext **')  # FIXME explain
+        ffh = self._ff  # shortcut
+        self._pctx = ffh.ffi.new('AVFormatContext **')  # FIXME explain
         self._src = IOSource(src)
-        self._pctx[0] = avf.avformat_alloc_context()
+        self._pctx[0] = ffh.lavf.avformat_alloc_context()
         self._pctx[0].pb = self._src.avio
         self._pctx[0].flags |= FormatFlags.AVFMT_FLAG_CUSTOM_IO
+
+    def open(self, name=None):
+        """
+        open the underlying demuxer.
+        """
+        ffh = self._ff  # shortcut
+        fmt = ffh.ffi.NULL
+        if name is not None:
+            fmt = _find_fmt_by_name(name, ffh.lavf.av_iformat_next)
         filename = bytes()
 
         err = avf.avformat_open_input(self._pctx, filename, fmt, ffi.NULL)
