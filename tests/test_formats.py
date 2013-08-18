@@ -3,7 +3,9 @@
 import pyrana
 import pyrana.audio
 import pyrana.video
+import pyrana.format
 import unittest
+
 
 class TestCommonData(unittest.TestCase):
     def __init__(self, *args, **kwargs):
@@ -62,3 +64,8 @@ class TestCommonData(unittest.TestCase):
 
     def test_valid_output_audio_codecs(self):
         self.assertTrue(all(len(name) > 0 for name in pyrana.audio.OUTPUT_CODECS))
+
+    def test_all_formats(self):
+        x, y = pyrana.format.all_formats()
+        self.assertTrue(len(x))
+        self.assertTrue(len(y))
