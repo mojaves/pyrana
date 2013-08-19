@@ -9,21 +9,24 @@ def dependencies():
         return []
 
 
-setup(name='pymedia2-pyrana',
-      version='0.1.0',
-      description='Package for simple manipulation of multimedia files',
-      long_description=\
-"""
+def description():
+    return """
 Pyrana is a python package designed to provides simple access to
 multimedia files. Pyrana is based on the FFmpeg (http://ffmpeg.org)
 libraries, but provides an independent API.
-""",
+"""
+
+
+setup(name='pymedia2-pyrana',
+      version='0.1.0',
+      description='Package for simple manipulation of multimedia files',
+      long_description=description(),
       platforms = [ 'posix' ],
       license = 'zlib',
       author = 'Francesco Romani',
       author_email = 'fromani@gmail.com',
       url='http://bitbucket.org/mojaves/pyrana',
-      packages=['pyrana'],
+      packages=[ 'pyrana' ],
       install_requires=dependencies(),
       classifiers = [
         'Development Status :: 2 - Pre-Alpha',

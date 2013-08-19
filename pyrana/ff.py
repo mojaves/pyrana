@@ -85,6 +85,16 @@ def _wire(ffi):
          AVFormatContext *avformat_alloc_context(void);
          int avformat_open_input(AVFormatContext **ps, const char *filename,
                                  AVInputFormat *fmt, AVDictionary **options);
+
+         typedef struct AVCodec {
+             const char *name;
+             const char *long_name;
+             enum AVMediaType type;
+             enum AVCodecID id;
+             int capabilities;
+              /* ... */
+         } AVCodec;
+         AVCodec *av_codec_next(const AVCodec *c);
          """)
 
 

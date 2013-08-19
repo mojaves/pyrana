@@ -18,31 +18,6 @@ INPUT_FORMATS = frozenset()
 OUTPUT_FORMATS = frozenset()
 
 
-def _iter_fmts(ffi, format_next):
-    """
-    generator. Produces the names as strings
-    of all the format supported by libavformat.
-    """
-    fmt = format_next(ffi.NULL)
-    while fmt != ffi.NULL:
-        name = ffi.string(fmt.name)
-        yield name.decode('utf-8'), fmt
-        fmt = format_next(fmt)
-    raise StopIteration
-
-
-def all_formats():
-    """
-    builds the sets of the formats supported by
-    libavformat, and which, in turn, by pyrana.
-    """
-    ffh = pyrana.ff.get_handle()
-    next_in = ffh.lavf.av_iformat_next
-    next_out = ffh.lavf.av_oformat_next
-    return ([x for x, _ in _iter_fmts(ffh.ffi, next_in)],
-            [x for x, _ in _iter_fmts(ffh.ffi, next_out)])
-
-
 def _find_fmt_by_name(name, next_fmt):
     ffh = pyrana.ff.get_handle()
     for fname, fdesc in _iter_fmts(ffh.ffi, next_fmt):

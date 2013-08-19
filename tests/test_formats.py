@@ -4,6 +4,7 @@ import pyrana
 import pyrana.audio
 import pyrana.video
 import pyrana.format
+import pyrana.common
 import unittest
 
 
@@ -24,22 +25,18 @@ class TestCommonData(unittest.TestCase):
     def test_output_format(self):
         self._assert_valid_collection(pyrana.format.OUTPUT_FORMATS)
 
-    @unittest.expectedFailure
     def test_input_video_codecs(self):
         self._assert_valid_collection(pyrana.video.INPUT_CODECS)
 
-    @unittest.expectedFailure
     def test_output_video_codecs(self):
         self._assert_valid_collection(pyrana.video.OUTPUT_CODECS)
 
     def test_pixel_format(self):
         self._assert_valid_collection(pyrana.video.PixelFormat)
 
-    @unittest.expectedFailure
     def test_input_audio_codecs(self):
         self._assert_valid_collection(pyrana.audio.INPUT_CODECS)
 
-    @unittest.expectedFailure
     def test_output_audio_codecs(self):
         self._assert_valid_collection(pyrana.audio.OUTPUT_CODECS)
 
@@ -66,6 +63,6 @@ class TestCommonData(unittest.TestCase):
         self.assertTrue(all(len(name) > 0 for name in pyrana.audio.OUTPUT_CODECS))
 
     def test_all_formats(self):
-        x, y = pyrana.format.all_formats()
+        x, y = pyrana.common.all_formats()
         self.assertTrue(len(x))
         self.assertTrue(len(y))
