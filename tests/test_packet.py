@@ -51,32 +51,37 @@ class TestPacket(unittest.TestCase):
     def test_cannot_reset_stream_index(self):
         f = pyrana.format.Packet(0, "gammaray".encode('utf-8'))
         self.assertTrue(f.stream_id == 0)
-        self.assertRaises(AttributeError, setattr, f, "stream_id", 23)
+        with self.assertRaises(AttributeError):
+            f.stream_id = 23
         self.assertTrue(f.stream_id == 0)
 
     def test_cannot_reset_is_key(self):
         f = pyrana.format.Packet(0, "gammaray".encode('utf-8'))
         self.assertFalse(f.is_key)
-        self.assertRaises(AttributeError, setattr, f, "is_key", 1)
+        with self.assertRaises(AttributeError):
+            f.is_key = True
         self.assertFalse(f.is_key)
 
     def test_cannot_reset_pts(self):
         f = pyrana.format.Packet(0, "R'Yleh".encode('utf-8'))
         self.assertTrue(f.pts == pyrana.TS_NULL)
-        self.assertRaises(AttributeError, setattr, f, "pts", 42)
+        with self.assertRaises(AttributeError):
+            f.pts = 42
         self.assertTrue(f.pts == pyrana.TS_NULL)
 
     def test_cannot_reset_dts(self):
         f = pyrana.format.Packet(0, "R'Yleh".encode('utf-8'))
         self.assertTrue(f.dts == pyrana.TS_NULL)
-        self.assertRaises(AttributeError, setattr, f, "dts", 42)
+        with self.assertRaises(AttributeError):
+            f.pts = 42
         self.assertTrue(f.dts == pyrana.TS_NULL)
 
     def test_cannot_reset_data(self):
         d = b"O RLY?!?"
         f = pyrana.format.Packet(0, d)
         self.assertTrue(f.data == d)
-        self.assertRaises(AttributeError, setattr, f, "data", b"YA, RLY")
+        with self.assertRaises(AttributeError):
+            f.data = b"YA, RLY"
         self.assertTrue(f.data == d)
 
     def test_cannot_reset_size(self):
@@ -84,7 +89,8 @@ class TestPacket(unittest.TestCase):
         l = len(d)
         f = pyrana.format.Packet(0, d)
         self.assertTrue(f.size == l)
-        self.assertRaises(AttributeError, setattr, f, "size", len(b"YA, RLY"))
+        with self.assertRaises(AttributeError):
+            f.size = len(b"YA, RLY")
         self.assertTrue(f.size == l)
 
     def test_to_bytes(self):
