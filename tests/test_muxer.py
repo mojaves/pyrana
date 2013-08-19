@@ -1,0 +1,58 @@
+#!/usr/bin/python
+
+import pyrana.format
+import io
+import unittest
+
+
+_B = b'\0' * 1024 * 64
+
+
+class TestMuxer(unittest.TestCase):
+    def test_new_empty(self):
+        f = io.BytesIO(_B)
+        mux = pyrana.format.Muxer(f, "avi")
+        assert mux
+
+    @unittest.expectedFailure
+    def test_add_stream(self):
+        f = io.BytesIO(_B)
+        mux = pyrana.format.Muxer(f, "avi")
+        mux.add_stream(0, {})
+
+    @unittest.expectedFailure
+    def test_get_pts(self):
+        f = io.BytesIO(_B)
+        mux = pyrana.format.Muxer(f, "avi")
+        mux.add_stream(0, {})
+        assert(mux.get_pts(0) == 0)
+
+    @unittest.expectedFailure
+    def test_write_header(self):
+        f = io.BytesIO(_B)
+        mux = pyrana.format.Muxer(f, "avi")  # XXX
+        mux.write_header()
+
+    @unittest.expectedFailure
+    def test_write_trailer(self):
+        f = io.BytesIO(_B)
+        mux = pyrana.format.Muxer(f, "avi")  # XXX
+        mux.write_trailer()
+
+    @unittest.expectedFailure
+    def test_flush(self):
+        f = io.BytesIO(_B)
+        mux = pyrana.format.Muxer(f, "avi")  # XXX
+        mux.flush()
+
+    @unittest.expectedFailure
+    def test_write_frame(self):
+        f = io.BytesIO(_B)
+        mux = pyrana.format.Muxer(f, "avi")  # XXX
+        mux.add_stream(0, {})
+        pkt = pyrana.format.Packet(0, b'0' * 128)
+        mux.write_frame(pkt)
+
+
+if __name__ == "__main__":
+    unittest.main()

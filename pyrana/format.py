@@ -211,6 +211,7 @@ class Demuxer:
         """
         self._ff = pyrana.ff.get_handle()
         ffh = self._ff  # shortcut
+        self._streams = []
         self._pctx = ffh.ffi.new('AVFormatContext **')  # FIXME explain
         self._src = IOSource(src)
         self._pctx[0] = ffh.lavf.avformat_alloc_context()
@@ -262,7 +263,7 @@ class Demuxer:
         list of StreamInfo objects describing the streams found by the demuxer
         (as in old pyrana, no changes)
         """
-        return []
+        return self._streams
 
 
 class Muxer:
@@ -315,4 +316,4 @@ class Muxer:
         underlying file(-like).
         Blocking.
         """
-        pass
+        raise NotImplementedError
