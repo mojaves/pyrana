@@ -89,3 +89,7 @@ class TestCommonData(unittest.TestCase):
     def test_platform_CPy2x(self):
         with self.assertRaises(RuntimeError):
             pyrana._enforce_platform(MockPlat(vers=(2,7)))
+
+
+if __name__ == "__main__":
+    unittest.main()
