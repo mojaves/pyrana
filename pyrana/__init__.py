@@ -27,6 +27,7 @@ from pyrana.format import TS_NULL
 from pyrana.errors import *
 
 
+# FIXME: guard against multiple calls
 # better explicit than implicit.
 # I don't like the black magic at import time.
 def setup():
