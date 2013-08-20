@@ -31,8 +31,8 @@ class TestPacket(unittest.TestCase):
 
     def test_data_values_matches(self):
         f = pyrana.format.Packet(0, _B)
-        self.assertTrue(f.data == b"a")
-        self.assertTrue(f.size == 1)
+        self.assertTrue(f.data == _B)
+        self.assertTrue(f.size == len(_B))
 
     def test_default_values(self):
         f = pyrana.format.Packet(0, _B)
