@@ -8,6 +8,7 @@ import pyrana.ff
 
 
 class MediaType(IntEnum):
+    """wraps the Media Types in libavutil/avutil.h"""
     AVMEDIA_TYPE_UNKNOWN = -1
     AVMEDIA_TYPE_VIDEO = 0
     AVMEDIA_TYPE_AUDIO = 1
@@ -30,6 +31,12 @@ def _iter_fmts(ffi, format_next):
 
 
 def find_format_by_name(name, next_fmt):
+    """
+    do not use outside pyrana.
+    finds a given format by name.
+    Requires an explicit iterator callable, and that's
+    exactly the reason why you should'nt use this outside pyrana.
+    """
     ffh = pyrana.ff.get_handle()
     for fname, fdesc in _iter_fmts(ffh.ffi, next_fmt):
         if name == fname:
@@ -38,6 +45,10 @@ def find_format_by_name(name, next_fmt):
 
 
 def _iter_codec(ffi, codec_next):
+    """
+    generator. Produces the names as strings
+    of all the codec supported by libavcodec.
+    """
     rmap = dict(enumerate(MediaType, -1))  # WARNING!
     codec = codec_next(ffi.NULL)
     while codec != ffi.NULL:
@@ -60,6 +71,11 @@ def all_formats():
 
 
 def all_codecs():
+    """
+    builds the lists of the codecs supported by
+    libavcodec, and which, in turn, by pyrana.
+    BUG? Do not distinguish between enc and dec.
+    """
     ffh = pyrana.ff.get_handle()
     audio, video = [], []
     for name, _type, _ in _iter_codec(ffh.ffi, ffh.lavc.av_codec_next):

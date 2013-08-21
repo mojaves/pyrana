@@ -6,6 +6,7 @@ libraries, but provides an independent API.
 
 import platform
 
+
 def _enforce_platform(plat):
     """
     enforce the platform conformancy.
@@ -56,6 +57,6 @@ def setup():
     pyrana.audio.OUTPUT_CODECS = acods
     pyrana.video.INPUT_CODECS = vcods
     pyrana.video.OUTPUT_CODECS = vcods
-    
+
 
 __all__ = ['versions', 'format', 'audio', 'video']

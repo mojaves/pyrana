@@ -7,6 +7,10 @@ import cffi
 
 
 def _wire(ffi):
+    """
+    declare and export all the C API items needed
+    by pyrana.
+    """
     ffi.cdef("""
          unsigned avcodec_version(void);
          unsigned avformat_version(void);
@@ -103,20 +107,22 @@ def _wire(ffi):
 
 # http://wiki.python.org/moin/PythonDecoratorLibrary#Singleton
 def singleton(cls):
-    ''' Use class as singleton. '''
+    """Use class as singleton."""
 
     cls.__new_original__ = cls.__new__
 
     @wraps(cls.__new__)
     def singleton_new(cls, *args, **kw):
-        it =  cls.__dict__.get('__it__')
-        if it is not None:
-            return it
+        """the singleton workhorse."""
+        
+        _it = cls.__dict__.get('__it__')
+        if _it is not None:
+            return _it
 
-        it = cls.__new_original__(cls, *args, **kw)
-        cls.__it__ = it 
-        it.__init_original__(*args, **kw)
-        return it
+        _it = cls.__new_original__(cls, *args, **kw)
+        cls.__it__ = _it
+        _it.__init_original__(*args, **kw)
+        return _it
 
     cls.__new__ = singleton_new
     cls.__init_original__ = cls.__init__
@@ -127,6 +133,12 @@ def singleton(cls):
 
 @singleton
 class FF:
+    """
+    FFMpeg abstraction objects.
+    Needs to be a singleton because the FFI instance has to be
+    one and exacly one.
+    Do not use directly. Use get_handle() instead.
+    """
     def __init__(self):
         self.ffi = cffi.FFI()
         _wire(self.ffi)
@@ -135,20 +147,37 @@ class FF:
         self.lavu = self.ffi.dlopen("avutil")
 
     def setup(self):
+        """
+        initialize the FFMpeg libraries.
+        """
         # libav* already protects against multiple calls.
         self.lavc.avcodec_register_all()
         self.lavf.av_register_all()
 
     def versions(self):
+        """
+        fetch the version of the FFMpeg libraries.
+        """
         return (self.lavc.avcodec_version(),
                 self.lavf.avformat_version(),
                 self.lavu.avutil_version())
 
 
 def get_handle():
+    """
+    return a FF instance, taking care of bookkeeping.
+    Safe to call multiple times.
+    Do not instantiate FF directly.
+    """
     return FF()
 
+
 def setup():
+    """
+    return an already-setup ready-to-go FF instance.
+    Safe to call multiple times.
+    Do not instantiate FF directly.
+    """
     ffh = FF()
     ffh.setup()
     return ffh

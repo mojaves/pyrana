@@ -102,6 +102,10 @@ class Packet:
 
 
 class Buffer:
+    """
+    Wrapper class for a buffer properly aligned for
+    optimal usage by ffmpeg libraries.
+    """
     def __init__(self, size=PKT_SIZE):
         self._ff = pyrana.ff.get_handle()
         self._size = size
@@ -115,14 +119,26 @@ class Buffer:
 
     @property
     def size(self):
+        """
+        size (bytes) of the buffer.
+        BUG?: what about the padding?
+        """
         return self._size
 
     @property
     def data(self):
+        """
+        return the payload data suitable for access by Python code.
+        BUG?: what about mutability?
+        """
         return self._ff.ffi.buffer(self._data, self._size)
 
     @property
     def cdata(self):
+        """
+        return the payload data suitable for access by C code,
+        of course through cffi.
+        """
         return self._data
 
 
@@ -147,17 +163,28 @@ def _seek(handle, offset, whence):
 
 
 class IOSource:
-    def __init__(self, src, seekable=True, bufsize=PKT_SIZE):
+    """
+    wraps the avio handling.
+    A separate classe is advisable because
+    1. you need to handle a Buffer for I/O and take good care of it.
+    2. you need o propelry av_free the avio once done
+    which is enough (it is?) to build a class.
+    """
+    def __init__(self, src, seekable=True, bufsize=PKT_SIZE, delay_open=False):
         self._ff = pyrana.ff.get_handle()
         self.avio = self._ff.ffi.NULL
         self._buf = Buffer(bufsize)
         self._src = src
-        self._open(src, seekable)
+        if not delay_open:
+            self.open(seekable)
 
     def __del__(self):
         self.close()
 
-    def _open(self, src, seekable):
+    def open(self, seekable):
+        """
+        open (really: allocate) the underlying avio
+        """
         ffi = self._ff.ffi
         read = ffi.callback("int(void *, uint8_t *, int)", _read)
         seek = ffi.NULL
@@ -172,12 +199,19 @@ class IOSource:
                                                      seek)
 
     def close(self):
+        """
+        close (really: deallocate) the underlying avio
+        """
         self._ff.lavu.av_free(self.avio)
         self.avio = self._ff.ffi.NULL
 
 
 # see avformat for the meaning of the flags
 class FormatFlags(IntEnum):
+    """
+    wrapper for the (wannabe)enum of AVFormatFlags
+    in libavformat/avformat.h
+    """
     AVFMT_FLAG_GENPTS = 0x0001
     AVFMT_FLAG_IGNIDX = 0x0002
     AVFMT_FLAG_NONBLOCK = 0x0004
@@ -210,6 +244,8 @@ class Demuxer:
         self._pctx[0] = ffh.lavf.avformat_alloc_context()
         self._pctx[0].pb = self._src.avio
         self._pctx[0].flags |= FormatFlags.AVFMT_FLAG_CUSTOM_IO
+        if not delay_open:
+            self.open(name)
 
     def open(self, name=None):
         """
