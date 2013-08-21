@@ -5,6 +5,7 @@ this module provides the transport layer facilities.
 
 from enum import IntEnum
 
+from pyrana.common import find_format_by_name
 import pyrana.errors
 import pyrana.ff
 
@@ -16,14 +17,6 @@ PKT_SIZE = 4096
 
 INPUT_FORMATS = frozenset()
 OUTPUT_FORMATS = frozenset()
-
-
-def _find_fmt_by_name(name, next_fmt):
-    ffh = pyrana.ff.get_handle()
-    for fname, fdesc in _iter_fmts(ffh.ffi, next_fmt):
-        if name == fname:
-            return fdesc
-    raise pyrana.errors.UnsupportedError
 
 
 def is_streamable(name):
@@ -225,7 +218,7 @@ class Demuxer:
         ffh = self._ff  # shortcut
         fmt = ffh.ffi.NULL
         if name is not None:
-            fmt = _find_fmt_by_name(name, ffh.lavf.av_iformat_next)
+            fmt = find_format_by_name(name, ffh.lavf.av_iformat_next)
         filename = bytes()
 
         err = avf.avformat_open_input(self._pctx, filename, fmt, ffi.NULL)

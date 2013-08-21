@@ -29,6 +29,14 @@ def _iter_fmts(ffi, format_next):
         fmt = format_next(fmt)
 
 
+def find_format_by_name(name, next_fmt):
+    ffh = pyrana.ff.get_handle()
+    for fname, fdesc in _iter_fmts(ffh.ffi, next_fmt):
+        if name == fname:
+            return fdesc
+    raise pyrana.errors.UnsupportedError
+
+
 def _iter_codec(ffi, codec_next):
     rmap = dict(enumerate(MediaType, -1))  # WARNING!
     codec = codec_next(ffi.NULL)
