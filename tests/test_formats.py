@@ -5,6 +5,7 @@ import pyrana.audio
 import pyrana.video
 import pyrana.format
 import pyrana.common
+import pyrana.ff
 import unittest
 
 
@@ -15,9 +16,6 @@ class TestCommonData(unittest.TestCase):
 
     def _assert_valid_collection(self, col):
         self.assertTrue(len(col) > 0)
-
-    def _assert_valid_collection_items(self, col):
-        self.assertTrue(all(len(c) > 0 for c in col))
 
     def test_input_format(self):
         self._assert_valid_collection(pyrana.format.INPUT_FORMATS)
@@ -66,3 +64,28 @@ class TestCommonData(unittest.TestCase):
         x, y = pyrana.common.all_formats()
         self.assertTrue(len(x))
         self.assertTrue(len(y))
+
+    def test_find_source_format_defaults(self):
+        ffh = pyrana.ff.get_handle()
+        fmt = pyrana.common.find_source_format()
+        assert ffh.ffi.NULL == fmt
+
+    def test_find_source_format_avi(self):
+        ffh = pyrana.ff.get_handle()
+        fmt = pyrana.common.find_source_format("avi")
+        assert fmt
+        assert ffh.ffi.NULL != fmt
+
+    def test_find_source_format_inexistent(self):
+        ffh = pyrana.ff.get_handle()
+        with self.assertRaises(pyrana.errors.UnsupportedError):
+            fmt = pyrana.common.find_source_format("Azathoth")
+
+    def test_find_source_format_none(self):
+        ffh = pyrana.ff.get_handle()
+        fmt = pyrana.common.find_source_format(None)
+        assert ffh.ffi.NULL == fmt
+
+
+if __name__ == "__main__":
+    unittest.main()

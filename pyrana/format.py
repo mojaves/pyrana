@@ -5,7 +5,7 @@ this module provides the transport layer facilities.
 
 from enum import IntEnum
 
-from pyrana.common import find_format_by_name
+from pyrana.common import find_source_format
 import pyrana.errors
 import pyrana.ff
 
@@ -251,13 +251,10 @@ class Demuxer:
         """
         open the underlying demuxer.
         """
-        ffh = self._ff  # shortcut
-        fmt = ffh.ffi.NULL
-        if name is not None:
-            fmt = find_format_by_name(name, ffh.lavf.av_iformat_next)
         filename = bytes()
-
-        err = avf.avformat_open_input(self._pctx, filename, fmt, ffi.NULL)
+        fmt = find_source_format(name)
+        err = avf.avformat_open_input(self._pctx, filename,
+                                      fmt, self._ff.ffi.NULL)
         if err:
             raise pyrana.errors.SetupError()
 

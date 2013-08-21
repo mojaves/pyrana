@@ -30,7 +30,7 @@ def _iter_fmts(ffi, format_next):
         fmt = format_next(fmt)
 
 
-def find_format_by_name(name, next_fmt):
+def _find_format_by_name(name, next_fmt):
     """
     do not use outside pyrana.
     finds a given format by name.
@@ -42,6 +42,18 @@ def find_format_by_name(name, next_fmt):
         if name == fname:
             return fdesc
     raise pyrana.errors.UnsupportedError
+
+
+def find_source_format(name=None):
+    """
+    find and return the right source libavformat format descriptor
+    by name. None/ffi.NULL just means autodetect.
+    """
+    ffh = pyrana.ff.get_handle()
+    fmt = ffh.ffi.NULL
+    if name is not None:
+        fmt = _find_format_by_name(name, ffh.lavf.av_iformat_next)
+    return fmt
 
 
 def _iter_codec(ffi, codec_next):
