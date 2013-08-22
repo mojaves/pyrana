@@ -34,6 +34,8 @@ def find_stream(streams, stream_id, media):
     pass
 
 
+# In the current incarnation, it could be happily replaced by a namedtuple.
+# however, things are expected to change once Muxer get implemented.
 class Packet:
     """
     a Packet object represents an immutable, encoded packet of a
@@ -143,6 +145,9 @@ class Buffer:
 
 
 def _read(handle, buf, buf_size):
+    """
+    libavformat read callback. Actually: wrapper. Do not use directly.
+    """
     ffh = pyrana.ff.get_handle()
     src = ffh.ffi.from_handle(handle)
     rbuf = ffh.ffi.buffer(buf, buf_size)
@@ -150,13 +155,19 @@ def _read(handle, buf, buf_size):
 
 
 def _write(handle, buf, buf_size):
+    """
+    libavformat write callback. Actually: wrapper. Do not use directly.
+    """
     ffh = pyrana.ff.get_handle()
     dst = ffh.ffi.from_handle(handle)
     wbuf = ffh.ffi.buffer(buf, buf_size)
-    dst.write(rbuf)
+    dst.write(wbuf)
 
 
 def _seek(handle, offset, whence):
+    """
+    libavformat seek callback. Actually: wrapper. Do not use directly.
+    """
     ffh = pyrana.ff.get_handle()
     src = ffh.ffi.from_handle(handle)
     src.seek(offset, whence)
@@ -228,6 +239,13 @@ class FormatFlags(IntEnum):
 
 
 class Demuxer:
+    """
+    Demuxer object. Use a file-like for real I/O.
+    The file-like must be already open, and must support read()
+    returning bytes (not strings).
+    If the file format is_seekable but the file-like doesn't support
+    seek, expect weird things.
+    """
     def __init__(self, src, name=None, delay_open=False):
         """
         Demuxer(src, name="")
@@ -253,8 +271,8 @@ class Demuxer:
         """
         filename = bytes()
         fmt = find_source_format(name)
-        err = avf.avformat_open_input(self._pctx, filename,
-                                      fmt, self._ff.ffi.NULL)
+        err = self._ff.lavf.avformat_open_input(self._pctx, filename,
+                                                fmt, self._ff.ffi.NULL)
         if err:
             raise pyrana.errors.SetupError()
 
@@ -293,6 +311,13 @@ class Demuxer:
 
 
 class Muxer:
+    """
+    Muxer object. Use a file-like for real I/O.
+    The file-like must be already open, and must support write()
+    dealing with bytes (not strings).
+    If the file format is_seekable but the file-like doesn't support
+    seek, expect weird things.
+    """
     def __init__(self, dst, name):
         """
         Muxer(dst, name="")
