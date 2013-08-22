@@ -2,14 +2,17 @@
 
 import operator
 import pycparser
+import argparse
+import os
+import hashlib
 
 UNARYOPS = {
-    '-':operator.neg
+    '-': operator.neg
 }
 
 BINARYOPS = {
-    '-':operator.sub,
-    '+':operator.add
+    '-': operator.sub,
+    '+': operator.add
 }
 
 
@@ -31,11 +34,28 @@ def enumvalue(en):
         print(dir(en.value))
 
 
-ast = pycparser.parse_file('/usr/include/libavutil/pixfmt.h', use_cpp=True)
+args_parser = argparse.ArgumentParser()
+args_parser.add_argument('header', help='the header file to parse')
+# Not used yet
+args_parser.add_argument('enum', help='name of enumerate in header file')
+args_parser.add_argument('-c', '--output_class',
+                         help='name of enumerate in the output file')
+args = args_parser.parse_args()
+
+ast = pycparser.parse_file(args.header, use_cpp=True)
 count = 0
+
 print('from enum import IntEnum\n\n')
-print('class PixelFormat(IntEnum):')
-print('    """wraps the Pixel Formats in libavutil/pixfmt.h"""')
+print('class {}(IntEnum):'.format(args.output_class))
+fullpath = os.path.join(os.getcwd(), args.header)
+print('    """wraps the Pixel Formats in file')
+print('    {}'.format(fullpath))
+sha1 = hashlib.sha1()
+with open(fullpath, 'rb') as header_hndl:
+    sha1.update(header_hndl.read())
+    print('    SHA-1: {}"""'.format(sha1.hexdigest()))
+    print()
+
 for x in ast.ext[0].type.values.enumerators:
     if x.value:
         value = enumvalue(x)
@@ -43,6 +63,6 @@ for x in ast.ext[0].type.values.enumerators:
     else:
         value = count+1
         count += 1
-    print("    %s = %i" %(x.name, value))
+    print("    %s = %i" % (x.name, value))
     if x.name == 'AV_PIX_FMT_NB':
         break
