@@ -41,6 +41,8 @@ args_parser.add_argument('enum', help='name of enumerate in header file')
 args_parser.add_argument('-c', '--output_class',
                          help='name of enumerate in the output file')
 args = args_parser.parse_args()
+if not args.output_class:
+    args.output_class = args.enum
 
 ast = pycparser.parse_file(args.header, use_cpp=True)
 count = 0
