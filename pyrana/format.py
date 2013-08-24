@@ -1,6 +1,6 @@
 """
-this module provides the transport layer facilities.
-(WRITEME)
+This module provides the transport layer interface: encoded packets,
+Muxer, Demuxers and their support code.
 """
 
 from enum import IntEnum
@@ -273,7 +273,11 @@ class Demuxer:
         self._ff = pyrana.ff.get_handle()
         ffh = self._ff  # shortcut
         self._streams = []
-        self._pctx = ffh.ffi.new('AVFormatContext **')  # FIXME explain
+        self._pctx = ffh.ffi.new('AVFormatContext **')
+        # cffi purposefully doesn't have an address-of (C's &) operator.
+        # but libavformat requires a pointer-to-pointer as context argument,
+        # so we need to allocate a simple lone double pointer
+        # to act as junction.
         self._src = IOSource(src)
         self._pctx[0] = ffh.lavf.avformat_alloc_context()
         self._pctx[0].pb = self._src.avio
