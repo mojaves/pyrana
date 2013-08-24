@@ -295,11 +295,13 @@ class Demuxer:
 
     def __del__(self):
         self.close()
-#        self._ff.lavf.avformat_free_context(self._pctx[0])
 
     def close(self):
-        if self._pctx != self._ff.ffi.NULL:  # XXX
-            self._ff.lavf.avformat_close_input(self._pctx)
+        """
+        close the underlying demuxer.
+        """
+#        if self._pctx != self._ff.ffi.NULL:  # XXX
+#            self._ff.lavf.avformat_close_input(self._pctx)
 
     def open(self, name=None):
         """
