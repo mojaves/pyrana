@@ -151,17 +151,19 @@ def _read(handle, buf, buf_size):
     ffh = pyrana.ff.get_handle()
     src = ffh.ffi.from_handle(handle)
     rbuf = ffh.ffi.buffer(buf, buf_size)
-    src.readinto(rbuf)
+    ret = src.readinto(rbuf)
+    return ret if ret is not None else -1
 
 
-def _write(handle, buf, buf_size):
-    """
-    libavformat write callback. Actually: wrapper. Do not use directly.
-    """
-    ffh = pyrana.ff.get_handle()
-    dst = ffh.ffi.from_handle(handle)
-    wbuf = ffh.ffi.buffer(buf, buf_size)
-    dst.write(wbuf)
+# not yet needed
+#def _write(handle, buf, buf_size):
+#    """
+#    libavformat write callback. Actually: wrapper. Do not use directly.
+#    """
+#    ffh = pyrana.ff.get_handle()
+#    dst = ffh.ffi.from_handle(handle)
+#    wbuf = ffh.ffi.buffer(buf, buf_size)
+#    dst.write(wbuf)
 
 
 def _seek(handle, offset, whence):
@@ -170,7 +172,8 @@ def _seek(handle, offset, whence):
     """
     ffh = pyrana.ff.get_handle()
     src = ffh.ffi.from_handle(handle)
-    src.seek(offset, whence)
+    ret = src.seek(offset, whence)
+    return ret  # FIXME
 
 
 class IOSource:
@@ -183,31 +186,32 @@ class IOSource:
     """
     def __init__(self, src, seekable=True, bufsize=PKT_SIZE, delay_open=False):
         self._ff = pyrana.ff.get_handle()
-        self.avio = self._ff.ffi.NULL
+        ffi = self._ff.ffi
+        self.avio = ffi.NULL
         self._buf = Buffer(bufsize)
         self._src = src
+        self._read = ffi.callback("int(void *, uint8_t *, int)", _read)
+        self._seek = ffi.NULL
+        if seekable:
+            self.seek = ffi.callback("int64_t(void *, int64_t, int)", _seek)
         if not delay_open:
-            self.open(seekable)
+            self.open()
 
     def __del__(self):
         self.close()
 
-    def open(self, seekable):
+    def open(self):
         """
         open (really: allocate) the underlying avio
         """
         ffi = self._ff.ffi
-        read = ffi.callback("int(void *, uint8_t *, int)", _read)
-        seek = ffi.NULL
-        if seekable:
-            seek = ffi.callback("int64_t(void *, int64_t, int)", _seek)
         self.avio = self._ff.lavf.avio_alloc_context(self._buf.cdata,
                                                      self._buf.size,
                                                      0,
                                                      ffi.new_handle(self._src),
-                                                     read,
+                                                     self._read,
                                                      ffi.NULL,
-                                                     seek)
+                                                     self._seek)
 
     def close(self):
         """
@@ -274,7 +278,7 @@ class Demuxer:
         err = self._ff.lavf.avformat_open_input(self._pctx, filename,
                                                 fmt, self._ff.ffi.NULL)
         if err:
-            raise pyrana.errors.SetupError()
+            raise pyrana.errors.SetupError("error=%i" % err)
 
     def read_frame(self, stream_id=STREAM_ANY):
         """
