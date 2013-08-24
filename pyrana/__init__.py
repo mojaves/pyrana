@@ -28,7 +28,6 @@ from pyrana.format import TS_NULL
 from pyrana.errors import *
 
 
-# FIXME: guard against multiple calls
 # better explicit than implicit.
 # I don't like the black magic at import time.
 def setup():
@@ -44,19 +43,26 @@ def setup():
     import pyrana.format
     import pyrana.audio
     import pyrana.video
-    pyrana.ff.setup()
+    cnt = pyrana.ff.setup()
     pyrana.versions.autoverify()
     # we know all the supported formats/codecs only *after* the
     # registration process. So we must do this wiring here.
-    ifmts, ofmts = all_formats()
-    pyrana.format.INPUT_FORMATS = frozenset(ifmts)
-    pyrana.format.OUTPUT_FORMATS = frozenset(ofmts)
-    acl, vcl = all_codecs()
-    acods, vcods = frozenset(acl), frozenset(vcl)
-    pyrana.audio.INPUT_CODECS = acods
-    pyrana.audio.OUTPUT_CODECS = acods
-    pyrana.video.INPUT_CODECS = vcods
-    pyrana.video.OUTPUT_CODECS = vcods
+    if not pyrana.format.INPUT_FORMATS or \
+       not pyrana.format.OUTPUT_FORMATS:
+        ifmts, ofmts = all_formats()
+        pyrana.format.INPUT_FORMATS = frozenset(ifmts)
+        pyrana.format.OUTPUT_FORMATS = frozenset(ofmts)
+    if not pyrana.audio.INPUT_CODECS or \
+       not pyrana.audio.OUTPUT_CODECS or \
+       not pyrana.video.INPUT_CODECS or \
+       not pyrana.video.OUTPUT_CODECS:
+        acl, vcl = all_codecs()
+        acods, vcods = frozenset(acl), frozenset(vcl)
+        pyrana.audio.INPUT_CODECS = acods
+        pyrana.audio.OUTPUT_CODECS = acods
+        pyrana.video.INPUT_CODECS = vcods
+        pyrana.video.OUTPUT_CODECS = vcods
+    return cnt
 
 
 __all__ = ['versions', 'format', 'audio', 'video']

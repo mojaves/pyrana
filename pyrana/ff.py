@@ -145,14 +145,18 @@ class FF:
         self.lavc = self.ffi.dlopen("avcodec")
         self.lavf = self.ffi.dlopen("avformat")
         self.lavu = self.ffi.dlopen("avutil")
+        self._setup_calls = 0
 
     def setup(self):
         """
         initialize the FFMpeg libraries.
         """
+        ret = self._setup_calls
         # libav* already protects against multiple calls.
         self.lavc.avcodec_register_all()
         self.lavf.av_register_all()
+        self._setup_calls += 1
+        return ret
 
     def versions(self):
         """
