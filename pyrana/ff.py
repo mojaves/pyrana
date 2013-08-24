@@ -119,6 +119,9 @@ def _wire(ffi):
          AVCodec *avcodec_find_decoder(enum AVCodecID id);
 
          const char *av_get_media_type_string(enum AVMediaType media_type);
+
+         int av_opt_get_int   (void *obj, const char *name, int search_flags, int64_t    *out_val);
+         int av_opt_get_double(void *obj, const char *name, int search_flags, double     *out_val);
          """)
 
 
