@@ -1,14 +1,16 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
-import pyrana
 import sys
+import pyrana
 
+
+pyrana.setup()
 
 
 class MediaInfo(object):
     def __init__(self, path):
         self._path = path
-        with open(path, "r") as f:
+        with open(path, "rb") as f:
             try:
                 dmx = pyrana.format.Demuxer(f)
                 self._info = dmx.streams
@@ -28,7 +30,7 @@ class MediaInfo(object):
 def _main(args):
     media_files = args[1:]
     for mf in media_files:
-        print str(MediaInfo(mf))
+        print(str(MediaInfo(mf)))
 
 
 if __name__ == "__main__":
