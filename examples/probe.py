@@ -1,7 +1,12 @@
 #!/usr/bin/env python3
 
+"""
+FIXME: document me!
+"""
+
 import sys
-import pyrana
+import pyrana.format
+import pyrana.errors
 
 
 pyrana.setup()
@@ -10,16 +15,22 @@ pyrana.setup()
 class MediaInfo(object):
     def __init__(self, path):
         self._path = path
+        self._info = []
+        self.inspect(path=path)
+
+    def inspect(self, path):
         with open(path, "rb") as f:
             try:
                 dmx = pyrana.format.Demuxer(f)
                 self._info = dmx.streams
-            except: # FIXME
-                self._info = {}
+            except pyrana.errors.PyranaError as err:
+                self._info = ()
+
     def _info_to_str(self, info, num=0):
         return  \
              "stream #%2i:\n * " %(num) + \
              "\n * ".join("%-12s: %s" %(k,v) for k,v in info.items() if k != "extradata")
+
     def __str__(self):  
         return \
             "media=\"%s\"\n" %(self._path) + \
@@ -35,4 +46,3 @@ def _main(args):
 
 if __name__ == "__main__":
     _main(sys.argv)
-
