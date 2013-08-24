@@ -44,12 +44,29 @@ def _wire(ffi):
                 int (*write_packet)(void *opaque, uint8_t *buf, int buf_size),
                 int64_t (*seek)(void *opaque, int64_t offset, int whence));
 
-
          typedef struct AVDictionary AVDictionary;
          typedef struct AVClass AVClass;
          typedef struct AVProgram AVProgram;
          typedef struct AVChapter AVChapter;
-         typedef struct AVStream AVStream;
+
+         typedef struct AVCodecContext {
+            const AVClass *av_class;
+            int log_level_offset;
+            enum AVMediaType codec_type;
+            const struct AVCodec *codec;
+            char codec_name[32];
+            enum AVCodecID codec_id;
+            unsigned int codec_tag;
+            unsigned int stream_codec_tag;
+            /* ... */
+         } AVCodecContext;
+
+         typedef struct AVStream {
+            int index;
+            int id;
+            AVCodecContext *codec;
+            /* ... */
+         } AVStream;
 
          typedef struct AVFormatContext {
              const AVClass *av_class;
@@ -99,6 +116,9 @@ def _wire(ffi):
               /* ... */
          } AVCodec;
          AVCodec *av_codec_next(const AVCodec *c);
+         AVCodec *avcodec_find_decoder(enum AVCodecID id);
+
+         const char *av_get_media_type_string(enum AVMediaType media_type);
          """)
 
 
@@ -145,18 +165,14 @@ class FF:
         self.lavc = self.ffi.dlopen("avcodec")
         self.lavf = self.ffi.dlopen("avformat")
         self.lavu = self.ffi.dlopen("avutil")
-        self._setup_calls = 0
 
     def setup(self):
         """
         initialize the FFMpeg libraries.
         """
-        ret = self._setup_calls
         # libav* already protects against multiple calls.
         self.lavc.avcodec_register_all()
         self.lavf.av_register_all()
-        self._setup_calls += 1
-        return ret
 
     def versions(self):
         """

@@ -43,7 +43,7 @@ def setup():
     import pyrana.format
     import pyrana.audio
     import pyrana.video
-    cnt = pyrana.ff.setup()
+    pyrana.ff.setup()
     pyrana.versions.autoverify()
     # we know all the supported formats/codecs only *after* the
     # registration process. So we must do this wiring here.
@@ -62,7 +62,6 @@ def setup():
         pyrana.audio.OUTPUT_CODECS = acods
         pyrana.video.INPUT_CODECS = vcods
         pyrana.video.OUTPUT_CODECS = vcods
-    return cnt
 
 
 __all__ = ['versions', 'format', 'audio', 'video']
