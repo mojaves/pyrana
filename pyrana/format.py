@@ -254,6 +254,16 @@ class FormatFlags(IntEnum):
     AVFMT_FLAG_KEEP_SIDE_DATA = 0x40000
 
 
+def _codec_name(ffh, codec_id):
+    avcodec = ffh.lavc.avcodec_find_decoder(codec_id)
+    return ffh.ffi.string(avcodec.name).decode('utf-8')
+
+
+def _media_type_name(ffh, media_type):
+    type_to_str = ffh.lavu.av_get_media_type_string  # shortcut
+    return ffh.ffi.string(type_to_str(media_type)).decode('utf-8')
+
+
 class Demuxer:
     """
     Demuxer object. Use a file-like for real I/O.
@@ -324,13 +334,31 @@ class Demuxer:
         params = {} if params is None else params
         raise NotImplementedError
 
+    def _stream_info(self, stream):
+        ffh = self._ff  # shortcut
+        ctx = stream.codec
+        return {
+                 "name": _codec_name(ffh, ctx.codec_id),
+                 "type": _media_type_name(ffh, ctx.codec_type)
+               }
+
+    def _parse_streams(self):
+        streams = []
+        for idx in range(self._pctx[0].nb_streams):
+            streams.append(self._stream_info(self._pctx[0].streams[idx]))
+        return tuple(streams)        
+
     @property
     def streams(self):
         """
         streams: read-only attribute
-        list of StreamInfo objects describing the streams found by the demuxer
-        (as in old pyrana, no changes)
+        list of StreamInfo objects describing the streams found by
+        the demuxer (as in old pyrana, no changes)
         """
+        if not self._streams:
+            self._streams = self._parse_streams()
+            if not self._streams:
+                raise pyrana.errors.ProcessingError("no streams found")
         return self._streams
 
 
