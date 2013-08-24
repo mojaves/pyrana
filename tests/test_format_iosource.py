@@ -29,5 +29,15 @@ class TestFormatIOSource(unittest.TestCase):
         src = pyrana.format.IOSource(f, bufsize=size)
         assert src
 
+    def test_read(self):
+        ffh = pyrana.ff.get_handle()
+        buf = pyrana.format.Buffer()
+        f = io.BytesIO(_BZ)
+        h = ffh.ffi.new_handle(f)
+        pyrana.format._read(h, buf.cdata, buf.size)
+        for b in buf.data:
+            assert(b == b'\x00')
+
+
 if __name__ == "__main__":
     unittest.main()
