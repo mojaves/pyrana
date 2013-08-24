@@ -200,13 +200,25 @@ class IOSource:
     def __del__(self):
         self.close()
 
+    def _alloc_buf(self, size):
+        """
+        allocates a slice of memory suitable for libav* usage.
+        Why don't use a Buffer, you may ask.
+        avio_alloc_context takes ownership of the given buffer,
+        and dutifully free()s it on avio_close.
+        So there is little sense to pack the lifetime handling
+        in Buffer here.
+        """
+        self._ff = pyrana.ff.get_handle()
+        return self._ff.lavu.av_malloc(size)
+
     def open(self):
         """
         open (really: allocate) the underlying avio
         """
         ffi = self._ff.ffi
-        self.avio = self._ff.lavf.avio_alloc_context(self._buf.cdata,
-                                                     self._buf.size,
+        self.avio = self._ff.lavf.avio_alloc_context(self._alloc_buf(PKT_SIZE),
+                                                     PKT_SIZE,
                                                      0,
                                                      ffi.new_handle(self._src),
                                                      self._read,
@@ -269,6 +281,10 @@ class Demuxer:
         if not delay_open:
             self.open(name)
 
+    def __del__(self):
+        # FIXME: is pctx[0] lost?
+        pass
+
     def open(self, name=None):
         """
         open the underlying demuxer.
@@ -277,7 +293,7 @@ class Demuxer:
         fmt = find_source_format(name)
         err = self._ff.lavf.avformat_open_input(self._pctx, filename,
                                                 fmt, self._ff.ffi.NULL)
-        if err:
+        if err < 0:
             raise pyrana.errors.SetupError("error=%i" % err)
 
     def read_frame(self, stream_id=STREAM_ANY):
