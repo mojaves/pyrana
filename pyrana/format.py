@@ -5,7 +5,10 @@ Muxer, Demuxers and their support code.
 
 from enum import IntEnum
 
+from pyrana.common import MediaType
 from pyrana.common import find_source_format
+from pyrana.common import to_media_type
+from pyrana.common import get_field_int
 import pyrana.errors
 import pyrana.ff
 
@@ -259,11 +262,6 @@ def _codec_name(ffh, codec_id):
     return ffh.ffi.string(avcodec.name).decode('utf-8')
 
 
-def _media_type_name(ffh, media_type):
-    type_to_str = ffh.lavu.av_get_media_type_string  # shortcut
-    return ffh.ffi.string(type_to_str(media_type)).decode('utf-8')
-
-
 class Demuxer:
     """
     Demuxer object. Use a file-like for real I/O.
@@ -334,13 +332,33 @@ class Demuxer:
         params = {} if params is None else params
         raise NotImplementedError
 
+    def _audio_stream_info(self, ctx):
+        return {
+            "sample_rate": get_field_int(ctx, "ar"),
+            "channels": get_field_int(ctx, "ac"),
+            "sample_bytes": 2  # FIXME: BPP is hardcoded
+        }
+
+    def _video_stream_info(self, ctx):
+        return {
+            "width": 0,  # FIXME
+            "height": 0  # FIXME
+        }
+
     def _stream_info(self, stream):
         ffh = self._ff  # shortcut
         ctx = stream.codec
-        return {
-                 "name": _codec_name(ffh, ctx.codec_id),
-                 "type": _media_type_name(ffh, ctx.codec_type)
-               }
+        _type = to_media_type(ctx.codec_type)
+        info = {
+            "type": _type,
+            "name": _codec_name(ffh, ctx.codec_id),
+            "bit_rate": get_field_int(ctx, "b")
+        }
+        if _type == MediaType.AVMEDIA_TYPE_AUDIO:
+            info.update(self._audio_stream_info(ctx))
+        if _type == MediaType.AVMEDIA_TYPE_VIDEO:
+            info.update(self._video_stream_info(ctx))
+        return info 
 
     def _parse_streams(self):
         streams = []
