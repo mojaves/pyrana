@@ -2,8 +2,10 @@
 common code which do not fits better elsewhere.
 You should not use this directly.
 """
+
 from enum import IntEnum
 
+import pyrana.errors
 import pyrana.ff
 
 
@@ -16,6 +18,11 @@ class MediaType(IntEnum):
     AVMEDIA_TYPE_SUBTITLE = 3
     AVMEDIA_TYPE_ATTACHMENT = 4
     AVMEDIA_TYPE_NB = 5
+
+
+def to_media_type(ival):
+    rmap = dict(enumerate(MediaType, -1))  # WARNING!
+    return rmap.get(ival, MediaType.AVMEDIA_TYPE_UNKNOWN)
 
 
 def _iter_fmts(ffi, format_next):
@@ -61,11 +68,10 @@ def _iter_codec(ffi, codec_next):
     generator. Produces the names as strings
     of all the codec supported by libavcodec.
     """
-    rmap = dict(enumerate(MediaType, -1))  # WARNING!
     codec = codec_next(ffi.NULL)
     while codec != ffi.NULL:
         name = ffi.string(codec.name)
-        _type = rmap.get(codec.type, MediaType.AVMEDIA_TYPE_UNKNOWN)
+        _type = to_media_type(codec.type)
         yield (name.decode('utf-8'), _type, codec)
         codec = codec_next(codec)
 
@@ -96,3 +102,12 @@ def all_codecs():
         elif _type == MediaType.AVMEDIA_TYPE_VIDEO:
             video.append(name)
     return audio, video
+
+def get_field_int(ffobj, name):
+    ffh = pyrana.ff.get_handle()
+    out_val = ffh.ffi.new('int64_t[1]')
+    err = ffh.lavu.av_opt_get_int(ffobj, name.encode('utf-8'), 0, out_val)
+    if err < 0:
+        msg = "cannot fetch the field '%s'" % name
+        raise pyrana.errors.ProcessingError(msg)
+    return out_val[0]
