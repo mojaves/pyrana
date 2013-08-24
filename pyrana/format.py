@@ -34,7 +34,7 @@ def find_stream(streams, stream_id, media):
     """
     TODO
     """
-    pass
+    raise NotImplementedError
 
 
 # In the current incarnation, it could be happily replaced by a namedtuple.
@@ -294,8 +294,12 @@ class Demuxer:
             self.open(name)
 
     def __del__(self):
-        # FIXME: is pctx[0] lost?
-        pass
+        self.close()
+#        self._ff.lavf.avformat_free_context(self._pctx[0])
+
+    def close(self):
+        if self._pctx != self._ff.ffi.NULL:  # XXX
+            self._ff.lavf.avformat_close_input(self._pctx)
 
     def open(self, name=None):
         """
