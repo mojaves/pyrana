@@ -3,3 +3,4 @@ MANIFEST
 .coverage
 pyrana/__pycache__
 tests/__pycache__
+big_buck_bunny*
