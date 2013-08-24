@@ -18,6 +18,7 @@ class TestFormatFuncs(unittest.TestCase):
         self.assertTrue(any(map(pyrana.format.is_streamable,
                                 pyrana.format.OUTPUT_FORMATS)))
 
+    @unittest.expectedFailure
     def test_find_stream_empty(self):
         pyrana.format.find_stream({}, 0, MediaType.AVMEDIA_TYPE_UNKNOWN)
         assert(True)  # FIXME
