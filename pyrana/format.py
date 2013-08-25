@@ -307,8 +307,8 @@ class Demuxer:
     def __init__(self, src, name=None, delay_open=False):
         """
         Demuxer(src, name="")
-        Initialize a new demuxer for the file type `name' (use "" (empty)
-        for auto probing).
+        Initialize a new demuxer for the file type `name';
+        Use "" (empty) for auto probing.
         A Demuxer needs a RawIOBase-compliant as a source of data.
         The RawIOBase-compliant object must be already open.
         """
