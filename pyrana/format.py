@@ -258,8 +258,33 @@ class FormatFlags(IntEnum):
 
 
 def _codec_name(ffh, codec_id):
+    """
+    grabs the codec name from a codec ID.
+    the FFMpeg API requires a (trivial) bit of machinery.
+    """
     avcodec = ffh.lavc.avcodec_find_decoder(codec_id)
     return ffh.ffi.string(avcodec.name).decode('utf-8')
+
+
+def _audio_stream_info(ctx):
+    """
+    extract the audio stream info from an AVCodecContext (ctx)
+    """
+    return {
+        "sample_rate": get_field_int(ctx, "ar"),
+        "channels": get_field_int(ctx, "ac"),
+        "sample_bytes": 2  # FIXME: BPP is hardcoded
+    }
+
+
+def _video_stream_info(ctx):
+    """
+    extract the video stream info from an AVCodecContext (ctx)
+    """
+    return {
+        "width": 0,  # FIXME
+        "height": 0  # FIXME
+    }
 
 
 class Demuxer:
@@ -338,20 +363,10 @@ class Demuxer:
         params = {} if params is None else params
         raise NotImplementedError
 
-    def _audio_stream_info(self, ctx):
-        return {
-            "sample_rate": get_field_int(ctx, "ar"),
-            "channels": get_field_int(ctx, "ac"),
-            "sample_bytes": 2  # FIXME: BPP is hardcoded
-        }
-
-    def _video_stream_info(self, ctx):
-        return {
-            "width": 0,  # FIXME
-            "height": 0  # FIXME
-        }
-
     def _stream_info(self, stream):
+        """
+        extract the stream info from an AVStream
+        """
         ffh = self._ff  # shortcut
         ctx = stream.codec
         _type = to_media_type(ctx.codec_type)
@@ -361,12 +376,16 @@ class Demuxer:
             "bit_rate": get_field_int(ctx, "b")
         }
         if _type == MediaType.AVMEDIA_TYPE_AUDIO:
-            info.update(self._audio_stream_info(ctx))
+            info.update(_audio_stream_info(ctx))
         if _type == MediaType.AVMEDIA_TYPE_VIDEO:
-            info.update(self._video_stream_info(ctx))
+            info.update(_video_stream_info(ctx))
         return info 
 
     def _parse_streams(self):
+        """
+        convert the stream informations found in an AVFormatContext
+        in the API-compliant, more pythonic, friendlier version.
+        """
         streams = []
         for idx in range(self._pctx[0].nb_streams):
             streams.append(self._stream_info(self._pctx[0].streams[idx]))
