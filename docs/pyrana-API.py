@@ -236,7 +236,7 @@ class Decoder(object):
         """decode(Packet) -> Frame"""
         pass
     def flush(self):
-        """flush() -> encdata [str]"""
+        """flush() -> encdata [bytes]"""
         pass
     params
         """dict, read-only"""
@@ -255,9 +255,7 @@ class Encoder(object):
         """encode(Frame) -> Packet"""
         pass
     def flush(self):
-        """flush() -> encdata [str]"""
+        """flush() -> encdata [bytes]"""
         pass
     params
         """dict, read-only"""
-
-
