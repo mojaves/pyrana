@@ -120,6 +120,22 @@ def _wire(ffi):
          AVCodec *av_codec_next(const AVCodec *c);
          AVCodec *avcodec_find_decoder(enum AVCodecID id);
 
+         typedef struct AVFrame {
+             uint8_t *data[8]; /* FIXME */
+             int linesize[8]; /* FIXME */
+             uint8_t **extended_data;
+             int width, height;
+             int nb_samples;
+             int format;
+             int key_frame;
+             enum AVPictureType pict_type;
+             /* ... */
+         } AVFrame;
+
+         AVFrame *avcodec_alloc_frame(void);
+         void avcodec_get_frame_defaults(AVFrame *frame);
+         void avcodec_free_frame(AVFrame **frame);
+ 
          const char *av_get_media_type_string(enum AVMediaType media_type);
 
          int av_opt_get_int   (void *obj, const char *name, int search_flags, int64_t    *out_val);
