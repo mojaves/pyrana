@@ -24,7 +24,6 @@ OUTPUT_FORMATS = frozenset()
 
 def is_streamable(name):
     """
-    is_streamable(name) -> Bool
     tells if a given format is streamable (do NOT need seek()) or not.
     """
     return name in INPUT_FORMATS or name in OUTPUT_FORMATS  # TODO
@@ -32,9 +31,19 @@ def is_streamable(name):
 
 def find_stream(streams, stream_id, media):
     """
-    TODO
+    find and returns a specific stream in a streams info
+    (as in Demuxer().streams)
     """
-    raise NotImplementedError
+    try:
+        stream = streams[stream_id]
+        if stream["type"] == media:
+            return stream
+        msg = "mismatching media types for stream #%i" % stream_id
+    except IndexError:
+        msg = "unknown stream #%i" % stream_id
+    except KeyError:
+        msg = "malformed stream #%i" % stream_id
+    raise pyrana.errors.NotFoundError(msg)
 
 
 # In the current incarnation, it could be happily replaced by a namedtuple.
@@ -365,7 +374,9 @@ class Demuxer:
 
     def _stream_info(self, stream):
         """
-        extract the stream info from an AVStream
+        extract the stream info from an AVStream.
+        FIXME: switch to namedtuple. This will break our API,
+        but someone actually cares at this stage?
         """
         ffh = self._ff  # shortcut
         ctx = stream.codec

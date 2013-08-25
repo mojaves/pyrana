@@ -1,8 +1,9 @@
 #!/usr/bin/python
 
-import pyrana.format
-from pyrana.common import MediaType
 import unittest
+import pyrana.format
+import pyrana.errors
+from pyrana.common import MediaType
 
 
 class TestFormatFuncs(unittest.TestCase):
@@ -18,10 +19,38 @@ class TestFormatFuncs(unittest.TestCase):
         self.assertTrue(any(map(pyrana.format.is_streamable,
                                 pyrana.format.OUTPUT_FORMATS)))
 
-    @unittest.expectedFailure
     def test_find_stream_empty(self):
-        pyrana.format.find_stream({}, 0, MediaType.AVMEDIA_TYPE_UNKNOWN)
-        assert(True)  # FIXME
+        with self.assertRaises(pyrana.errors.NotFoundError):
+            pyrana.format.find_stream((), 0, MediaType.AVMEDIA_TYPE_UNKNOWN)
+
+    def test_find_stream_empty2(self):
+        with self.assertRaises(pyrana.errors.NotFoundError):
+            pyrana.format.find_stream(({}, ), 0,
+                                      MediaType.AVMEDIA_TYPE_UNKNOWN)
+
+    def test_find_stream_empty3(self):
+        with self.assertRaises(pyrana.errors.NotFoundError):
+            st = { "type": MediaType.AVMEDIA_TYPE_VIDEO }
+            pyrana.format.find_stream((st, {}, ), 1,
+                                      MediaType.AVMEDIA_TYPE_VIDEO)
+
+    def test_find_stream_fake_bad(self):
+        with self.assertRaises(pyrana.errors.NotFoundError):
+            st = { "type": MediaType.AVMEDIA_TYPE_VIDEO }
+            pyrana.format.find_stream((st,), 0,
+                                      MediaType.AVMEDIA_TYPE_AUDIO)
+
+    def test_find_stream_fake_bad_idx(self):
+        with self.assertRaises(pyrana.errors.NotFoundError):
+            st = { "type": MediaType.AVMEDIA_TYPE_VIDEO }
+            pyrana.format.find_stream((st,), 1,
+                                      MediaType.AVMEDIA_TYPE_VIDEO)
+
+    def test_find_stream_fake_good(self):
+        st = { "type": MediaType.AVMEDIA_TYPE_VIDEO }
+        st2 = pyrana.format.find_stream((st,), 0,
+                                        MediaType.AVMEDIA_TYPE_VIDEO)
+        assert st is st2
 
 
 if __name__ == "__main__":
