@@ -28,6 +28,7 @@ class EOSError(PyranaError):
 class NeedFeedError(PyranaError):
     """
     More data is needed to obtain a Frame or a Packet.
+    Feed more data in the raising object and try again.
     """
 
 
@@ -48,4 +49,11 @@ class UnsupportedError(PyranaError):
     """
     Requested an unsupported feature.
     Did you properly initialized everything?
+    """
+
+class NotFoundError(PyranaError):
+    """
+    cannot satisfy the user request: asked for an
+    inexistent attribute or for unsupported parameter
+    combination.
     """

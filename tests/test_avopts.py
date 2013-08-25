@@ -26,7 +26,7 @@ class TestFormatFuncs(unittest.TestCase):
             assert probesize
 
     def test_avf_get_inexistent(self):
-        with self.assertRaises(pyrana.errors.ProcessingError), \
+        with self.assertRaises(pyrana.errors.NotFoundError), \
              lavf_ctx() as ctx:
             probesize = get_field_int(ctx, "inexistent_attr")
             assert probesize

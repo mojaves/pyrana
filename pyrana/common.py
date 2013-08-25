@@ -110,5 +110,5 @@ def get_field_int(ffobj, name):
     err = ffh.lavu.av_opt_get_int(ffobj, name.encode('utf-8'), 0, out_val)
     if err < 0:
         msg = "cannot fetch the field '%s'" % name
-        raise pyrana.errors.ProcessingError(msg)
+        raise pyrana.errors.NotFoundError(msg)
     return out_val[0]
