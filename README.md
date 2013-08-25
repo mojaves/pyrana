@@ -39,8 +39,8 @@ in every major release.
 Requirements
 ------------
 
-* (c)python at least 3.2
-* [FFmpeg](http://ffmpeg.org) at least 1.0.0 (the last SVN/GIT snapshot is usually fine).
+* (c)python at least 3.3
+* [FFmpeg](http://ffmpeg.org) at least 1.2.0 (the last SVN/GIT snapshot is usually fine).
   [libav](http://libav.org) unsupported. May or may not work.
 * [cffi](http://cffi.readthedocs.org/en/release-0.7.2/)
 
