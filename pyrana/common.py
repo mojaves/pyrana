@@ -103,6 +103,7 @@ def all_codecs():
             video.append(name)
     return audio, video
 
+
 def get_field_int(ffobj, name):
     ffh = pyrana.ff.get_handle()
     out_val = ffh.ffi.new('int64_t[1]')
