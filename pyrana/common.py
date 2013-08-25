@@ -3,6 +3,10 @@ common code which do not fits better elsewhere.
 You should not use this directly.
 """
 
+from types import MappingProxyType as dictproxy
+# thanks to 
+# http://me.veekun.com/blog/2013/08/05/dictproxyhack-or-activestate-code-considered-harmful/
+
 from enum import IntEnum
 
 import pyrana.errors
@@ -112,3 +116,24 @@ def get_field_int(ffobj, name):
         msg = "cannot fetch the field '%s'" % name
         raise pyrana.errors.NotFoundError(msg)
     return out_val[0]
+
+
+class CodecMixin:
+    def __init__(self, params=None):
+        params = {} if params is None else params
+        self._params = params
+
+    @property
+    def params(self):
+        """
+        dict, read-only
+        """
+        return dictproxy(self._params)
+    
+    @property
+    def extra_data(self):
+        """
+        bytes, read-write
+        """
+        # TODO
+        return bytearray()
