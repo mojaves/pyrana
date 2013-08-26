@@ -48,9 +48,9 @@ class TestFormatFuncs(unittest.TestCase):
 
     def test_find_stream_fake_good(self):
         st = { "type": MediaType.AVMEDIA_TYPE_VIDEO }
-        st2 = pyrana.format.find_stream((st,), 0,
+        idx = pyrana.format.find_stream((st,), 0,
                                         MediaType.AVMEDIA_TYPE_VIDEO)
-        assert st is st2
+        assert idx == 0
 
 
 if __name__ == "__main__":

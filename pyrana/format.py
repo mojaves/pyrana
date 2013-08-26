@@ -29,20 +29,23 @@ def is_streamable(name):
     return name in INPUT_FORMATS or name in OUTPUT_FORMATS  # TODO
 
 
-def find_stream(streams, stream_id, media):
+def find_stream(streams, nth, media):
     """
-    find and returns a specific stream in a streams info
-    (as in Demuxer().streams)
+    find the nth stream of the specified media a streams info
+    (as in Demuxer().streams).
+    Return the corresponding stream_id.
+    Raise NotFoundError otherwise.
     """
     try:
-        stream = streams[stream_id]
-        if stream["type"] == media:
-            return stream
-        msg = "mismatching media types for stream #%i" % stream_id
-    except IndexError:
-        msg = "unknown stream #%i" % stream_id
+        cnt = 0
+        for sid, stream in enumerate(streams):
+            if stream["type"] == media:
+                if cnt == nth:
+                    return sid
+                cnt += 1
+        msg = "mismatching media types for stream" 
     except KeyError:
-        msg = "malformed stream #%i" % stream_id
+        msg = "malformed stream #%i" % sid
     raise pyrana.errors.NotFoundError(msg)
 
 
