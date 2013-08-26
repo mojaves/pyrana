@@ -120,9 +120,10 @@ def _wire(ffi):
          AVCodec *av_codec_next(const AVCodec *c);
          AVCodec *avcodec_find_decoder(enum AVCodecID id);
 
+         /* TODO: replace magic number - 8 */
          typedef struct AVFrame {
-             uint8_t *data[8]; /* FIXME */
-             int linesize[8]; /* FIXME */
+             uint8_t *data[8];
+             int linesize[8];
              uint8_t **extended_data;
              int width, height;
              int nb_samples;
