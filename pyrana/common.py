@@ -3,9 +3,9 @@ common code which do not fits better elsewhere.
 You should not use this directly.
 """
 
-from types import MappingProxyType as dictproxy
+from types import MappingProxyType as frozendict
 # thanks to 
-# http://me.veekun.com/blog/2013/08/05/dictproxyhack-or-activestate-code-considered-harmful/
+# http://me.veekun.com/blog/2013/08/05/frozendicthack-or-activestate-code-considered-harmful/
 
 from enum import IntEnum
 
@@ -25,6 +25,11 @@ class MediaType(IntEnum):
 
 
 def to_media_type(ival):
+    """
+    convert the integer argument to the corresponding
+    MediaType enumerator value, if feasible, or
+    AVMEDIA_TYPE_UNKNOWN otherwise.
+    """
     rmap = dict(enumerate(MediaType, -1))  # WARNING!
     return rmap.get(ival, MediaType.AVMEDIA_TYPE_UNKNOWN)
 
@@ -109,6 +114,11 @@ def all_codecs():
 
 
 def get_field_int(ffobj, name):
+    """
+    generic field accessor through libav* facilities.
+    extract the integer field with value `name' from
+    the C-data object `ffobj'
+    """
     ffh = pyrana.ff.get_handle()
     out_val = ffh.ffi.new('int64_t[1]')
     err = ffh.lavu.av_opt_get_int(ffobj, name.encode('utf-8'), 0, out_val)
@@ -119,6 +129,11 @@ def get_field_int(ffobj, name):
 
 
 class CodecMixin:
+    """
+    Mixin. Abstracts the common codec attributes:
+    parameters reference, read-only access, extradata
+    management.
+    """
     def __init__(self, params=None):
         params = {} if params is None else params
         self._params = params
@@ -128,7 +143,7 @@ class CodecMixin:
         """
         dict, read-only
         """
-        return dictproxy(self._params)
+        return frozendict(self._params)
     
     @property
     def extra_data(self):
