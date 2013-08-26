@@ -25,9 +25,9 @@ class Decoder(CodecMixin):
         # we *want* this dependency explicit
         # TODO
     
-    def decode(self, Packet):
+    def decode(self, packet):
         """
-        decode(Packet) -> Frame
+        decode(packet) -> frame
         """
         raise NotImplementedError
 
@@ -38,7 +38,7 @@ class Decoder(CodecMixin):
         raise NotImplementedError
 
 
-class Encoder(object):
+class Encoder(CodecMixin):
     """
     Like the old Pyrana class,
     - add the 'params' property (read-only preferred alias for getParams)
@@ -52,8 +52,8 @@ class Encoder(object):
         # we *want* this dependency explicit
         # TODO
 
-    def encode(self, Frame):
-        """encode(Frame) -> Packet"""
+    def encode(self, frame):
+        """encode(frame) -> packet"""
         raise NotImplementedError
 
     def flush(self):

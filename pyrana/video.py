@@ -24,15 +24,15 @@ class Decoder(CodecMixin):
         # we *want* this dependency explicit
         # TODO
 
-    def decode(self, Packet):
+    def decode(self, packet):
         """
-        decode(Packet) -> Frame
+        decode(packet) -> frame
         """
         raise NotImplementedError
 
     def flush(self):
         """
-        flush() -> Frame
+        flush() -> frame
         """
         raise NotImplementedError
 
@@ -50,14 +50,14 @@ class Encoder(CodecMixin):
         # we *want* this dependency explicit
         # TODO
 
-    def encode(self, Frame):
+    def encode(self, frame):
         """
-        encode(Frame) -> Packet
+        encode(frame) -> packet
         """
         raise NotImplementedError
 
     def flush(self):
         """
-        flush() -> Packet
+        flush() -> packet
         """
         raise NotImplementedError
