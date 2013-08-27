@@ -94,12 +94,12 @@ class EnumTranslator(pycparser.c_ast.NodeVisitor):
             return int(val, base=0)
         elif isinstance(enum_token.value, pycparser.c_ast.UnaryOp):
             val = enum_token.value.expr.value
-            return self.__class__.UNARYOPS[enum_token.value.op](
+            return EnumTranslator.UNARYOPS[enum_token.value.op](
                 int(val, base=0))
         elif isinstance(enum_token.value, pycparser.c_ast.BinaryOp):
             lval = enum_token.value.left.value
             rval = enum_token.value.right.value
-            return self.__class__.BINARYOPS[enum_token.value.op](
+            return EnumTranslator.BINARYOPS[enum_token.value.op](
                 int(lval, base=0),
                 int(rval, base=0))
 
