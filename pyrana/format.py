@@ -351,6 +351,24 @@ class Demuxer:
         if err < 0:
             raise pyrana.errors.SetupError("error=%i" % err)
 
+    def _read_pkt(self, pkt, stream_id=STREAM_ANY):
+        """
+        extracts and stores in `pkt' the first next packet belonging
+        of the given stream. Reads data and stores it in the already
+        allocated `pkt' C-data reference.
+        """
+        err = self._ff.lavc.av_new_packet(pkt, PKT_SIZE)
+        if err < 0:
+            raise ProcessingError("cannot reallocate packet")
+
+        while True:
+            err = self._ff.lavf.av_read_frame(self._pctx[0], pkt)
+            if err < 0:
+                raise ProcessingError("error while reading data: %i" % err)
+            if stream_id == STREAM_ANY or pkt.stream_index == stream_id:
+                break
+            self_ff.lavc.av_free_packet(pkt)
+
     def read_frame(self, stream_id=STREAM_ANY):
         """
         read_frame(stream_id=ANY) -> Packet Object
