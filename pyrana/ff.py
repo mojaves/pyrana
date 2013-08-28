@@ -44,6 +44,36 @@ def _wire(ffi):
                 int (*write_packet)(void *opaque, uint8_t *buf, int buf_size),
                 int64_t (*seek)(void *opaque, int64_t offset, int whence));
 
+         /* AVPacket is part of the stable ABI. */
+         typedef struct AVPacket {
+             int64_t pts;
+             int64_t dts;
+             uint8_t *data;
+             int   size;
+             int   stream_index;
+             int   flags;
+             struct {
+                 uint8_t *data;
+                 int      size;
+                 enum AVPacketSideDataType type;
+             } *side_data;
+             int side_data_elems;
+             int   duration;
+             void  (*destruct)(struct AVPacket *);
+             void  *priv;
+             int64_t pos;
+             int64_t convergence_duration;
+         } AVPacket;
+
+         void av_destruct_packet(AVPacket *pkt);
+         void av_init_packet(AVPacket *pkt);
+         int av_new_packet(AVPacket *pkt, int size);
+         void av_shrink_packet(AVPacket *pkt, int size);
+         int av_grow_packet(AVPacket *pkt, int grow_by);
+         int av_dup_packet(AVPacket *pkt);
+         int av_copy_packet(AVPacket *dst, AVPacket *src);
+         void av_free_packet(AVPacket *pkt);
+
          typedef struct AVDictionary AVDictionary;
          typedef struct AVClass AVClass;
          typedef struct AVProgram AVProgram;
