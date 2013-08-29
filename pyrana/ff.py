@@ -139,6 +139,8 @@ def _wire(ffi):
                                  AVInputFormat *fmt, AVDictionary **options);
          void avformat_close_input(AVFormatContext **s);
 
+         int av_read_frame(AVFormatContext *s, AVPacket *pkt);
+
          typedef struct AVCodec {
              const char *name;
              const char *long_name;
