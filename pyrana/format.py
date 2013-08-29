@@ -299,6 +299,80 @@ def _video_stream_info(ctx):
     }
 
 
+class FFPacket(Packet):
+    def __init__(self, pkt_size=PKT_SIZE):
+        self._ff = pyrana.ff.get_handle()
+
+        self._pkt = self._ff.ffi.new('AVPacket *')
+
+        err = self._ff.lavc.av_new_packet(self._pkt, pkt_size)
+        if err < 0:
+            raise pyrana.errors.ProcessingError("cannot reallocate packet")
+
+    def __del__(self):
+        self._ff.lavc.av_free_packet(self._pkt)
+
+    def __len__(self):
+        return self.size
+
+    def __bytes__(self):
+        return self.data
+
+    def __hash__(self):
+        return hash(self.cdata)
+
+    @property
+    def cdata(self):
+        return self._pkt.data
+
+    @property
+    def cpkt(self):
+        return self._pkt
+
+    @property
+    def stream_id(self):
+        """
+        the identifier of the logical stream which this packet belongs to.
+        """
+        return self._pkt.stream_id
+
+    @property
+    def pts(self):
+        """
+        the Presentation TimeStamp of this packet.
+        """
+        return self._pkt.pts
+
+    @property
+    def dts(self):
+        """
+        the Decoding TimeStamp of this packet.
+        """
+        return self._pkt.dts
+
+    @property
+    def data(self):
+        """
+        the raw data (bytes) this packet carries.
+        """
+        return self._ff.ffi.buffer(self._pkt.data, self._pkt.size)
+
+    @property
+    def is_key(self):
+        """
+        boolean flag. Is this packet a key frame?
+        (provided by libav*)
+        """
+        return self._pkt.is_key
+
+    @property
+    def size(self):
+        """
+        Size of the packet data (bytes)
+        """
+        return self._pkt.size
+
+
 class Demuxer:
     """
     Demuxer object. Use a file-like for real I/O.
@@ -327,6 +401,7 @@ class Demuxer:
         self._pctx[0] = ffh.lavf.avformat_alloc_context()
         self._pctx[0].pb = self._src.avio
         self._pctx[0].flags |= FormatFlags.AVFMT_FLAG_CUSTOM_IO
+        self._ready = False
         if not delay_open:
             self.open(name)
 
@@ -350,26 +425,9 @@ class Demuxer:
                                                 fmt, self._ff.ffi.NULL)
         if err < 0:
             raise pyrana.errors.SetupError("error=%i" % err)
+        self._ready = True
 
-    def _read_pkt(self, pkt, stream_id=STREAM_ANY):
-        """
-        extracts and stores in `pkt' the first next packet belonging
-        of the given stream. Reads data and stores it in the already
-        allocated `pkt' C-data reference.
-        """
-        err = self._ff.lavc.av_new_packet(pkt, PKT_SIZE)
-        if err < 0:
-            raise ProcessingError("cannot reallocate packet")
-
-        while True:
-            err = self._ff.lavf.av_read_frame(self._pctx[0], pkt)
-            if err < 0:
-                raise ProcessingError("error while reading data: %i" % err)
-            if stream_id == STREAM_ANY or pkt.stream_index == stream_id:
-                break
-            self_ff.lavc.av_free_packet(pkt)
-
-    def read_frame(self, stream_id=STREAM_ANY):
+    def read_frame(self, stream_id=STREAM_ANY, pkt=None):
         """
         read_frame(stream_id=ANY) -> Packet Object
         reads and returns a new complete encoded frame (enclosed in a Packet)
@@ -381,7 +439,21 @@ class Demuxer:
         - a stream id is specified, and such streams doesn't exists.
         - the streams ends.
         """
-        raise NotImplementedError
+        if not self._ready:
+            raise pyrana.errors.ProcessingError("stream not yet open")
+
+        if pkt is None:
+            pkt = FFPacket(PKT_SIZE)
+
+        while True:
+            err = self._ff.lavf.av_read_frame(self._pctx[0], pkt.cpkt)
+            if err < 0:
+                msg = "error while reading data: %i" % err
+                raise pyrana.errors.ProcessingError(msg)
+            if stream_id == STREAM_ANY or pkt.stream_index == stream_id:
+                break
+
+        return pkt
 
     def open_decoder(self, stream_id, params=None):
         """
@@ -391,6 +463,9 @@ class Demuxer:
         Like doing things manually, just easily.
         """
         params = {} if params is None else params
+        if not self._ready:
+            raise pyrana.errors.ProcessingError("stream not yet open")
+
         raise NotImplementedError
 
     def _stream_info(self, stream):
@@ -403,6 +478,8 @@ class Demuxer:
         ctx = stream.codec
         _type = to_media_type(ctx.codec_type)
         info = {
+            "id": stream.id,
+            "index": stream.index,
             "type": _type,
             "name": _codec_name(ffh, ctx.codec_id),
             "bit_rate": get_field_int(ctx, "b")
