@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 """
 Helper tool to generate a Python class from a C enum type
 """
@@ -63,27 +65,6 @@ class EnumTranslator(pycparser.c_ast.NodeVisitor):
             self.output_class_name = output_class_name
         self.output_buffer = []
 
-    def _search_enum_value(self, node, name_to_search):
-        """
-        Searches for the enumerators name_to_search contained
-        in the portion of the AST identified by node
-        Returns the value associated with that name if found,
-        None otherwise
-        """
-        for elem in node.values.enumerators:
-            if elem.name == name_to_search:
-                if elem.value:
-                    return self._enumvalue(elem)
-                else:
-                    raise NoValueException("No associated value for "
-                                           "enumerator{}".format(elem.name))
-        # FIXME
-        """
-        It is possible that the enumerator is not expressed as NAME = VALUE
-        in the source header file, so we need to calculate the value
-        associated to the enumerator (like we do in _translate_enum)
-        """
-
     def _enumvalue(self, enum_token):
         """
         Translate an enumerate value to obtain the
@@ -113,19 +94,14 @@ class EnumTranslator(pycparser.c_ast.NodeVisitor):
         for elem in node.values.enumerators:
             if elem.value:
                 value = self._enumvalue(elem)
-                if value is None:
-                    for (childname, child) in elem.children():
-                        if isinstance(child, pycparser.c_ast.ID):
-                            #FIXME
-                            # This may lead to wrong enumerator value
-                            # calculation
-                            value = self._search_enum_value(node, child.name)
                 count = value
             else:
                 value = count+1
                 count += 1
             self.output_buffer.append(
                 '    {0} = {1}\n'.format(elem.name, value))
+            if self.stop_enum and elem.name == self.stop_enum:
+                break
 
     def visit_Enum(self, node):
         """
@@ -177,11 +153,12 @@ class EnumTranslator(pycparser.c_ast.NodeVisitor):
         """
         self.visit(self.ast)
 
-    def translate(self, params):
+    def translate(self, params, stop_enum=''):
         """
         Main method of the class, it creates a translation
         for the C enum and stores it in an internal buffer
         """
+        self.stop_enum = stop_enum
         self._build_header(params)
         self._build_body()
 
@@ -218,6 +195,10 @@ def _main():
         '-o',
         '--output',
         help='output file name')
+    args_parser.add_argument(
+        '-s',
+        '--stop',
+        help='last enumerator to parse')
     args_obj = args_parser.parse_args()
 
     if not args_obj.output_class:
@@ -233,9 +214,14 @@ def _main():
         'header': args_obj.header,
         'comment': args_obj.comment,
         'hash_type': 'SHA-1',
-        'hash_value': compute_sha1_hash(args_obj.header)
+        'hash_value': compute_sha1_hash(args_obj.header),
     }
-    et_obj.translate(translate_params)
+    try:
+        et_obj.translate(translate_params, args_obj.stop)
+    except TypeError:
+        print('Translation error, try to use -s option with a stop ' 
+                'enumerator parameter')
+        exit()
 
     if args_obj.output:
         with open(args_obj.output, 'w') as ftw:
