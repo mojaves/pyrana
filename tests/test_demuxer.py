@@ -42,15 +42,15 @@ class TestDemuxer(unittest.TestCase):
             dmx = pyrana.format.Demuxer(f, delay_open=True)
             assert dmx.streams  # raised here
 
-    @unittest.expectedFailure
     def test_invalid_decoder_without_open(self):
-        with io.BytesIO(_B) as f:
+        with self.assertRaises(pyrana.errors.ProcessingError), \
+             io.BytesIO(_B) as f:
             dmx = pyrana.format.Demuxer(f, delay_open=True)
             dec = dmx.open_decoder(0)  # FIXME
 
-    @unittest.expectedFailure
     def test_invalid_read_without_open(self):
-        with io.BytesIO(_B) as f:
+        with self.assertRaises(pyrana.errors.ProcessingError), \
+             io.BytesIO(_B) as f:
             dmx = pyrana.format.Demuxer(f, delay_open=True)
             frame = dmx.read_frame()
             assert not frame
