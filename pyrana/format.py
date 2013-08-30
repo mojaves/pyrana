@@ -117,8 +117,10 @@ class Packet:
         self._ff = pyrana.ff.get_handle()
         ffi = self._ff.ffi  # shortcut
 
-        if data is not None and (size is None or size < len(data)):
-            size = len(data)
+        if data is not None:
+            data = bytes(data)
+            if size is None or size < len(data):
+                size = len(data)
         
         self._pkt = ffi.new('AVPacket *')
 
@@ -128,25 +130,38 @@ class Packet:
 
         if stream_id is not None:
             self._pkt.stream_index= stream_id
-        if data is not None:
-            self._raw_data = bytes(data)
         self._pkt.pts = ffi.cast("int64_t", pts)
         self._pkt.dts = ffi.cast("int64_t", dts)
         if is_key:
             self._pkt.flags |= PacketFlags.AV_PKT_FLAG_KEY
         self._raw_data = ffi.buffer(self._pkt.data, self._pkt.size)
+        self._used = self._pkt.size
+        if data is not None:
+            data = bytes(data)
+            self._used = len(data)
+            self._raw_data[:self._used] = data
 
     def __del__(self):
         self._ff.lavc.av_free_packet(self._pkt)
 
     def __len__(self):
-        return self.size
+        return self._used
 
     def __bytes__(self):
         return bytes(self.data)
 
+    def __eq__(self, other):
+        return self.data == other.data
+
     def __hash__(self):
-        return hash(self.cdata)
+        return hash(self.data)
+
+    @property
+    def used(self):
+        """
+        Portion of the packet containing meaningful data (bytes)
+        """
+        return self._used
 
     @property
     def cdata(self):
@@ -188,7 +203,7 @@ class Packet:
         """
         the raw data (bytes) this packet carries.
         """
-        return self._raw_data
+        return self._raw_data[:self._used]
 
     @property
     def is_key(self):
@@ -416,7 +431,7 @@ class Demuxer:
             raise pyrana.errors.ProcessingError("stream not yet open")
 
         if pkt is None:
-            pkt = FFPacket(PKT_SIZE)
+            pkt = Packet()
 
         while True:
             err = self._ff.lavf.av_read_frame(self._pctx[0], pkt.cpkt)

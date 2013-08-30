@@ -4,7 +4,7 @@ import pyrana.format
 import unittest
 
 
-_B = "a".encode('utf-8')
+_B = b'A'
 
 
 class TestPacket(unittest.TestCase):
