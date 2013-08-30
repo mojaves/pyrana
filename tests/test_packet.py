@@ -12,7 +12,7 @@ class TestPacket(unittest.TestCase):
         try:
             pkt = pyrana.format.Packet(0, _B)
         except pyrana.PyranaError as x:
-            self.fail("failed creation from simple string: %s" %str(x))
+            self.fail("failed creation from simple string: %s" % x)
 
     def test_new_from_string_huge(self):
         try:
@@ -30,13 +30,13 @@ class TestPacket(unittest.TestCase):
             self.fail("failed creation from another packet")
 
     def test_data_values_matches(self):
-        f = pyrana.format.Packet(0, _B)
-        self.assertTrue(f.data == _B)
-
-    def test_data_sizes_matches(self):
         pkt = pyrana.format.Packet(0, _B)
-        self.assertTrue(pkt.size == len(_B))
-        self.assertTrue(len(pkt) == len(_B))
+        self.assertTrue(pkt.data == _B)
+
+    def test_data_sizes(self):
+        pkt = pyrana.format.Packet(0, _B)
+        self.assertTrue(pkt.size >= len(_B))
+        self.assertTrue(len(pkt) >= len(_B))
 
     def test_default_values(self):
         f = pyrana.format.Packet(0, _B)
@@ -46,7 +46,8 @@ class TestPacket(unittest.TestCase):
         self.assertTrue(f.stream_id  == 0)
 
     def test_init_values(self):
-        f = pyrana.format.Packet(3, "abracadabra".encode('utf-8'), 200, 300, True)
+        f = pyrana.format.Packet(3, "abracadabra".encode('utf-8'),
+                                 pts=200, dts=300, is_key=True)
         self.assertTrue(f.stream_id == 3)
         self.assertTrue(f.is_key)
         self.assertTrue(f.pts == 200)
@@ -82,20 +83,20 @@ class TestPacket(unittest.TestCase):
 
     def test_cannot_reset_data(self):
         d = b"O RLY?!?"
-        f = pyrana.format.Packet(0, d)
-        self.assertTrue(f.data == d)
+        pkt = pyrana.format.Packet(0, d)
+        self.assertTrue(pkt.data == d)
         with self.assertRaises(AttributeError):
-            f.data = b"YA, RLY"
-        self.assertTrue(f.data == d)
+            pkt.data = b"YA, RLY"
+        self.assertTrue(pkt.data == d)
 
     def test_cannot_reset_size(self):
         d = b"YA, RLY!!!"
         l = len(d)
         f = pyrana.format.Packet(0, d)
-        self.assertTrue(f.size == l)
+        self.assertTrue(f.size >= l)
         with self.assertRaises(AttributeError):
             f.size = len(b"YA, RLY")
-        self.assertTrue(f.size == l)
+        self.assertTrue(f.size >= l)
 
     def test_to_bytes(self):
         pkt = pyrana.format.Packet(0, _B)

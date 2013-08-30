@@ -14,7 +14,11 @@ import pyrana.ff
 
 
 STREAM_ANY = -1
-TS_NULL = 0x8000000000000000
+# this save us a call to ffi.cast("int64_t", TS_NULL)
+# in C, we have fixed size integers, overflows and overflow tricks.
+# in Python, we have unlimited integers aka longs and transparent
+# promotions. Sometimes the two things mismatch.
+TS_NULL = -0x8000000000000000
 PKT_SIZE = 4096
 
 
@@ -47,75 +51,6 @@ def find_stream(streams, nth, media):
     except KeyError:
         msg = "malformed stream #%i" % sid
     raise pyrana.errors.NotFoundError(msg)
-
-
-# In the current incarnation, it could be happily replaced by a namedtuple.
-# however, things are expected to change once Muxer get implemented.
-class Packet:
-    """
-    a Packet object represents an immutable, encoded packet of a
-    multimedia stream.
-    """
-    def __init__(self, stream_id, data,
-                 pts=TS_NULL, dts=TS_NULL, is_key=False):
-        self._ff = pyrana.ff.get_handle()
-        self._stream_id = stream_id
-        self._pts = pts
-        self._dts = dts
-        self._data = bytes(data)
-        self._is_key = is_key
-
-    def __len__(self):
-        return len(self._data)
-
-    def __bytes__(self):
-        return self._data
-
-    def __hash__(self):
-        return hash(self._data)
-
-    @property
-    def stream_id(self):
-        """
-        the identifier of the logical stream which this packet belongs to.
-        """
-        return self._stream_id
-
-    @property
-    def pts(self):
-        """
-        the Presentation TimeStamp of this packet.
-        """
-        return self._pts
-
-    @property
-    def dts(self):
-        """
-        the Decoding TimeStamp of this packet.
-        """
-        return self._dts
-
-    @property
-    def data(self):
-        """
-        the raw data (bytes) this packet carries.
-        """
-        return self._data
-
-    @property
-    def is_key(self):
-        """
-        boolean flag. Is this packet a key frame?
-        (provided by libav*)
-        """
-        return self._is_key
-
-    @property
-    def size(self):
-        """
-        Size of the packet data (bytes)
-        """
-        return len(self._data)
 
 
 class Buffer:
@@ -157,6 +92,118 @@ class Buffer:
         of course through cffi.
         """
         return self._data
+
+
+# see avcodec for the meaning of flags
+class PacketFlags(IntEnum):
+    """
+    wrapper for the (wannabe)enum of AVPktFlag
+    in libavcodec/avcodec.h
+    """
+    AV_PKT_FLAG_KEY = 0x0001
+    AV_PKT_FLAG_CORRUPT = 0x0002
+
+
+# In the current incarnation, it could be happily replaced by a namedtuple.
+# however, things are expected to change once Muxer get implemented.
+class Packet:
+    """
+    a Packet object represents an immutable, encoded packet of a
+    multimedia stream.
+    """
+    def __init__(self, stream_id=None,
+                 data=None, size=PKT_SIZE,
+                 pts=TS_NULL, dts=TS_NULL, is_key=False):
+        self._ff = pyrana.ff.get_handle()
+        ffi = self._ff.ffi  # shortcut
+
+        if data is not None and (size is None or size < len(data)):
+            size = len(data)
+        
+        self._pkt = ffi.new('AVPacket *')
+
+        err = self._ff.lavc.av_new_packet(self._pkt, size)
+        if err < 0:
+            raise pyrana.errors.ProcessingError("cannot allocate packet")
+
+        if stream_id is not None:
+            self._pkt.stream_index= stream_id
+        if data is not None:
+            self._raw_data = bytes(data)
+        self._pkt.pts = ffi.cast("int64_t", pts)
+        self._pkt.dts = ffi.cast("int64_t", dts)
+        if is_key:
+            self._pkt.flags |= PacketFlags.AV_PKT_FLAG_KEY
+        self._raw_data = ffi.buffer(self._pkt.data, self._pkt.size)
+
+    def __del__(self):
+        self._ff.lavc.av_free_packet(self._pkt)
+
+    def __len__(self):
+        return self.size
+
+    def __bytes__(self):
+        return bytes(self.data)
+
+    def __hash__(self):
+        return hash(self.cdata)
+
+    @property
+    def cdata(self):
+        """raw C-data"""
+        return self._pkt.data
+
+    @property
+    def cpkt(self):
+        """
+        The underlying libav* av_packet. Needed for fast access.
+        And still ugly.
+        """
+        # FIXME: what an ugly name
+        return self._pkt
+
+    @property
+    def stream_id(self):
+        """
+        the identifier of the logical stream which this packet belongs to.
+        """
+        return self._pkt.stream_index
+
+    @property
+    def pts(self):
+        """
+        the Presentation TimeStamp of this packet.
+        """
+        return self._pkt.pts
+
+    @property
+    def dts(self):
+        """
+        the Decoding TimeStamp of this packet.
+        """
+        return self._pkt.dts
+
+    @property
+    def data(self):
+        """
+        the raw data (bytes) this packet carries.
+        """
+        return self._raw_data
+
+    @property
+    def is_key(self):
+        """
+        boolean flag. Is this packet a key frame?
+        (provided by libav*)
+        """
+        return bool(self._pkt.flags & PacketFlags.AV_PKT_FLAG_KEY)
+
+    @property
+    def size(self):
+        """
+        Size of the packet data (bytes)
+        """
+        return self._pkt.size
 
 
 def _read(handle, buf, buf_size):
@@ -297,80 +344,6 @@ def _video_stream_info(ctx):
         "width": 0,  # FIXME
         "height": 0  # FIXME
     }
-
-
-class FFPacket(Packet):
-    def __init__(self, pkt_size=PKT_SIZE):
-        self._ff = pyrana.ff.get_handle()
-
-        self._pkt = self._ff.ffi.new('AVPacket *')
-
-        err = self._ff.lavc.av_new_packet(self._pkt, pkt_size)
-        if err < 0:
-            raise pyrana.errors.ProcessingError("cannot reallocate packet")
-
-    def __del__(self):
-        self._ff.lavc.av_free_packet(self._pkt)
-
-    def __len__(self):
-        return self.size
-
-    def __bytes__(self):
-        return self.data
-
-    def __hash__(self):
-        return hash(self.cdata)
-
-    @property
-    def cdata(self):
-        return self._pkt.data
-
-    @property
-    def cpkt(self):
-        return self._pkt
-
-    @property
-    def stream_id(self):
-        """
-        the identifier of the logical stream which this packet belongs to.
-        """
-        return self._pkt.stream_id
-
-    @property
-    def pts(self):
-        """
-        the Presentation TimeStamp of this packet.
-        """
-        return self._pkt.pts
-
-    @property
-    def dts(self):
-        """
-        the Decoding TimeStamp of this packet.
-        """
-        return self._pkt.dts
-
-    @property
-    def data(self):
-        """
-        the raw data (bytes) this packet carries.
-        """
-        return self._ff.ffi.buffer(self._pkt.data, self._pkt.size)
-
-    @property
-    def is_key(self):
-        """
-        boolean flag. Is this packet a key frame?
-        (provided by libav*)
-        """
-        return self._pkt.is_key
-
-    @property
-    def size(self):
-        """
-        Size of the packet data (bytes)
-        """
-        return self._pkt.size
 
 
 class Demuxer:
