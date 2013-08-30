@@ -391,7 +391,7 @@ def _read_frame(ffh, ctx, pkt, stream_id):
         if err < 0:
             msg = "error while reading data: %i" % err
             raise pyrana.errors.ProcessingError(msg)
-        if stream_id == STREAM_ANY or pkt.stream_index == stream_id:
+        if stream_id == STREAM_ANY or pkt.stream_id == stream_id:
             break
     return pkt
 
