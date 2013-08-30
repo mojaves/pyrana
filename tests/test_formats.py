@@ -3,7 +3,7 @@
 import pyrana
 import pyrana.audio
 import pyrana.video
-import pyrana.format
+import pyrana.formats
 import pyrana.common
 import pyrana.ff
 import unittest
@@ -17,11 +17,11 @@ class TestCommonData(unittest.TestCase):
     def _assert_valid_collection(self, col):
         self.assertTrue(len(col) > 0)
 
-    def test_input_format(self):
-        self._assert_valid_collection(pyrana.format.INPUT_FORMATS)
+    def test_input_formats(self):
+        self._assert_valid_collection(pyrana.formats.INPUT_FORMATS)
 
-    def test_output_format(self):
-        self._assert_valid_collection(pyrana.format.OUTPUT_FORMATS)
+    def test_output_formats(self):
+        self._assert_valid_collection(pyrana.formats.OUTPUT_FORMATS)
 
     def test_input_video_codecs(self):
         self._assert_valid_collection(pyrana.video.INPUT_CODECS)
@@ -29,7 +29,7 @@ class TestCommonData(unittest.TestCase):
     def test_output_video_codecs(self):
         self._assert_valid_collection(pyrana.video.OUTPUT_CODECS)
 
-    def test_pixel_format(self):
+    def test_pixel_formats(self):
         self._assert_valid_collection(pyrana.video.PixelFormat)
 
     def test_input_audio_codecs(self):
@@ -39,14 +39,14 @@ class TestCommonData(unittest.TestCase):
         self._assert_valid_collection(pyrana.audio.OUTPUT_CODECS)
 
     @unittest.expectedFailure
-    def test_sample_format(self):
+    def test_sample_formats(self):
         self._assert_valid_collection(pyrana.audio.SampleFormat)
 
-    def test_valid_input_format(self):
-        self.assertTrue(all(len(name) > 0 for name in pyrana.format.INPUT_FORMATS))
+    def test_valid_input_formats(self):
+        self.assertTrue(all(len(name) > 0 for name in pyrana.formats.INPUT_FORMATS))
 
-    def test_valid_input_format(self):
-        self.assertTrue(all(len(name) > 0 for name in pyrana.format.OUTPUT_FORMATS))
+    def test_valid_input_formats(self):
+        self.assertTrue(all(len(name) > 0 for name in pyrana.formats.OUTPUT_FORMATS))
 
     def test_valid_input_video_codecs(self):
         self.assertTrue(all(len(name) > 0 for name in pyrana.video.INPUT_CODECS))

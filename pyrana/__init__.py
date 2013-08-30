@@ -23,7 +23,7 @@ _enforce_platform(platform)
 
 
 # backward compatibility
-from pyrana.format import TS_NULL
+from pyrana.formats import TS_NULL
 # meh.
 from pyrana.errors import *
 
@@ -40,18 +40,18 @@ def setup():
     from pyrana.common import all_formats, all_codecs
     import pyrana.versions
     import pyrana.ff
-    import pyrana.format
+    import pyrana.formats
     import pyrana.audio
     import pyrana.video
     pyrana.ff.setup()
     pyrana.versions.autoverify()
     # we know all the supported formats/codecs only *after* the
     # registration process. So we must do this wiring here.
-    if not pyrana.format.INPUT_FORMATS or \
-       not pyrana.format.OUTPUT_FORMATS:
+    if not pyrana.formats.INPUT_FORMATS or \
+       not pyrana.formats.OUTPUT_FORMATS:
         ifmts, ofmts = all_formats()
-        pyrana.format.INPUT_FORMATS = frozenset(ifmts)
-        pyrana.format.OUTPUT_FORMATS = frozenset(ofmts)
+        pyrana.formats.INPUT_FORMATS = frozenset(ifmts)
+        pyrana.formats.OUTPUT_FORMATS = frozenset(ofmts)
     if not pyrana.audio.INPUT_CODECS or \
        not pyrana.audio.OUTPUT_CODECS or \
        not pyrana.video.INPUT_CODECS or \
@@ -64,4 +64,4 @@ def setup():
         pyrana.video.OUTPUT_CODECS = vcods
 
 
-__all__ = ['versions', 'format', 'audio', 'video']
+__all__ = ['versions', 'formats', 'audio', 'video']

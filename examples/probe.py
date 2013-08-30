@@ -5,7 +5,7 @@ FIXME: document me!
 """
 
 import sys
-import pyrana.format
+import pyrana.formats
 import pyrana.errors
 
 
@@ -21,7 +21,7 @@ class MediaInfo(object):
     def inspect(self, path):
         with open(path, "rb") as f:
             try:
-                dmx = pyrana.format.Demuxer(f)
+                dmx = pyrana.formats.Demuxer(f)
                 self._info = dmx.streams
             except pyrana.errors.PyranaError as err:
                 self._info = ()
