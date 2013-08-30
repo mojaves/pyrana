@@ -107,6 +107,20 @@ class PacketFlags(IntEnum):
     AV_PKT_FLAG_CORRUPT = 0x0002
 
 
+def _alloc_pkt(ffh, pkt, size):
+    """
+    allocates a Packet suitable for libav* usage,
+    of the desired size. Checks for errors and raises
+    Exceptions accordingly.
+    and that's the reason why we use a separate private
+    function.
+    """
+    err = ffh.lavc.av_new_packet(pkt, size)
+    if err < 0:
+        raise pyrana.errors.ProcessingError("cannot allocate packet")
+    return pkt
+
+
 # In the current incarnation, it could be happily replaced by a namedtuple.
 # however, things are expected to change once Muxer get implemented.
 class Packet:
@@ -126,10 +140,7 @@ class Packet:
                 size = len(data)
         
         self._pkt = ffi.new('AVPacket *')
-
-        err = self._ff.lavc.av_new_packet(self._pkt, size)
-        if err < 0:
-            raise pyrana.errors.ProcessingError("cannot allocate packet")
+        _alloc_pkt(self._ff, self._pkt, size)
 
         if stream_id is not None:
             self._pkt.stream_index= stream_id
@@ -373,6 +384,18 @@ def _video_stream_info(ctx):
     }
 
 
+def _read_frame(ffh, ctx, pkt, stream_id):
+    av_read_frame = ffh.lavf.av_read_frame  # shortcut to speedup
+    while True:
+        err = av_read_frame(ctx, pkt.cpkt)
+        if err < 0:
+            msg = "error while reading data: %i" % err
+            raise pyrana.errors.ProcessingError(msg)
+        if stream_id == STREAM_ANY or pkt.stream_index == stream_id:
+            break
+    return pkt
+
+
 class Demuxer:
     """
     Demuxer object. Use a file-like for real I/O.
@@ -445,15 +468,7 @@ class Demuxer:
         if pkt is None:
             pkt = Packet()
 
-        while True:
-            err = self._ff.lavf.av_read_frame(self._pctx[0], pkt.cpkt)
-            if err < 0:
-                msg = "error while reading data: %i" % err
-                raise pyrana.errors.ProcessingError(msg)
-            if stream_id == STREAM_ANY or pkt.stream_index == stream_id:
-                break
-
-        return pkt
+        return _read_frame(self._ff, self._pctx[0], pkt, stream_id)
 
     def open_decoder(self, stream_id, params=None):
         """
@@ -465,7 +480,6 @@ class Demuxer:
         params = {} if params is None else params
         if not self._ready:
             raise pyrana.errors.ProcessingError("stream not yet open")
-        raise NotImplementedError
 
     def _stream_info(self, stream):
         """

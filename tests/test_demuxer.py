@@ -10,6 +10,16 @@ import unittest
 _B = b'\0' * 1024 * 64
 
 
+#TODO: factorize the mocks
+class MockFaultyFF:
+    class MockFaultyLavf:
+        def av_read_frame(self, ctx, pkt):
+            return -1
+
+    def __init__(self):
+        self.lavf = MockFaultyFF.MockFaultyLavf()
+
+
 class TestDemuxer(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -62,15 +72,15 @@ class TestDemuxer(unittest.TestCase):
             assert pkt
             assert len(pkt)
 
-    @unittest.expectedFailure
-    def test_read_broken(self):
-        with open('tests/data/bbb_sample_broken.ogg', 'rb') as f:
-            dmx = pyrana.format.Demuxer(f)
-            pkt = dmx.read_frame()
-            with self.assertRaises(pyrana.errors.ProcessingError):
-                pkt = dmx.read_frame()
-                assert pkt
- 
+    def test_read_faulty(self):
+        class MockPacket:
+            def cpkt(self):
+                return {}
+        ffh = MockFaultyFF()
+        pkt = MockPacket()
+        with self.assertRaises(pyrana.errors.ProcessingError):
+            pyrana.format._read_frame(ffh, {}, pkt, 0)  # FIXME: proper types
+
 
 if __name__ == "__main__":
     unittest.main()

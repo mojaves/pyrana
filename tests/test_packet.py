@@ -1,10 +1,21 @@
 #!/usr/bin/python
 
 import pyrana.format
+import pyrana.errors
 import unittest
 
 
 _B = b'A'
+
+
+#TODO: learn the mock package
+class MockFaultyFF:
+    class MockFaultyLavc:
+        def av_new_packet(self, pkt, size):
+            return -1
+
+    def __init__(self):
+        self.lavc = MockFaultyFF.MockFaultyLavc()
 
 
 class TestPacket(unittest.TestCase):
@@ -13,6 +24,11 @@ class TestPacket(unittest.TestCase):
             pkt = pyrana.format.Packet(0, _B)
         except pyrana.PyranaError as x:
             self.fail("failed creation from simple string: %s" % x)
+
+    def test_faulty_alloc(self):
+        ffh = MockFaultyFF()
+        with self.assertRaises(pyrana.errors.ProcessingError):
+            pyrana.format._alloc_pkt(ffh, {}, 128)  # FIXME: proper types
 
     def test_new_from_string_huge(self):
         try:
