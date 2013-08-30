@@ -39,10 +39,9 @@ class MediaInfo(object):
 
 
 def _main(args):
-    media_files = args[1:]
-    for mf in media_files:
+    for mf in args:
         print(str(MediaInfo(mf)))
 
 
 if __name__ == "__main__":
-    _main(sys.argv)
+    _main(sys.argv[1:])
