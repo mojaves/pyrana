@@ -69,6 +69,9 @@ class Buffer:
     def __len__(self):
         return self._size
 
+    def __repr__(self):
+        return "Buffer(%i)" % self._size
+
     @property
     def size(self):
         """
@@ -143,6 +146,11 @@ class Packet:
 
     def __del__(self):
         self._ff.lavc.av_free_packet(self._pkt)
+
+    def __repr__(self):
+        return "Packet(stream_id=%i, size=%i, " \
+               "pts=%i, dts=%i, is_key=%i)  # used=%i" % (self.stream_id,
+                    self.size, self.pts, self.dts, self.is_key, self.used)
 
     def __len__(self):
         return self._used
@@ -276,6 +284,10 @@ class IOSource:
 
     def __del__(self):
         self.close()
+
+    def __repr__(self):
+        seekable = self._seek != self._ff.ffi.NULL
+        return "IOSource(src=None, seekable=%i)" % (seekable)
 
     def _alloc_buf(self, size):
         """
