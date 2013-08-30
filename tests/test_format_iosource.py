@@ -28,6 +28,7 @@ class TestFormatIOSource(unittest.TestCase):
         f = io.BytesIO(_BZ)
         src = pyrana.format.IOSource(f)
         assert src
+        assert repr(src)
 
     def test_new_empty_not_seekable(self):
         f = io.BytesIO(_BZ)

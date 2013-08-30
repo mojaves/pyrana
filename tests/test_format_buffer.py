@@ -11,6 +11,7 @@ class TestFormatBuffer(unittest.TestCase):
     def test_new_empty(self):
         buf = pyrana.format.Buffer()
         assert buf
+        assert repr(buf)
 
     def test_empty_len(self):
         buf = pyrana.format.Buffer()

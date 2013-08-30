@@ -55,6 +55,22 @@ class TestDemuxer(unittest.TestCase):
             frame = dmx.read_frame()
             assert not frame
 
+    def test_read_first_packet(self):
+        with open('tests/data/bbb_sample.ogg', 'rb') as f:
+            dmx = pyrana.format.Demuxer(f)
+            pkt = dmx.read_frame()
+            assert pkt
+            assert len(pkt)
+
+    @unittest.expectedFailure
+    def test_read_broken(self):
+        with open('tests/data/bbb_sample_broken.ogg', 'rb') as f:
+            dmx = pyrana.format.Demuxer(f)
+            pkt = dmx.read_frame()
+            with self.assertRaises(pyrana.errors.ProcessingError):
+                pkt = dmx.read_frame()
+                assert pkt
+ 
 
 if __name__ == "__main__":
     unittest.main()

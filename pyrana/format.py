@@ -171,10 +171,10 @@ class Packet:
         """
         return self._used
 
-    @property
-    def cdata(self):
-        """raw C-data"""
-        return self._pkt.data
+#    @property
+#    def cdata(self):
+#        """raw C-data"""
+#        return self._pkt.data
 
     @property
     def cpkt(self):
@@ -465,7 +465,6 @@ class Demuxer:
         params = {} if params is None else params
         if not self._ready:
             raise pyrana.errors.ProcessingError("stream not yet open")
-
         raise NotImplementedError
 
     def _stream_info(self, stream):

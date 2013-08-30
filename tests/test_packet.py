@@ -24,10 +24,20 @@ class TestPacket(unittest.TestCase):
         try:
             pkt = pyrana.format.Packet(0, _B)
             pkt2 = pyrana.format.Packet(1, pkt)
-#            assert pkt == pkt2
+            assert pkt == pkt2
             assert pkt is not pkt2
         except pyrana.PyranaError as x:
             self.fail("failed creation from another packet")
+
+    def test_repr(self):
+        pkt = pyrana.format.Packet()
+        assert pkt
+        assert repr(pkt)
+
+    # ugly! find a better way
+    def test_cpkt(self):
+        pkt = pyrana.format.Packet()
+        assert pkt.cpkt
 
     def test_data_values_matches(self):
         pkt = pyrana.format.Packet(0, _B)
