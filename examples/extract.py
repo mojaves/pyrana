@@ -13,23 +13,22 @@ pyrana.setup()
 
 
 def extract_stream(src, sid, out):
-    with open(src, "rb") as f:
-        try:
-            dmx = pyrana.formats.Demuxer(f)
-            while True:
-                pkt = dmx.read_frame(sid)
-                out.write(pkt)
-        except pyrana.errors.PyranaError as err:
-            sys.stderr.write("%s\n" % err)
+    try:
+        dmx = pyrana.formats.Demuxer(src)
+        while True:
+            pkt = dmx.read_frame(sid)
+            w = out.write(bytes(pkt))
+    except pyrana.errors.PyranaError as err:
+        sys.stderr.write("%s\n" % err)
 
 
 def _main(exe, args):
     try:
-        src, sid = args
-        extract_stream(src, sid, sys.stdout)
-        sys.stdout.flush()
+        src, sid, dst = args
+        with open(src, "rb") as fin, open(dst, 'wb') as fout:
+            extract_stream(fin, int(sid), fout)
     except ValueError:
-        sys.stderr.write("usage: %s source_file stream_id\n" % exe)
+        sys.stderr.write("usage: %s source_file stream_id dest_file\n" % exe)
         sys.exit(1)
 
 
