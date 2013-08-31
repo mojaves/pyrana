@@ -176,16 +176,25 @@ class Packet:
         return hash(self.data)
 
     @property
+    def data(self):
+        """
+        the raw data (bytes) this packet carries.
+        """
+        return self._raw_data[:self._used]
+
+    @property
     def used(self):
         """
         Portion of the packet containing meaningful data (bytes)
         """
         return self._used
 
-#    @property
-#    def cdata(self):
-#        """raw C-data"""
-#        return self._pkt.data
+    @property
+    def size(self):
+        """
+        Size of the packet data (bytes)
+        """
+        return self._pkt.size
 
     @property
     def cpkt(self):
@@ -218,26 +227,12 @@ class Packet:
         return self._pkt.dts
 
     @property
-    def data(self):
-        """
-        the raw data (bytes) this packet carries.
-        """
-        return self._raw_data[:self._used]
-
-    @property
     def is_key(self):
         """
         boolean flag. Is this packet a key frame?
         (provided by libav*)
         """
         return bool(self._pkt.flags & PacketFlags.AV_PKT_FLAG_KEY)
-
-    @property
-    def size(self):
-        """
-        Size of the packet data (bytes)
-        """
-        return self._pkt.size
 
 
 def _read(handle, buf, buf_size):
