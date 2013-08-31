@@ -64,6 +64,7 @@ class EnumTranslator(pycparser.c_ast.NodeVisitor):
         else:
             self.output_class_name = output_class_name
         self.output_buffer = []
+        self.stop_enum = ''
 
     def _enumvalue(self, enum_token):
         """
@@ -199,6 +200,11 @@ def _main():
         '-s',
         '--stop',
         help='last enumerator to parse')
+    args_parser.add_argument(
+        '-p',
+        '--portion',
+        help='specify a portion (<start_line>:<end_line>) of the file'
+            'to parse')
     args_obj = args_parser.parse_args()
 
     if not args_obj.output_class:
@@ -206,12 +212,25 @@ def _main():
     if args_obj.output:
         args_obj.importline = True
 
-    ast = pycparser.parse_file(args_obj.header, use_cpp=True)
+    if args_obj.portion:
+        input_path, input_file = os.path.split(args_obj.header)
+        name, ext = input_file.split('.')
+        tmp_filename = name + '_tmp.' + ext
+        start, stop = args_obj.portion.split(':')
+        with open(args_obj.header, 'r') as f:
+            content = f.readlines()[int(start) - 1:int(stop) - 1]
+        with open(tmp_filename, 'w') as f:
+            f.write(''.join(content))
+        filename = tmp_filename
+    else:
+        filename = args_obj.header
+
+    ast = pycparser.parse_file(filename, use_cpp=True)
 
     et_obj = EnumTranslator(ast, args_obj.enum, args_obj.output_class)
     translate_params = {
         'import_line': args_obj.importline,
-        'header': args_obj.header,
+        'header': filename,
         'comment': args_obj.comment,
         'hash_type': 'SHA-1',
         'hash_value': compute_sha1_hash(args_obj.header),
@@ -219,8 +238,8 @@ def _main():
     try:
         et_obj.translate(translate_params, args_obj.stop)
     except TypeError:
-        print('Translation error, try to use -s option with a stop ' 
-                'enumerator parameter')
+        print('Translation error, try to use -s option with a stop '
+            'enumerator parameter')
         exit()
 
     if args_obj.output:
@@ -228,6 +247,9 @@ def _main():
             et_obj.write(ftw)
     else:
         et_obj.write()
+
+    if args_obj.portion:
+        os.remove(tmp_filename)
 
 if __name__ == '__main__':
     _main()
