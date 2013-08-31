@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-# pylint: disable-msg=F0401
-# pylint: disable-msg=E1101
-# pylint: disable-msg=F0401
+# pylint: disable=F0401
+# pylint: disable=E1101
+# pylint: disable=F0401
 
 """
 Helper tool to generate a Python class from a C enum type
