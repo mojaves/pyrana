@@ -143,7 +143,7 @@ class Packet:
         _alloc_pkt(self._ff, self._pkt, size)
 
         if stream_id is not None:
-            self._pkt.stream_index= stream_id
+            self._pkt.stream_index = stream_id
         self._pkt.pts = ffi.cast("int64_t", pts)
         self._pkt.dts = ffi.cast("int64_t", dts)
         if is_key:
@@ -264,7 +264,7 @@ def _seek(handle, offset, whence):
     ffh = pyrana.ff.get_handle()
     src = ffh.ffi.from_handle(handle)
     ret = src.seek(offset, whence)
-    return ret  # FIXME
+    return ret
 
 
 class IOSource:
@@ -380,6 +380,11 @@ def _video_stream_info(ctx):
 
 
 def _read_frame(ffh, ctx, pkt, stream_id):
+    """
+    frame pulling function, made separate and private
+    for easier testing. Returns the first valid packet.
+    You should not use this directly; use a Demuxer instead.
+    """
     av_read_frame = ffh.lavf.av_read_frame  # shortcut to speedup
     while True:
         err = av_read_frame(ctx, pkt.cpkt)
@@ -428,9 +433,9 @@ class Demuxer:
 
     def close(self):
         """
-        close the underlying demuxer.
+        close the underlying demuxer. TODO: check for leaks.
         """
-#        if self._pctx != self._ff.ffi.NULL:  # XXX
+#        if self._pctx != self._ff.ffi.NULL:
 #            self._ff.lavf.avformat_close_input(self._pctx)
 
     def open(self, name=None):
@@ -447,7 +452,6 @@ class Demuxer:
 
     def read_frame(self, stream_id=STREAM_ANY, pkt=None):
         """
-        read_frame(stream_id=ANY) -> Packet Object
         reads and returns a new complete encoded frame (enclosed in a Packet)
         from the demuxer.
         if the optional `stream_id' argument is !ANY, returns a frame
@@ -464,6 +468,12 @@ class Demuxer:
             pkt = Packet()
 
         return _read_frame(self._ff, self._pctx[0], pkt, stream_id)
+
+    def flush(self):
+        """
+        returns any Packet buffered by Demuxer, if any.
+        """
+        raise NotImplementedError
 
     def open_decoder(self, stream_id, params=None):
         """

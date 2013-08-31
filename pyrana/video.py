@@ -26,13 +26,13 @@ class Decoder(CodecMixin):
 
     def decode(self, packet):
         """
-        decode(packet) -> frame
+        decode(Packet) -> Frame
         """
         raise NotImplementedError
 
     def flush(self):
         """
-        flush() -> frame
+        flush() -> Frame
         """
         raise NotImplementedError
 
@@ -52,12 +52,12 @@ class Encoder(CodecMixin):
 
     def encode(self, frame):
         """
-        encode(frame) -> packet
+        encode(Frame) -> Packet
         """
         raise NotImplementedError
 
     def flush(self):
         """
-        flush() -> packet
+        flush() -> Packet
         """
         raise NotImplementedError
