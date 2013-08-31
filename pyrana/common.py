@@ -3,9 +3,12 @@ common code which do not fits better elsewhere.
 You should not use this directly.
 """
 
+# of course I trust the stdlib. What else must I trust?!
+# pylint: disable-msg=E0611
 from types import MappingProxyType as frozendict
 # thanks to 
-# http://me.veekun.com/blog/2013/08/05/frozendicthack-or-activestate-code-considered-harmful/
+# http://me.veekun.com/blog/2013/08/05/ \
+#        frozendicthack-or-activestate-code-considered-harmful/
 
 from enum import IntEnum
 
@@ -150,5 +153,4 @@ class CodecMixin:
         """
         bytes, read-write
         """
-        # TODO
-        return bytearray()
+        raise NotImplementedError
