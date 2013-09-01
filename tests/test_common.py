@@ -17,8 +17,8 @@ def lavf_ctx():
 
 
 class TestFormatFuncs(unittest.TestCase):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    @classmethod
+    def setUpClass(cls):
         pyrana.setup()
 
     def test_avf_get_valid(self):

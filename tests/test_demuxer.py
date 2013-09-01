@@ -14,8 +14,8 @@ _B = b'\0' * 1024 * 64
 
 
 class TestDemuxer(unittest.TestCase):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    @classmethod
+    def setUpClass(cls):
         pyrana.setup()
 
     def test_new_empty_just_init(self):

@@ -7,8 +7,8 @@ from tests.mockslib import MockPlat, MockHandle, MockHandleFaulty
 
 
 class TestCommonData(unittest.TestCase):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    @classmethod
+    def setUpClass(cls):
         pyrana.setup()
 
     # this can fail, but it should not.

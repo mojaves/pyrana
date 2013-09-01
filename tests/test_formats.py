@@ -10,8 +10,8 @@ import unittest
 
 
 class TestCommonData(unittest.TestCase):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    @classmethod
+    def setUpClass(cls):
         pyrana.setup()
 
     def _assert_valid_collection(self, col):
