@@ -7,7 +7,7 @@ from enum import IntEnum
 class SampleFormat(IntEnum):
     """
     Wraps the Sample Formats
-    File: /home/pippolo84/Progetti/pyrana/tools/samplefmt_tmp.h
+    File: /usr/include/libavutil/samplefmt.h
     SHA-1: fd8c0c10256909ce67c45dbbed5ead599180b348
     """
     AV_SAMPLE_FMT_NONE = -1
