@@ -76,7 +76,7 @@ class TestFormatIOSource(unittest.TestCase):
         f = io.BytesIO(_BZ)
         h = ffh.ffi.new_handle(f)
         pyrana.formats._seek(h, 128, 0)
-        self.assertEquals(f.tell(), 128)
+        self.assertEqual(f.tell(), 128)
 
 
 if __name__ == "__main__":

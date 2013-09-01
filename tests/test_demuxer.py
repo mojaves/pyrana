@@ -37,7 +37,7 @@ class TestDemuxer(unittest.TestCase):
     def test_open_sample_ogg_streams(self):
         with open('tests/data/bbb_sample.ogg', 'rb') as f:
             dmx = pyrana.formats.Demuxer(f)
-            self.assertEquals(len(dmx.streams), 2)
+            self.assertEqual(len(dmx.streams), 2)
 
     def test_empty_streams_without_open(self):
         with self.assertRaises(pyrana.errors.ProcessingError), \
