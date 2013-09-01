@@ -81,6 +81,14 @@ class TestDemuxer(unittest.TestCase):
         with self.assertRaises(pyrana.errors.ProcessingError):
             pyrana.formats._read_frame(ffh, {}, pkt, 0)  # FIXME: proper types
 
+    @unittest.expectedFailure
+    def test_flush_empty_before_read(self):
+        with open('tests/data/bbb_sample.ogg', 'rb') as f:
+            dmx = pyrana.formats.Demuxer(f)
+            with self.assertRaises(pyrana.errors.EOSError):
+                pkt = dmx.flush()
+                assert not len(pkt)
+
 
 if __name__ == "__main__":
     unittest.main()
