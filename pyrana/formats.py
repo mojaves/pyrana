@@ -473,7 +473,8 @@ class Demuxer:
         """
         returns any Packet buffered by Demuxer, if any.
         """
-        raise NotImplementedError
+        # FIXME
+        raise pyrana.errors.EOSError("No Packets buffered")
 
     def open_decoder(self, stream_id, params=None):
         """
