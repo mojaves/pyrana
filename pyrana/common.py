@@ -4,7 +4,7 @@ You should not use this directly.
 """
 
 # of course I trust the stdlib. What else must I trust?!
-# pylint: disable-msg=E0611
+# pylint: disable=E0611
 from types import MappingProxyType as frozendict
 # thanks to 
 # http://me.veekun.com/blog/2013/08/05/ \
