@@ -6,36 +6,11 @@ import pyrana
 import io
 import unittest
 
+# FIXME
+from tests.mockslib import MockLavf, MockFF, MockPacket, MockAVFormatContext
+
 
 _B = b'\0' * 1024 * 64
-
-
-#TODO: factorize the mocks
-
-class MockLavf:
-    def __init__(self, faulty):
-        self.faulty = faulty
-
-    def url_feof(self, pb):
-        return False if self.faulty else True
-
-    def av_read_frame(self, ctx, pkt):
-        return -1
-
-
-class MockFF:
-    def __init__(self, faulty):
-        self.lavf = MockLavf(faulty)
-
-
-class MockPacket:
-    def cpkt(self):
-        return {}
-
-
-class MockAVFormatContext:
-    def __init__(self):
-        self.pb = None
 
 
 class TestDemuxer(unittest.TestCase):

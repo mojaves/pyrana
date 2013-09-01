@@ -3,19 +3,10 @@
 import pyrana.formats
 import pyrana.errors
 import unittest
+from tests.mockslib import MockFF
 
 
 _B = b'A'
-
-
-#TODO: learn the mock package
-class MockFaultyFF:
-    class MockFaultyLavc:
-        def av_new_packet(self, pkt, size):
-            return -1
-
-    def __init__(self):
-        self.lavc = MockFaultyFF.MockFaultyLavc()
 
 
 class TestPacket(unittest.TestCase):
@@ -26,7 +17,7 @@ class TestPacket(unittest.TestCase):
             self.fail("failed creation from simple string: %s" % x)
 
     def test_faulty_alloc(self):
-        ffh = MockFaultyFF()
+        ffh = MockFF(faulty=True)
         with self.assertRaises(pyrana.errors.ProcessingError):
             pyrana.formats._alloc_pkt(ffh, {}, 128)  # FIXME: proper types
 
