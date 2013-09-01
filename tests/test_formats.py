@@ -38,7 +38,6 @@ class TestCommonData(unittest.TestCase):
     def test_output_audio_codecs(self):
         self._assert_valid_collection(pyrana.audio.OUTPUT_CODECS)
 
-    @unittest.expectedFailure
     def test_sample_formats(self):
         self._assert_valid_collection(pyrana.audio.SampleFormat)
 
