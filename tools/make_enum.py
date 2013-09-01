@@ -179,6 +179,10 @@ class EnumTranslator(pycparser.c_ast.NodeVisitor):
         out_stream.write(''.join(self.output_buffer))
 
 
+def eprint(msg):
+    sys.stderr.write("{}\n".format(msg))
+
+
 def _main():
     """
     Manage command line arguments and
@@ -234,21 +238,27 @@ def _main():
     else:
         filename = args_obj.header
 
-    ast = pycparser.parse_file(filename, use_cpp=True)
-
-    et_obj = EnumTranslator(ast, args_obj.enum, args_obj.output_class)
-    translate_params = {
-        'import_line': args_obj.importline,
-        'header': filename,
-        'comment': args_obj.comment,
-        'hash_type': 'SHA-1',
-        'hash_value': compute_sha1_hash(args_obj.header),
-    }
     try:
+        ast = pycparser.parse_file(filename, use_cpp=True)
+
+        et_obj = EnumTranslator(ast, args_obj.enum, args_obj.output_class)
+        translate_params = {
+                'import_line': args_obj.importline,
+                'header': filename,
+                'comment': args_obj.comment,
+                'hash_type': 'SHA-1',
+                'hash_value': compute_sha1_hash(args_obj.header),
+        }
+
         et_obj.translate(translate_params, args_obj.stop)
+    except pycparser.plyparser.ParseError as exc:
+        eprint('Translation error, try to use -p option with proper '
+               'boundaries')
+        eprint(exc)
+        exit()
     except TypeError:
-        print('Translation error, try to use -s option with a stop '
-            'enumerator parameter')
+        eprint('Translation error, try to use -s option with a stop '
+               'enumerator parameter')
         exit()
 
     if args_obj.output:
@@ -259,6 +269,7 @@ def _main():
 
     if args_obj.portion:
         os.remove(tmp_filename)
+
 
 if __name__ == '__main__':
     _main()
