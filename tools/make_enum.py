@@ -244,7 +244,7 @@ def _main():
         et_obj = EnumTranslator(ast, args_obj.enum, args_obj.output_class)
         translate_params = {
                 'import_line': args_obj.importline,
-                'header': filename,
+                'header': args_obj.header,
                 'comment': args_obj.comment,
                 'hash_type': 'SHA-1',
                 'hash_value': compute_sha1_hash(args_obj.header),
