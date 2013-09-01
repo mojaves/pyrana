@@ -11,13 +11,31 @@ _B = b'\0' * 1024 * 64
 
 
 #TODO: factorize the mocks
-class MockFaultyFF:
-    class MockFaultyLavf:
-        def av_read_frame(self, ctx, pkt):
-            return -1
 
+class MockLavf:
+    def __init__(self, faulty):
+        self.faulty = faulty
+
+    def url_feof(self, pb):
+        return False if self.faulty else True
+
+    def av_read_frame(self, ctx, pkt):
+        return -1
+
+
+class MockFF:
+    def __init__(self, faulty):
+        self.lavf = MockLavf(faulty)
+
+
+class MockPacket:
+    def cpkt(self):
+        return {}
+
+
+class MockAVFormatContext:
     def __init__(self):
-        self.lavf = MockFaultyFF.MockFaultyLavf()
+        self.pb = None
 
 
 class TestDemuxer(unittest.TestCase):
@@ -73,13 +91,18 @@ class TestDemuxer(unittest.TestCase):
             assert len(pkt)
 
     def test_read_faulty(self):
-        class MockPacket:
-            def cpkt(self):
-                return {}
-        ffh = MockFaultyFF()
+        ffh = MockFF(faulty=True)
         pkt = MockPacket()
+        ctx = MockAVFormatContext()
         with self.assertRaises(pyrana.errors.ProcessingError):
-            pyrana.formats._read_frame(ffh, {}, pkt, 0)  # FIXME: proper types
+            pyrana.formats._read_frame(ffh, ctx, pkt, 0)
+
+    def test_read_empty(self):
+        ffh = MockFF(faulty=False)
+        pkt = MockPacket()
+        ctx = MockAVFormatContext()
+        with self.assertRaises(pyrana.errors.EOSError):
+            pyrana.formats._read_frame(ffh, ctx, pkt, 0)
 
     def test_flush_empty_before_read(self):
         with open('tests/data/bbb_sample.ogg', 'rb') as f:

@@ -389,8 +389,11 @@ def _read_frame(ffh, ctx, pkt, stream_id):
     while True:
         err = av_read_frame(ctx, pkt.cpkt)
         if err < 0:
-            msg = "error while reading data: %i" % err
-            raise pyrana.errors.ProcessingError(msg)
+            if ffh.lavf.url_feof(ctx.pb):
+                raise pyrana.errors.EOSError()
+            else:
+                msg = "error while reading data: %i" % err
+                raise pyrana.errors.ProcessingError(msg)
         if stream_id == STREAM_ANY or pkt.stream_id == stream_id:
             break
     return pkt

@@ -43,6 +43,7 @@ def _wire(ffi):
                 int (*read_packet)(void *opaque, uint8_t *buf, int buf_size),
                 int (*write_packet)(void *opaque, uint8_t *buf, int buf_size),
                 int64_t (*seek)(void *opaque, int64_t offset, int whence));
+         int url_feof(AVIOContext *s);
 
          /* AVPacket is part of the stable ABI. */
          typedef struct AVPacket {
