@@ -151,6 +151,6 @@ class CodecMixin:
     @property
     def extra_data(self):
         """
-        bytes, read-write
+        bytearray, read-write
         """
         raise NotImplementedError
