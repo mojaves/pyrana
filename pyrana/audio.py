@@ -25,6 +25,10 @@ class Decoder(CodecMixin):
         # we *want* this dependency explicit
         # TODO
     
+    @classmethod
+    def from_demuxer(cls, dmx, sid):
+        pass
+
     def decode(self, packet):
         """
         decode(Packet) -> Frame

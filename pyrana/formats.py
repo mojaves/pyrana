@@ -11,6 +11,8 @@ from pyrana.common import MediaType
 from pyrana.common import find_source_format
 from pyrana.common import to_media_type
 from pyrana.common import get_field_int
+import pyrana.audio
+import pyrana.video
 import pyrana.errors
 import pyrana.ff
 
@@ -471,16 +473,17 @@ class Demuxer:
         # FIXME
         raise pyrana.errors.EOSError("No Packets buffered")
 
-    def open_decoder(self, stream_id, params=None):
+    def open_decoder(self, stream_id):
         """
         open_decoder(stream_id) -> Decoder instance
         create and returns a full-blown decoder Instance capable
         to decode the selected stream.
         Like doing things manually, just easily.
         """
-        params = {} if params is None else params
         if not self._ready:
             raise pyrana.errors.ProcessingError("stream not yet open")
+#        return pyrana.audio.Decoder.from_demuxer(self, stream_id)
+        return pyrana.video.Decoder.from_demuxer(self, stream_id)
 
     def _stream_info(self, stream):
         """
