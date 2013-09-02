@@ -3,6 +3,8 @@ This module provides the transport layer interface: encoded packets,
 Muxer, Demuxers and their support code.
 """
 
+from contextlib import contextmanager
+
 from enum import IntEnum
 
 from pyrana.common import MediaType
@@ -47,7 +49,7 @@ def find_stream(streams, nth, media):
                 if cnt == nth:
                     return sid
                 cnt += 1
-        msg = "mismatching media types for stream" 
+        msg = "mismatching media types for stream"
     except KeyError:
         msg = "malformed stream #%i" % sid
     raise pyrana.errors.NotFoundError(msg)
@@ -129,16 +131,15 @@ class Packet:
     multimedia stream.
     """
     def __init__(self, stream_id=None,
-                 data=None, size=PKT_SIZE,
-                 pts=TS_NULL, dts=TS_NULL, is_key=False):
+                 data=None, pts=TS_NULL, dts=TS_NULL, is_key=False):
         self._ff = pyrana.ff.get_handle()
         ffi = self._ff.ffi  # shortcut
 
+        size = PKT_SIZE
         if data is not None:
             data = bytes(data)
-            if size is None or size < len(data):
-                size = len(data)
-        
+            size = len(data)
+
         self._pkt = ffi.new('AVPacket *')
         _alloc_pkt(self._ff, self._pkt, size)
 
@@ -149,22 +150,19 @@ class Packet:
         if is_key:
             self._pkt.flags |= PacketFlags.AV_PKT_FLAG_KEY
         self._raw_data = ffi.buffer(self._pkt.data, self._pkt.size)
-        self._used = self._pkt.size
         if data is not None:
-            data = bytes(data)
-            self._used = len(data)
-            self._raw_data[:self._used] = data
+            self._raw_data[:size] = data  # FIXME
 
     def __del__(self):
         self._ff.lavc.av_free_packet(self._pkt)
 
     def __repr__(self):
         return "Packet(stream_id=%i, size=%i, " \
-               "pts=%i, dts=%i, is_key=%i)  # used=%i" % (self.stream_id,
-                    self.size, self.pts, self.dts, self.is_key, self.used)
+               "pts=%i, dts=%i, is_key=%i)" % (self.stream_id,
+                    self.size, self.pts, self.dts, self.is_key)
 
     def __len__(self):
-        return self._used
+        return self.size
 
     def __bytes__(self):
         return bytes(self.data)
@@ -176,20 +174,6 @@ class Packet:
         return hash(self.data)
 
     @property
-    def data(self):
-        """
-        the raw data (bytes) this packet carries.
-        """
-        return self._raw_data[:self._used]
-
-    @property
-    def used(self):
-        """
-        Portion of the packet containing meaningful data (bytes)
-        """
-        return self._used
-
-    @property
     def size(self):
         """
         Size of the packet data (bytes)
@@ -197,13 +181,20 @@ class Packet:
         return self._pkt.size
 
     @property
-    def cpkt(self):
+    def data(self):
+        """
+        the raw data (bytes) this packet carries.
+        """
+        return self._raw_data[:self.size]
+
+    @contextmanager
+    def raw_pkt(self):
         """
         The underlying libav* av_packet. Needed for fast access.
         And still ugly.
         """
-        # FIXME: what an ugly name
-        return self._pkt
+        yield self._pkt
+        self._raw_data = self._ff.ffi.buffer(self._pkt.data, self._pkt.size)
 
     @property
     def stream_id(self):
@@ -385,17 +376,18 @@ def _read_frame(ffh, ctx, pkt, stream_id):
     for easier testing. Returns the first valid packet.
     You should not use this directly; use a Demuxer instead.
     """
-    av_read_frame = ffh.lavf.av_read_frame  # shortcut to speedup
-    while True:
-        err = av_read_frame(ctx, pkt.cpkt)
-        if err < 0:
-            if ffh.lavf.url_feof(ctx.pb):
-                raise pyrana.errors.EOSError()
-            else:
-                msg = "error while reading data: %i" % err
-                raise pyrana.errors.ProcessingError(msg)
-        if stream_id == STREAM_ANY or pkt.stream_id == stream_id:
-            break
+    with pkt.raw_pkt() as cpkt:
+        av_read_frame = ffh.lavf.av_read_frame  # shortcut to speedup
+        while True:
+            err = av_read_frame(ctx, cpkt)
+            if err < 0:
+                if ffh.lavf.url_feof(ctx.pb):
+                    raise pyrana.errors.EOSError()
+                else:
+                    msg = "error while reading data: %i" % err
+                    raise pyrana.errors.ProcessingError(msg)
+            if stream_id == STREAM_ANY or pkt.stream_id == stream_id:
+                break
     return pkt
 
 
@@ -510,7 +502,7 @@ class Demuxer:
             info.update(_audio_stream_info(ctx))
         if _type == MediaType.AVMEDIA_TYPE_VIDEO:
             info.update(_video_stream_info(ctx))
-        return info 
+        return info
 
     def _parse_streams(self):
         """
@@ -520,7 +512,7 @@ class Demuxer:
         streams = []
         for idx in range(self._pctx[0].nb_streams):
             streams.append(self._stream_info(self._pctx[0].streams[idx]))
-        return tuple(streams)        
+        return tuple(streams)
 
     @property
     def streams(self):

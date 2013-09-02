@@ -1,6 +1,5 @@
 #!/usr/bin/python
 
-
 #TODO: learn the mock package
 
 
@@ -27,8 +26,10 @@ class MockFF:
 
 
 class MockPacket:
-    def cpkt(self):
-        return {}
+    from contextlib import contextmanager
+    @contextmanager
+    def raw_pkt(self):
+        yield {}
 
 
 class MockAVFormatContext:

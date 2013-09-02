@@ -41,11 +41,6 @@ class TestPacket(unittest.TestCase):
         assert pkt
         assert repr(pkt)
 
-    # ugly! find a better way
-    def test_cpkt(self):
-        pkt = pyrana.formats.Packet()
-        assert pkt.cpkt
-
     def test_data_values_matches(self):
         pkt = pyrana.formats.Packet(0, _B)
         self.assertTrue(pkt.data == _B)
