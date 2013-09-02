@@ -1,14 +1,21 @@
 #!/usr/bin/env python3
 
 """
-FIXME: document me!
+extracts a raw stream from a media file.
 """
+# this pyrana example is just a step further the
+# `probe' one. It demonstrates the most basic way
+# to access the encoded data extracted from a media
+# file.
+#
+# meet the Packets.
 
 import sys
 import pyrana.formats
 import pyrana.errors
 
-
+# see the `probe' example to learn why this is fundamental
+# and why this cannot be done (easily) automatically.
 pyrana.setup()
 
 
@@ -16,7 +23,20 @@ def extract_stream(src, sid, out):
     try:
         dmx = pyrana.formats.Demuxer(src)
         while True:
+            # Demuxers can extracts Packets from the media file.
+            # A Packet is just a smart container for the encoded binary data.
+            # Packets allow the client code to easily access the most
+            # fundamental fields; however, you cannot directly modify a
+            # Packet (content). You have to do that using the functions or the
+            # classes provided by Pyrana, most notably Encoders and Decoders.
+            #
+            # Demuxers can extract any packet they find, in the order they
+            # find them, or they can fetch only those belonging to a specific
+            # logical stream. See Demuxer.streams and find_stream to find the
+            # right logical stream identifier.
             pkt = dmx.read_frame(sid)
+            # Once you got a Packet, you can easily convert it to bytes()
+            # Packet data is immutable, so the conversion is straightforward.
             w = out.write(bytes(pkt))
     except pyrana.errors.PyranaError as err:
         sys.stderr.write("%s\n" % err)
