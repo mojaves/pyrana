@@ -36,6 +36,34 @@ def compute_sha1_hash(file_to_hash):
     return sha1.hexdigest()
 
 
+def enumvalue(enum_token):
+    """
+    Translate an enumerate value to obtain the
+    corresponding value
+    """
+    unary_ops = {
+        '-': operator.neg
+    }
+
+    binary_ops = {
+        '-': operator.sub,
+        '+': operator.add
+    }
+    if isinstance(enum_token.value, pycparser.c_ast.Constant):
+        val = enum_token.value.value
+        return int(val, base=0)
+    elif isinstance(enum_token.value, pycparser.c_ast.UnaryOp):
+        val = enum_token.value.expr.value
+        return unary_ops[enum_token.value.op](
+                    int(val, base=0))
+    elif isinstance(enum_token.value, pycparser.c_ast.BinaryOp):
+        lval = enum_token.value.left.value
+        rval = enum_token.value.right.value
+        return binary_ops[enum_token.value.op](
+                    int(lval, base=0),
+                    int(rval, base=0))
+
+
 class EnumTranslator(pycparser.c_ast.NodeVisitor):
     """
     Defines objects able to translate a C enum type
@@ -47,20 +75,12 @@ class EnumTranslator(pycparser.c_ast.NodeVisitor):
     NodeVisitor
     """
 
-    UNARYOPS = {
-        '-': operator.neg
-    }
-
-    BINARYOPS = {
-        '-': operator.sub,
-        '+': operator.add
-    }
-
     def __init__(
             self,
             abstract_syntax_tree,
             enum_name='',
             output_class_name=''):
+        super(EnumTranslator, self).__init__()
         self.ast = abstract_syntax_tree
         self.enum_name = enum_name
         if not output_class_name:
@@ -69,25 +89,6 @@ class EnumTranslator(pycparser.c_ast.NodeVisitor):
             self.output_class_name = output_class_name
         self.output_buffer = []
         self.stop_enum = ''
-
-    def _enumvalue(self, enum_token):
-        """
-        Translate an enumerate value to obtain the
-        corresponding value
-        """
-        if isinstance(enum_token.value, pycparser.c_ast.Constant):
-            val = enum_token.value.value
-            return int(val, base=0)
-        elif isinstance(enum_token.value, pycparser.c_ast.UnaryOp):
-            val = enum_token.value.expr.value
-            return EnumTranslator.UNARYOPS[enum_token.value.op](
-                int(val, base=0))
-        elif isinstance(enum_token.value, pycparser.c_ast.BinaryOp):
-            lval = enum_token.value.left.value
-            rval = enum_token.value.right.value
-            return EnumTranslator.BINARYOPS[enum_token.value.op](
-                int(lval, base=0),
-                int(rval, base=0))
 
     def _translate_enum(self, node):
         """
@@ -98,7 +99,7 @@ class EnumTranslator(pycparser.c_ast.NodeVisitor):
         count = 0
         for elem in node.values.enumerators:
             if elem.value:
-                value = self._enumvalue(elem)
+                value = enumvalue(elem)
                 count = value
             else:
                 value = count+1
@@ -180,6 +181,7 @@ class EnumTranslator(pycparser.c_ast.NodeVisitor):
 
 
 def eprint(msg):
+    """prints a message on standard error"""
     sys.stderr.write("{}\n".format(msg))
 
 
@@ -218,39 +220,39 @@ def _main():
         '--portion',
         help='specify a portion (<start_line>:<end_line>) of the file'
             'to parse')
-    args_obj = args_parser.parse_args()
+    args = args_parser.parse_args()
 
-    if not args_obj.output_class:
-        args_obj.output_class = args_obj.enum
-    if args_obj.output:
-        args_obj.importline = True
+    if not args.output_class:
+        args.output_class = args.enum
+    if args.output:
+        args.importline = True
 
-    if args_obj.portion:
-        input_path, input_file = os.path.split(args_obj.header)
+    if args.portion:
+        _, input_file = os.path.split(args.header)
         name, ext = input_file.split('.')
         tmp_filename = name + '_tmp.' + ext
-        start, stop = args_obj.portion.split(':')
-        with open(args_obj.header, 'r') as f:
-            content = f.readlines()[int(start) - 1:int(stop) - 1]
-        with open(tmp_filename, 'w') as f:
-            f.write(''.join(content))
+        start, stop = args.portion.split(':')
+        with open(args.header, 'r') as src:
+            content = src.readlines()[int(start) - 1:int(stop) - 1]
+        with open(tmp_filename, 'w') as dst:
+            dst.write(''.join(content))
         filename = tmp_filename
     else:
-        filename = args_obj.header
+        filename = args.header
 
     try:
         ast = pycparser.parse_file(filename, use_cpp=True)
 
-        et_obj = EnumTranslator(ast, args_obj.enum, args_obj.output_class)
+        et_obj = EnumTranslator(ast, args.enum, args.output_class)
         translate_params = {
-                'import_line': args_obj.importline,
-                'header': args_obj.header,
-                'comment': args_obj.comment,
+                'import_line': args.importline,
+                'header': args.header,
+                'comment': args.comment,
                 'hash_type': 'SHA-1',
-                'hash_value': compute_sha1_hash(args_obj.header),
+                'hash_value': compute_sha1_hash(args.header),
         }
 
-        et_obj.translate(translate_params, args_obj.stop)
+        et_obj.translate(translate_params, args.stop)
     except pycparser.plyparser.ParseError as exc:
         eprint('Translation error, try to use -p option with proper '
                'boundaries')
@@ -261,13 +263,13 @@ def _main():
                'enumerator parameter')
         exit()
 
-    if args_obj.output:
-        with open(args_obj.output, 'w') as ftw:
+    if args.output:
+        with open(args.output, 'w') as ftw:
             et_obj.write(ftw)
     else:
         et_obj.write()
 
-    if args_obj.portion:
+    if args.portion:
         os.remove(tmp_filename)
 
 
