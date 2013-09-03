@@ -38,7 +38,10 @@ def extract_stream(src, sid, out):
             # Once you got a Packet, you can easily convert it to bytes()
             # Packet data is immutable, so the conversion is straightforward.
             w = out.write(bytes(pkt))
+    except pyrana.errors.EOSError:
+        pass  # normal termination! much like StopIteration.
     except pyrana.errors.PyranaError as err:
+        # don't do that on your real code :)
         sys.stderr.write("%s\n" % err)
 
 
