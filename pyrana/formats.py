@@ -393,6 +393,19 @@ def _read_frame(ffh, ctx, pkt, stream_id):
     return pkt
 
 
+def _decoder_for_stream(ctx, stream_id, vdec, adec):
+    def unsupported(unused):
+        msg = "unsupported type %s for stream %i" \
+              % (to_media_type(ctx.codec_type),
+                 stream_id)  # FIXME
+        raise pyrana.errors.ProcessingError(msg)
+
+    maker = { MediaType.AVMEDIA_TYPE_VIDEO: vdec.from_raw_decoder,
+              MediaType.AVMEDIA_TYPE_AUDIO: adec.from_raw_decoder }
+    xdec = maker.get(ctx.codec_type, unsupported)
+    return xdec(ctx.codec)
+
+
 class Demuxer:
     """
     Demuxer object. Use a file-like for real I/O.
@@ -481,9 +494,17 @@ class Demuxer:
         Like doing things manually, just easily.
         """
         if not self._ready:
-            raise pyrana.errors.ProcessingError("stream not yet open")
-#        return pyrana.audio.Decoder.from_demuxer(self, stream_id)
-        return pyrana.video.Decoder.from_demuxer(self, stream_id)
+            raise pyrana.errors.ProcessingError("media not yet open")
+
+        nstreams = len(self.streams)
+        if stream_id < 0 or stream_id > nstreams:
+            msg = "invalid stream id not in [0,%i]" % nstreams
+            raise pyrana.errors.ProcessingError(msg)
+
+        return _decoder_for_stream(self._pctx[0].streams[stream_id].codec,
+                                   stream_id,
+                                   pyrana.video.Decoder,
+                                   pyrana.audio.Decoder)
 
     def _stream_info(self, stream):
         """

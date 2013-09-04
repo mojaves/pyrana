@@ -141,6 +141,13 @@ class CodecMixin:
         params = {} if params is None else params
         self._params = params
 
+    @classmethod
+    def from_raw_decoder(cls, raw_dec):
+        dec = object.__new__(cls)
+        CodecMixin.__init__(dec, {})
+        dec._dec = raw_dec
+        return dec
+
     @property
     def params(self):
         """

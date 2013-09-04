@@ -61,11 +61,7 @@ class Decoder(CodecMixin):
         # yes, here we're *intentionally* calling
         # the superclass init explicitely.
         # we *want* this dependency explicit
-        # TODO
-
-    @classmethod
-    def from_demuxer(cls, dmx, sid):
-        pass
+        self._dec = None
 
     def decode(self, packet):
         """
