@@ -139,6 +139,7 @@ def _wire(ffi):
          int avformat_open_input(AVFormatContext **ps, const char *filename,
                                  AVInputFormat *fmt, AVDictionary **options);
          void avformat_close_input(AVFormatContext **s);
+         int avformat_find_stream_info(AVFormatContext *ic, AVDictionary **options);
 
          int av_read_frame(AVFormatContext *s, AVPacket *pkt);
 
@@ -152,6 +153,12 @@ def _wire(ffi):
          } AVCodec;
          AVCodec *av_codec_next(const AVCodec *c);
          AVCodec *avcodec_find_decoder(enum AVCodecID id);
+
+         enum AVMediaType avcodec_get_type(enum AVCodecID codec_id);
+         const char *avcodec_get_name(enum AVCodecID id);
+         int avcodec_is_open(AVCodecContext *s);
+         int av_codec_is_encoder(const AVCodec *codec);
+         int av_codec_is_decoder(const AVCodec *codec);
 
          /* TODO: replace magic number - 8 */
          typedef struct AVFrame {

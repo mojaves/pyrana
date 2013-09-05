@@ -11,6 +11,7 @@ from pyrana.common import MediaType
 from pyrana.common import find_source_format
 from pyrana.common import to_media_type
 from pyrana.common import get_field_int
+from pyrana.codec import decoder_for_stream
 import pyrana.audio
 import pyrana.video
 import pyrana.errors
@@ -393,19 +394,6 @@ def _read_frame(ffh, ctx, pkt, stream_id):
     return pkt
 
 
-def _decoder_for_stream(ctx, stream_id, vdec, adec):
-    def unsupported(unused):
-        msg = "unsupported type %s for stream %i" \
-              % (to_media_type(ctx.codec_type),
-                 stream_id)  # FIXME
-        raise pyrana.errors.ProcessingError(msg)
-
-    maker = { MediaType.AVMEDIA_TYPE_VIDEO: vdec.from_raw_decoder,
-              MediaType.AVMEDIA_TYPE_AUDIO: adec.from_raw_decoder }
-    xdec = maker.get(ctx.codec_type, unsupported)
-    return xdec(ctx.codec)
-
-
 class Demuxer:
     """
     Demuxer object. Use a file-like for real I/O.
@@ -452,12 +440,16 @@ class Demuxer:
         """
         open the underlying demuxer.
         """
+        ffh = self._ff
         filename = bytes()
         fmt = find_source_format(name)
-        err = self._ff.lavf.avformat_open_input(self._pctx, filename,
-                                                fmt, self._ff.ffi.NULL)
+        err = ffh.lavf.avformat_open_input(self._pctx, filename,
+                                           fmt, ffh.ffi.NULL)
         if err < 0:
-            raise pyrana.errors.SetupError("error=%i" % err)
+            raise pyrana.errors.SetupError("open error=%i" % err)
+        err = ffh.lavf.avformat_find_stream_info(self._pctx[0], ffh.ffi.NULL)
+        if err < 0:
+            raise pyrana.errors.SetupError("find stream error=%i" % err)
         self._ready = True
 
     def read_frame(self, stream_id=STREAM_ANY, pkt=None):
@@ -501,10 +493,12 @@ class Demuxer:
             msg = "invalid stream id not in [0,%i]" % nstreams
             raise pyrana.errors.ProcessingError(msg)
 
-        return _decoder_for_stream(self._pctx[0].streams[stream_id].codec,
-                                   stream_id,
-                                   pyrana.video.Decoder,
-                                   pyrana.audio.Decoder)
+        ctx = self._pctx[0].streams[stream_id].codec
+        print(ctx)
+        print(ctx.codec)
+        return decoder_for_stream(ctx, stream_id,
+                                  pyrana.video.Decoder,
+                                  pyrana.audio.Decoder)
 
     def _stream_info(self, stream):
         """

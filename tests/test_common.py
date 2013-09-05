@@ -5,7 +5,6 @@ import unittest
 import pyrana.ff
 import pyrana.errors
 from pyrana.common import get_field_int
-from pyrana.common import CodecMixin
 
 
 @contextmanager
@@ -31,22 +30,6 @@ class TestFormatFuncs(unittest.TestCase):
              lavf_ctx() as ctx:
             probesize = get_field_int(ctx, "inexistent_attr")
             assert probesize
-
-
-class TestCodecMixin(unittest.TestCase):
-    def test_no_params(self):
-        cmx = CodecMixin()
-        assert not cmx.params
-
-    def test_params(self):
-        params = { 'ans': 42, 'foo': 'bar', 'x': [0, 1, 2] }
-        cmx = CodecMixin(params)
-        assert cmx.params == params
-
-    @unittest.expectedFailure
-    def test_extradata(self):
-        cmx = CodecMixin()
-        assert not cmx.extra_data
 
 
 if __name__ == "__main__":

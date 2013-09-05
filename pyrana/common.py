@@ -1,14 +1,7 @@
 """
 common code which do not fits better elsewhere.
-You should not use this directly.
+This module is not part of the pyrana public API.
 """
-
-# of course I trust the stdlib. What else must I trust?!
-# pylint: disable=E0611
-from types import MappingProxyType as frozendict
-# thanks to 
-# http://me.veekun.com/blog/2013/08/05/ \
-#        frozendicthack-or-activestate-code-considered-harmful/
 
 from enum import IntEnum
 
@@ -25,6 +18,13 @@ class MediaType(IntEnum):
     AVMEDIA_TYPE_SUBTITLE = 3
     AVMEDIA_TYPE_ATTACHMENT = 4
     AVMEDIA_TYPE_NB = 5
+
+
+def to_str(cstr, ffi=None):
+    if ffi is None:
+        ffh = pyrana.ff.get_handle()
+        ffi = ffh.ffi
+    return ffi.string(cstr).decode('utf-8')
 
 
 def to_media_type(ival):
@@ -45,7 +45,7 @@ def _iter_fmts(ffi, format_next):
     fmt = format_next(ffi.NULL)
     while fmt != ffi.NULL:
         name = ffi.string(fmt.name)
-        yield name.decode('utf-8'), fmt
+        yield to_str(fmt.name, ffi), fmt
         fmt = format_next(fmt)
 
 
@@ -82,9 +82,8 @@ def _iter_codec(ffi, codec_next):
     """
     codec = codec_next(ffi.NULL)
     while codec != ffi.NULL:
-        name = ffi.string(codec.name)
         _type = to_media_type(codec.type)
-        yield (name.decode('utf-8'), _type, codec)
+        yield (to_str(codec.name, ffi), _type, codec)
         codec = codec_next(codec)
 
 
@@ -129,35 +128,3 @@ def get_field_int(ffobj, name):
         msg = "cannot fetch the field '%s'" % name
         raise pyrana.errors.NotFoundError(msg)
     return out_val[0]
-
-
-class CodecMixin:
-    """
-    Mixin. Abstracts the common codec attributes:
-    parameters reference, read-only access, extradata
-    management.
-    """
-    def __init__(self, params=None):
-        params = {} if params is None else params
-        self._params = params
-
-    @classmethod
-    def from_raw_decoder(cls, raw_dec):
-        dec = object.__new__(cls)
-        CodecMixin.__init__(dec, {})
-        dec._dec = raw_dec
-        return dec
-
-    @property
-    def params(self):
-        """
-        dict, read-only
-        """
-        return frozendict(self._params)
-    
-    @property
-    def extra_data(self):
-        """
-        bytearray, read-write
-        """
-        raise NotImplementedError

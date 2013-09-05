@@ -4,7 +4,7 @@ Encoders, Decoders and their support code.
 """
 
 import pyrana.formats
-from pyrana.common import CodecMixin
+from pyrana.codec import BaseDecoder, CodecMixin
 from pyrana.pixelfmt import PixelFormat
 
 
@@ -50,18 +50,14 @@ OUTPUT_CODECS = frozenset()
 #    display_num # ditto
 #
 
-class Decoder(CodecMixin):
+class Decoder(BaseDecoder):
     """
     - add the 'params' property (read-only preferred alias for getParams)
     - no conversion/scaling will be performed
     - add flush() operation
     """
     def __init__(self, input_codec, params=None):
-        CodecMixin.__init__(self, params)
-        # yes, here we're *intentionally* calling
-        # the superclass init explicitely.
-        # we *want* this dependency explicit
-        self._dec = None
+        super(Decoder, self).__init__(params)
 
     def decode(self, packet):
         """

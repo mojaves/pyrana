@@ -105,21 +105,6 @@ class TestDemuxer(unittest.TestCase):
             dec = dmx.open_decoder(0)
             assert dec
 
-    def test_builder_unsupported(self):
-        import pyrana.audio
-        import pyrana.video
-        class MockAVCodecContext:
-            def __init__(self, codec_type, codec=None):
-                self.codec_type = codec_type
-                self.codec = codec
-
-        with self.assertRaises(pyrana.errors.ProcessingError):
-            ctx = MockAVCodecContext(MediaType.AVMEDIA_TYPE_NB)
-            # this media type will always be invalid
-            dec = pyrana.formats._decoder_for_stream(ctx, 0,
-                                                     pyrana.video.Decoder,
-                                                     pyrana.audio.Decoder)
-
 
 if __name__ == "__main__":
     unittest.main()
