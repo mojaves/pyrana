@@ -3,13 +3,10 @@ This module provides the transport layer interface: encoded packets,
 Muxer, Demuxers and their support code.
 """
 
-from contextlib import contextmanager
-
 from enum import IntEnum
 
-from pyrana.common import MediaType
+from pyrana.common import MediaType, to_media_type
 from pyrana.common import find_source_format
-from pyrana.common import to_media_type
 from pyrana.common import get_field_int
 from pyrana.codec import decoder_for_stream
 import pyrana.audio
@@ -126,6 +123,11 @@ def _alloc_pkt(ffh, pkt, size):
     return pkt
 
 
+def _new_cpkt(ffh, size):
+    pkt = ffh.ffi.new('AVPacket *')
+    return _alloc_pkt(ffh, pkt, size)
+
+
 # In the current incarnation, it could be happily replaced by a namedtuple.
 # however, things are expected to change once Muxer get implemented.
 class Packet:
@@ -143,8 +145,7 @@ class Packet:
             data = bytes(data)
             size = len(data)
 
-        self._pkt = ffi.new('AVPacket *')
-        _alloc_pkt(self._ff, self._pkt, size)
+        self._pkt = _new_cpkt(self._ff, size)
 
         if stream_id is not None:
             self._pkt.stream_index = stream_id
@@ -155,6 +156,14 @@ class Packet:
         self._raw_data = ffi.buffer(self._pkt.data, self._pkt.size)
         if data is not None:
             self._raw_data[:size] = data  # FIXME
+
+    @classmethod
+    def from_cdata(cls, cpkt):
+        pkt = object.__new__(cls)
+        pkt._ff = pyrana.ff.get_handle()
+        pkt._pkt = cpkt
+        pkt._raw_data = pkt._ff.ffi.buffer(cpkt.data, cpkt.size)
+        return pkt
 
     def __del__(self):
         self._ff.lavc.av_free_packet(self._pkt)
@@ -189,15 +198,6 @@ class Packet:
         the raw data (bytes) this packet carries.
         """
         return self._raw_data[:self.size]
-
-    @contextmanager
-    def raw_pkt(self):
-        """
-        The underlying libav* av_packet. Needed for fast access.
-        And still ugly.
-        """
-        yield self._pkt
-        self._raw_data = self._ff.ffi.buffer(self._pkt.data, self._pkt.size)
 
     @property
     def stream_id(self):
@@ -373,25 +373,25 @@ def _video_stream_info(ctx):
     }
 
 
-def _read_frame(ffh, ctx, pkt, stream_id):
+def _read_frame(ffh, ctx, new_pkt, stream_id):
     """
     frame pulling function, made separate and private
     for easier testing. Returns the first valid packet.
     You should not use this directly; use a Demuxer instead.
     """
-    with pkt.raw_pkt() as cpkt:
-        av_read_frame = ffh.lavf.av_read_frame  # shortcut to speedup
-        while True:
-            err = av_read_frame(ctx, cpkt)
-            if err < 0:
-                if ffh.lavf.url_feof(ctx.pb):
-                    raise pyrana.errors.EOSError()
-                else:
-                    msg = "error while reading data: %i" % err
-                    raise pyrana.errors.ProcessingError(msg)
-            if stream_id == STREAM_ANY or pkt.stream_id == stream_id:
-                break
-    return pkt
+    pkt = new_pkt(ffh, PKT_SIZE)
+    av_read_frame = ffh.lavf.av_read_frame  # shortcut to speedup
+    while True:
+        err = av_read_frame(ctx, pkt)
+        if err < 0:
+            if ffh.lavf.url_feof(ctx.pb):
+                raise pyrana.errors.EOSError()
+            else:
+                msg = "error while reading data: %i" % err
+                raise pyrana.errors.ProcessingError(msg)
+        if stream_id == STREAM_ANY or pkt.stream_index == stream_id:
+            break
+    return Packet.from_cdata(pkt)
 
 
 class Demuxer:
@@ -466,10 +466,7 @@ class Demuxer:
         if not self._ready:
             raise pyrana.errors.ProcessingError("stream not yet open")
 
-        if pkt is None:
-            pkt = Packet()
-
-        return _read_frame(self._ff, self._pctx[0], pkt, stream_id)
+        return _read_frame(self._ff, self._pctx[0], _new_cpkt, stream_id)
 
     def flush(self):
         """
@@ -494,8 +491,6 @@ class Demuxer:
             raise pyrana.errors.ProcessingError(msg)
 
         ctx = self._pctx[0].streams[stream_id].codec
-        print(ctx)
-        print(ctx.codec)
         return decoder_for_stream(ctx, stream_id,
                                   pyrana.video.Decoder,
                                   pyrana.audio.Decoder)

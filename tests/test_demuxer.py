@@ -13,6 +13,8 @@ from tests.mockslib import MockLavf, MockFF, MockPacket, MockAVFormatContext
 
 _B = b'\0' * 1024 * 64
 
+def mock_new_pkt(ffh, size):
+    return bytes(size)
 
 class TestDemuxer(unittest.TestCase):
     @classmethod
@@ -68,17 +70,15 @@ class TestDemuxer(unittest.TestCase):
 
     def test_read_faulty(self):
         ffh = MockFF(faulty=True)
-        pkt = MockPacket()
         ctx = MockAVFormatContext()
         with self.assertRaises(pyrana.errors.ProcessingError):
-            pyrana.formats._read_frame(ffh, ctx, pkt, 0)
+            pyrana.formats._read_frame(ffh, ctx, mock_new_pkt, 0)
 
     def test_read_empty(self):
         ffh = MockFF(faulty=False)
-        pkt = MockPacket()
         ctx = MockAVFormatContext()
         with self.assertRaises(pyrana.errors.EOSError):
-            pyrana.formats._read_frame(ffh, ctx, pkt, 0)
+            pyrana.formats._read_frame(ffh, ctx, mock_new_pkt, 0)
 
     def test_flush_empty_before_read(self):
         with open('tests/data/bbb_sample.ogg', 'rb') as f:
