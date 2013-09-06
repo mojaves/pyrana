@@ -4,6 +4,7 @@ Use make_enum.py instead.
 """
 from enum import IntEnum
 
+
 class SampleFormat(IntEnum):
     """
     Wraps the Sample Formats

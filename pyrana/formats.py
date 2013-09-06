@@ -180,8 +180,9 @@ class Packet:
 
     def __repr__(self):
         return "Packet(stream_id=%i, size=%i, " \
-               "pts=%i, dts=%i, is_key=%i)" % (self.stream_id,
-                    self.size, self.pts, self.dts, self.is_key)
+               "pts=%i, dts=%i, is_key=%i)" \
+               % (self.stream_id, self.size, self.pts,
+                  self.dts, self.is_key)
 
     def __len__(self):
         return self.size

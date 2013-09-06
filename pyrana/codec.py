@@ -6,7 +6,7 @@ This module is not part of the pyrana public API.
 # of course I trust the stdlib. What else must I trust?!
 # pylint: disable=E0611
 from types import MappingProxyType as frozendict
-# thanks to 
+# thanks to
 # http://me.veekun.com/blog/2013/08/05/ \
 #        frozendicthack-or-activestate-code-considered-harmful/
 
@@ -29,8 +29,8 @@ def decoder_for_stream(ctx, stream_id, vdec, adec):
               % (to_media_type(ctx.codec_type), stream_id)
         raise pyrana.errors.ProcessingError(msg)
 
-    maker = { MediaType.AVMEDIA_TYPE_VIDEO: vdec.from_cdata,
-              MediaType.AVMEDIA_TYPE_AUDIO: adec.from_cdata }
+    maker = {MediaType.AVMEDIA_TYPE_VIDEO: vdec.from_cdata,
+             MediaType.AVMEDIA_TYPE_AUDIO: adec.from_cdata}
     xdec = maker.get(ctx.codec_type, unsupported)
     return xdec(ctx)
 
@@ -54,7 +54,7 @@ class CodecMixin:
         dict, read-only
         """
         return frozendict(self._params)
-    
+
     @property
     def extra_data(self):
         """

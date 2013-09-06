@@ -51,6 +51,7 @@ class UnsupportedError(PyranaError):
     Did you properly initialized everything?
     """
 
+
 class NotFoundError(PyranaError):
     """
     cannot satisfy the user request: asked for an

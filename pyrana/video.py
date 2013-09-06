@@ -49,6 +49,7 @@ OUTPUT_CODECS = frozenset()
 #    display_num # ditto
 #
 
+
 class Decoder(BaseDecoder):
     """
     - add the 'params' property (read-only preferred alias for getParams)

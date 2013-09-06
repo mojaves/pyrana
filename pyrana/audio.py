@@ -20,7 +20,7 @@ class Decoder(BaseDecoder):
     """
     def __init__(self, input_codec, params=None):
         super(Decoder, self).__init__(params)
-    
+
     def decode(self, packet):
         """
         decode(Packet) -> Frame

@@ -177,7 +177,7 @@ def _wire(ffi):
          AVFrame *avcodec_alloc_frame(void);
          void avcodec_get_frame_defaults(AVFrame *frame);
          void avcodec_free_frame(AVFrame **frame);
- 
+
          const char *av_get_media_type_string(enum AVMediaType media_type);
 
          int av_opt_get_int   (void *obj, const char *name, int search_flags, int64_t    *out_val);
@@ -197,7 +197,7 @@ def singleton(cls):
     @wraps(cls.__new__)
     def singleton_new(cls, *args, **kw):
         """the singleton workhorse."""
-        
+
         _it = cls.__dict__.get('__it__')
         if _it is not None:
             return _it
