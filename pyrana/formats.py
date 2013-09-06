@@ -457,9 +457,9 @@ class Demuxer:
                                            fmt, ffh.ffi.NULL)
         if err < 0:
             raise pyrana.errors.SetupError("open error=%i" % err)
-        err = ffh.lavf.avformat_find_stream_info(self._pctx[0], ffh.ffi.NULL)
-        if err < 0:
-            raise pyrana.errors.SetupError("find stream error=%i" % err)
+        ffh.lavf.avformat_find_stream_info(self._pctx[0], ffh.ffi.NULL)
+        # as first attempt we want to be optimist and we choose
+        # to ignore any errors here, deemed as not critical
         self._ready = True
 
     def read_frame(self, stream_id=STREAM_ANY):
