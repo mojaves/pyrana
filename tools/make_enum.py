@@ -14,6 +14,7 @@ import argparse
 import os
 import hashlib
 import sys
+import tempfile
 
 
 class NoValueException(Exception):
@@ -55,13 +56,13 @@ def enumvalue(enum_token):
     elif isinstance(enum_token.value, pycparser.c_ast.UnaryOp):
         val = enum_token.value.expr.value
         return unary_ops[enum_token.value.op](
-                    int(val, base=0))
+            int(val, base=0))
     elif isinstance(enum_token.value, pycparser.c_ast.BinaryOp):
         lval = enum_token.value.left.value
         rval = enum_token.value.right.value
         return binary_ops[enum_token.value.op](
-                    int(lval, base=0),
-                    int(rval, base=0))
+            int(lval, base=0),
+            int(rval, base=0))
 
 
 class EnumTranslator(pycparser.c_ast.NodeVisitor):
@@ -220,7 +221,7 @@ def _main():
         '-p',
         '--portion',
         help='specify a portion (<start_line>:<end_line>) of the file'
-            'to parse')
+        'to parse')
     args = args_parser.parse_args()
 
     if not args.output_class:
@@ -229,15 +230,12 @@ def _main():
         args.importline = True
 
     if args.portion:
-        _, input_file = os.path.split(args.header)
-        name, ext = input_file.split('.')
-        tmp_filename = name + '_tmp.' + ext
         start, stop = args.portion.split(':')
         with open(args.header, 'r') as src:
             content = src.readlines()[int(start) - 1:int(stop) - 1]
-        with open(tmp_filename, 'w') as dst:
-            dst.write(''.join(content))
-        filename = tmp_filename
+        ftemp = tempfile.NamedTemporaryFile(mode='w', delete=False)
+        ftemp.write(''.join(content))
+        filename = ftemp.name
     else:
         filename = args.header
 
@@ -246,11 +244,11 @@ def _main():
 
         et_obj = EnumTranslator(ast, args.enum, args.output_class)
         translate_params = {
-                'import_line': args.importline,
-                'header': args.header,
-                'comment': args.comment,
-                'hash_type': 'SHA-1',
-                'hash_value': compute_sha1_hash(args.header),
+            'import_line': args.importline,
+            'header': args.header,
+            'comment': args.comment,
+            'hash_type': 'SHA-1',
+            'hash_value': compute_sha1_hash(args.header),
         }
 
         et_obj.translate(translate_params, args.stop)
@@ -271,7 +269,8 @@ def _main():
         et_obj.write()
 
     if args.portion:
-        os.remove(tmp_filename)
+        ftemp.close()
+        os.unlink(ftemp.name)
 
 
 if __name__ == '__main__':

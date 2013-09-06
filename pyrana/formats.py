@@ -440,6 +440,12 @@ class Demuxer:
     def __del__(self):
         self.close()
 
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        return self.stream()
+
     def close(self):
         """
         close the underlying demuxer. TODO: check for leaks.
@@ -537,6 +543,18 @@ class Demuxer:
         for idx in range(self._pctx[0].nb_streams):
             streams.append(self._stream_info(self._pctx[0].streams[idx]))
         return tuple(streams)
+
+    def stream(self, sid=STREAM_ANY):
+        """
+        generator that returns all packets that belong to a
+        specified stream id.
+        """
+        try:
+            while True:
+                pkt = self.read_frame(sid)
+                yield pkt
+        except pyrana.errors.EOSError:
+            raise StopIteration
 
     @property
     def streams(self):
