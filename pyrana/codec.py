@@ -71,14 +71,16 @@ class BaseDecoder(CodecMixin):
         super(BaseDecoder, self).__init__(params)
         ffh = self._ff
         if isinstance(input_codec, str):
-            self._codec = ffh.lavc.avcodec_find_decoder_by_name(input_codec)
+            name = input_codec.encode('utf-8')
+            self._codec = ffh.lavc.avcodec_find_decoder_by_name(name)
         else:
-            pass
+            raise pyrana.errors.SetupError("not yet supported")
 
     def __repr__(self):
         ffh = self._ff
         # how funny. If we use an array of chars like a string, it crashes.
-        cname = ffh.lavc.avcodec_get_name(self._ctx.codec_id)
+        codec_id = self._codec.id if self._codec else self._ctx.codec_id
+        cname = ffh.lavc.avcodec_get_name(codec_id)
         return "Decoder(input_codec=%s)" % (to_str(cname))
 
     @classmethod
