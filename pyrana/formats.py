@@ -124,6 +124,9 @@ def _alloc_pkt(ffh, pkt, size):
 
 
 def _new_cpkt(ffh, size):
+    """
+    builds a new C(ffi) packet of the given size.
+    """
     pkt = ffh.ffi.new('AVPacket *')
     return _alloc_pkt(ffh, pkt, size)
 
@@ -159,10 +162,17 @@ class Packet:
 
     @classmethod
     def from_cdata(cls, cpkt):
+        """
+        builds a pyrana Packet from (around) a (cffi-wrapped) libav*
+        packet object.
+        The libav object must be already initialized and ready to go.
+        WARNING: raw access. Use with care.
+        """
+        ffh = pyrana.ff.get_handle()
         pkt = object.__new__(cls)
-        pkt._ff = pyrana.ff.get_handle()
+        pkt._ff = ffh
         pkt._pkt = cpkt
-        pkt._raw_data = pkt._ff.ffi.buffer(cpkt.data, cpkt.size)
+        pkt._raw_data = ffh.ffi.buffer(cpkt.data, cpkt.size)
         return pkt
 
     def __del__(self):
@@ -452,7 +462,7 @@ class Demuxer:
             raise pyrana.errors.SetupError("find stream error=%i" % err)
         self._ready = True
 
-    def read_frame(self, stream_id=STREAM_ANY, pkt=None):
+    def read_frame(self, stream_id=STREAM_ANY):
         """
         reads and returns a new complete encoded frame (enclosed in a Packet)
         from the demuxer.

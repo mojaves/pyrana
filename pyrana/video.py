@@ -3,7 +3,6 @@ this module provides the video codec interface.
 Encoders, Decoders and their support code.
 """
 
-import pyrana.formats
 from pyrana.codec import BaseDecoder, CodecMixin
 from pyrana.pixelfmt import PixelFormat
 

@@ -21,6 +21,9 @@ class MediaType(IntEnum):
 
 
 def to_str(cstr, ffi=None):
+    """
+    convert a C(ffi) string in a proper python string.
+    """
     if ffi is None:
         ffh = pyrana.ff.get_handle()
         ffi = ffh.ffi
@@ -44,7 +47,6 @@ def _iter_fmts(ffi, format_next):
     """
     fmt = format_next(ffi.NULL)
     while fmt != ffi.NULL:
-        name = ffi.string(fmt.name)
         yield to_str(fmt.name, ffi), fmt
         fmt = format_next(fmt)
 

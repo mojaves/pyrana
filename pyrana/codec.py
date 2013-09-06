@@ -16,10 +16,17 @@ import pyrana.ff
 
 
 def decoder_for_stream(ctx, stream_id, vdec, adec):
-    def unsupported(unused):
+    """
+    builds the right decoder for a given stream (by id)
+    of an AVCodecContext.
+    """
+    def unsupported(_):
+        """
+        adapter factory function of a stream type
+        not supported by pyrana.
+        """
         msg = "unsupported type %s for stream %i" \
-              % (to_media_type(ctx.codec_type),
-                 stream_id)  # FIXME
+              % (to_media_type(ctx.codec_type), stream_id)
         raise pyrana.errors.ProcessingError(msg)
 
     maker = { MediaType.AVMEDIA_TYPE_VIDEO: vdec.from_cdata,
@@ -62,6 +69,11 @@ class BaseDecoder(CodecMixin):
     """
     def __init__(self, input_codec, params=None):
         super(BaseDecoder, self).__init__(params)
+        ffh = self._ff
+        if isinstance(input_codec, str):
+            self._codec = ffh.lavc.avcodec_find_decoder_by_name(input_codec)
+        else:
+            pass
 
     def __repr__(self):
         ffh = self._ff
@@ -71,6 +83,12 @@ class BaseDecoder(CodecMixin):
 
     @classmethod
     def from_cdata(cls, ctx):
+        """
+        builds a pyrana Decoder from (around) a (cffi-wrapped) libav*
+        decoder object.
+        The libav object must be already initialized and ready to go.
+        WARNING: raw access. Use with care.
+        """
         dec = object.__new__(cls)
         CodecMixin.__init__(dec, {})  # MUST be explicit
         dec._codec = ctx.codec
