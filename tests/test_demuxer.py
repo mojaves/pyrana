@@ -11,7 +11,7 @@ import os
 import os.path
 
 # FIXME
-from tests.mockslib import MockLavf, MockFF, MockPacket, MockAVFormatContext
+from tests.mockslib import MockLavf, MockFF, MockAVFormatContext
 
 
 _B = b'\0' * 1024 * 64
