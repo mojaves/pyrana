@@ -118,57 +118,25 @@ class TestDemuxer(unittest.TestCase):
             dec = dmx.open_decoder(0)
             assert dec
 
-    def test_extract_stream(self):
-        basepath = os.path.join('tests', 'data')
-        test_f = 'bbb_sample.ogg'
-        test_path = os.path.join(basepath, test_f)
-        out_rf_f0 = 'out0_read_frame.ogg'
-        out_rf_f1 = 'out1_read_frame.ogg'
-        out_it_f0 = 'out0_iter.ogg'
-        out_it_f1 = 'out1_iter.ogg'
-
-        with open(test_path, 'rb') as fin, \
-                open(os.path.join(basepath, out_rf_f0), 'wb') as fout:
+    def get_stream_md5(self, sid):
+        md5 = hashlib.md5()
+        with open('tests/data/bbb_sample.ogg', 'rb') as fin:
             dmx = pyrana.formats.Demuxer(fin)
-            while True:
-                try:
-                    pkt = dmx.read_frame(0)
-                    w = fout.write(bytes(pkt))
-                except pyrana.errors.EOSError:
-                    break
-        rf0_dig = md5sum(os.path.join(basepath, out_rf_f0))
-        os.remove(os.path.join(basepath, out_rf_f0))
+            for pkt in dmx.stream(sid):        
+                md5.update(bytes(pkt))
+        return md5.hexdigest()
 
-        with open(test_path, 'rb') as fin, \
-                open(os.path.join(basepath, out_rf_f1), 'wb') as fout:
-            dmx = pyrana.formats.Demuxer(fin)
-            while True:
-                try:
-                    pkt = dmx.read_frame(1)
-                    w = fout.write(bytes(pkt))
-                except pyrana.errors.EOSError:
-                    break
-        rf1_dig = md5sum(os.path.join(basepath, out_rf_f1))
-        os.remove(os.path.join(basepath, out_rf_f1))
+    def get_stream_ref_md5(self, sid):
+        with open('tests/data/bbb_sample_{}.ref'.format(sid), 'r') as fin:
+            dig = fin.readline()
+        return dig
 
-        with open(test_path, 'rb') as fin, \
-                open(os.path.join(basepath, out_it_f0), 'wb') as fout:
-            dmx = pyrana.formats.Demuxer(fin)
-            for pkt in dmx.stream(0):
-                w = fout.write(bytes(pkt))
-        iter0_dig = md5sum(os.path.join(basepath, out_it_f0))
-        os.remove(os.path.join(basepath, out_it_f0))
+    def test_extract_stream_it(self):
+        assert(self.get_stream_md5(0) ==
+            self.get_stream_ref_md5(0))
+        assert(self.get_stream_md5(1) ==
+            self.get_stream_ref_md5(1))
 
-        with open(test_path, 'rb') as fin, \
-                open(os.path.join(basepath, out_it_f1), 'wb') as fout:
-            dmx = pyrana.formats.Demuxer(fin)
-            for pkt in dmx.stream(1):
-                w = fout.write(bytes(pkt))
-        iter1_dig = md5sum(os.path.join(basepath, out_it_f1))
-        os.remove(os.path.join(basepath, out_it_f1))
-
-        assert(rf0_dig == iter0_dig)
-        assert(rf1_dig == iter1_dig)
 
 if __name__ == "__main__":
     unittest.main()
