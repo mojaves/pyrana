@@ -19,9 +19,9 @@ class TestBaseCodecs(unittest.TestCase):
         dec = pyrana.codec.BaseDecoder("mjpeg")
         assert(dec)
         assert(repr(dec))
-    
+
     def test_base_decoder_audio(self):
-        dec = pyrana.codec.BaseDecoder("pcm_s16le")
+        dec = pyrana.codec.BaseDecoder("flac")
         assert(dec)
         assert(repr(dec))
 
