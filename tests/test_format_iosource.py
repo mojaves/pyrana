@@ -1,0 +1,83 @@
+#!/usr/bin/python
+
+import random
+import io
+import unittest
+import pyrana.formats
+
+
+_BLEN = 64 * 1024
+_BZ = b'\0' * _BLEN
+
+
+def _randgen(L, x=None):
+    # FIXME: clumsy, rewrite
+    cnt, num = 0, L
+    rnd = random.Random(x)
+    while cnt < L:
+        yield (rnd.randint(0, 255),)
+        cnt += 1
+
+
+class TestFormatIOSource(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        pyrana.setup()
+
+    def test_new_empty(self):
+        f = io.BytesIO(_BZ)
+        src = pyrana.formats.IOSource(f)
+        assert src
+        assert repr(src)
+
+    def test_new_empty_not_seekable(self):
+        f = io.BytesIO(_BZ)
+        src = pyrana.formats.IOSource(f, seekable=False)
+        assert src
+
+    def test_new_empty_custom_size(self):
+        f = io.BytesIO(_BZ)
+        size = pyrana.formats.PKT_SIZE * 4
+        src = pyrana.formats.IOSource(f, bufsize=size)
+        assert src
+
+    def test_read(self):
+        ffh = pyrana.ff.get_handle()
+        buf = pyrana.formats.Buffer()
+        f = io.BytesIO(_BZ)
+        h = ffh.ffi.new_handle(f)
+        pyrana.formats._read(h, buf.cdata, buf.size)
+        _x = f.getbuffer()
+        try:
+            _x = _x.cast('c')  # cpython >= 3.3
+        except:
+            # cpyhon 3.2: already returns bytes as items.
+            pass
+        for i, b in enumerate(buf.data):
+            assert(b == _x[i])  # XXX sigh. I can barely stand this.
+
+# not yet needed
+#    def test_write(self):
+#        ffh = pyrana.ff.get_handle()
+#        buf = pyrana.formats.Buffer(_BLEN)
+#        for i, b in enumerate(_randgen(_BLEN)):
+#            buf.data[i] = bytes(b)  # XXX whoa,
+#                                    # that's almost too ugly to be true
+#        f = io.BytesIO()
+#        h = ffh.ffi.new_handle(f)
+#        pyrana.formats._write(h, buf.cdata, buf.size)
+#        _x = f.getbuffer()
+#        for i, b in enumerate(buf.data):
+#            assert(b == bytes((_x[i],)))  # XXX you sure?
+
+    def test_seek(self):
+        ffh = pyrana.ff.get_handle()
+        buf = pyrana.formats.Buffer()
+        f = io.BytesIO(_BZ)
+        h = ffh.ffi.new_handle(f)
+        pyrana.formats._seek(h, 128, 0)
+        self.assertEqual(f.tell(), 128)
+
+
+if __name__ == "__main__":
+    unittest.main()

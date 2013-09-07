@@ -1,0 +1,261 @@
+# Revision 1.5.1 - 20110306
+#
+# beware: the following is Python-like PSEUDO-code
+#
+# pyrana (V)
+
+class PyranaError(Exception):
+    pass
+
+class EOSError(PyranaError):
+    "End Of Stream"
+    pass
+
+class NeedFeedError(PyranaError):
+    "More data is needed"
+    pass
+
+class ProcessingError(PyranaError):
+    pass
+
+class SetupError(PyranaError):
+    pass
+
+class UnsupportedError(PyranaError):
+    pass
+
+
+# pyrana.format (V)
+
+input_formats  = frozenset()
+output_formats = frozenset()
+
+
+def is_streamable(name) # (XXX!!!)
+     """
+     is_streamable(name) -> Bool
+     tells if a given format is streamable (-> needs seek()) or not.
+     """
+     pass
+
+def find_stream(streams, stream_id, media):
+    """
+    TODO
+    """
+    pass
+
+class Packet(object):
+    def __init__(self, stream_id, data, pts, dts, is_key):
+        """
+        a Packet object represents an immutable, encoded packet of a
+        multimedia stream.
+        """
+        pass
+    stream_id
+    pts
+    dts
+    is_key
+    size
+    data # COPIES the content!
+
+
+class Demuxer(object):
+	def __init__(self, src, name=""):
+        """
+        Demuxer(src, name="")
+        Initialize a new demuxer for the file type `name' (use "" (empty) for auto probing)
+        A Demuxer needs a RawIOBase-compliant as a source of data.
+        The RawIOBase-compliant object must be already open.
+        """ 
+        pass
+    def read_frame(self, stream_id=pyrana.format.STREAM_ANY):
+        """
+        read_frame(stream_id=ANY) -> Packet Object
+        reads and returns a new complete encoded frame (enclosed in a Packet) from the demuxer.
+        if the optional `stream_id' argument is !ANY, returns a frame
+        belonging to the specified streams.
+
+        raises EndOfStreamError if
+        - a stream id is specified, and such streams doesn't exists.
+        - the streams ends.
+        """
+        raise NotImplementedError
+    def open_decoder(self, stream_id, params={}):
+        """
+        open_decoder(stream_id) -> Decoder instance
+        create and returns a full-blown decoder Instance capable to decode the selected
+        stream. Like doing things manually, just easily.
+        """
+    streams
+        """
+        streams: read-only attribute
+        list of StreamInfo objects describing the streams found by the demuxer
+        (as in old pyrana, no changes)
+        """
+
+class Muxer(object): # (XXX!)
+    def __init__(self, dst, name):
+        """
+        Muxer(dst, name="")
+        Initialize a new muxer for the file type `name'
+        A Muxer needs a RawIOBase-compliant as a sink of data.
+        The RawIOBase-compliant object must be already open.
+        """ 
+        pass
+    def add_stream(self, stream_id, params={}):
+        pass
+    def write_header(self):
+        pass
+    def write_trailer(self):
+        pass
+    def write_frame(self, packet):
+        """requires an encoded frame enclosed in a Packet!"""
+        pass
+    def get_pts(self, stream_id):
+        pass
+    def flush(self):
+        """flush() -> None"""
+
+
+#pyrana.video
+
+input_codecs       = frozenset()
+output_codecs      = frozenset()
+pixel_formats      = Enum
+
+
+class Plane(object):
+    # no constructor, can be generated only from Images
+    plane_id
+    stride
+    width
+    height
+    pixel_format
+    data
+    size
+
+class Image(object):
+    def __init__(self, width, height, pixel_format, data):
+        """not yet decided"""
+        pass
+    width
+    height
+    pixel_format
+    def plane(self, num):
+        return Plane # FIXME
+    def convert(self, ...):
+        return Image # ...
+
+
+class Frame(object):
+    def __init__(self, image, pts, is_key, is_interlaced, top_field_first):
+        """not yet decided"""
+        pass
+    pts
+    is_key
+    image
+    top_field_first
+    is_interlaced
+    pic_type # can only set by decoder/encoder
+    coded_num # ditto
+    display_num # ditto
+
+
+
+class Decoder(object):
+    """
+    - add the 'params' property (read-only preferred alias for getParams)
+    - no conversion/scaling will be performed
+    - add flush() operation
+    """
+    def __init__(self, input_codec, params={}):
+        pass
+    def decode(self, Packet):
+        """decode(Packet) -> Frame"""
+        return Frame # ...
+    def flush(self):
+        """flush() -> Frame"""
+        return Frame # ...
+    params
+        """dict, read-only"""
+    extra_data
+        """bytes, read-write"""
+
+
+class Encoder(object):
+    """
+    - add the 'params' property (read-only preferred alias for getParams)
+    - no conversion/scaling will be performed
+    - add flush() operation
+    """
+    def __init__(self, output_codec, params={}):
+        pass
+    def encode(self, Frame):
+        """encode(Frame) -> Packet"""
+        return Packet # ...
+    def flush(self):
+        """flush() -> Packet"""
+        return Packet # ...
+    params
+        """dict, read-only"""
+    extra_data
+        """bytes, read-only"""
+
+
+#pyrana.audio
+
+input_codecs        = frozenset()
+output_codecs       = frozenset()
+sample_formats      = Enum
+
+# FIXME: spawn Samples as Image for video.Frame?
+class Frame(object): # (V)
+    def __init__(self, data, pts, sample_format, sample_rate, channels):
+        pass
+    pts
+    is_key #XXX
+    sample_format
+    sample_rate
+    channels
+    size # bytes (FIXME )
+    data
+    def resample(self, sample_format, ...): # XXX
+        return Frame # ...
+
+
+class Decoder(object):
+    """
+    Like the old Pyrana class,
+    - add the 'params' property (read-only preferred alias for getParams)
+    - no conversion/scaling will be performed
+    - add flush() operation
+    """
+    def __init__(self, input_codec, params={}):
+        pass
+    def decode(self, Packet):
+        """decode(Packet) -> Frame"""
+        pass
+    def flush(self):
+        """flush() -> encdata [bytes]"""
+        pass
+    params
+        """dict, read-only"""
+
+
+class Encoder(object):
+    """
+    Like the old Pyrana class,
+    - add the 'params' property (read-only preferred alias for getParams)
+    - no conversion/scaling will be performed
+    - add flush() operation
+    """
+    def __init__(self, name, params={}):
+        pass
+    def encode(self, Frame):
+        """encode(Frame) -> Packet"""
+        pass
+    def flush(self):
+        """flush() -> encdata [bytes]"""
+        pass
+    params
+        """dict, read-only"""

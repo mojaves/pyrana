@@ -1,0 +1,8 @@
+MANIFEST
+.tox
+.coverage
+dist/
+build/
+pyrana/__pycache__
+tests/__pycache__
+big_buck_bunny*
