@@ -143,7 +143,7 @@ class EnumTranslator(pycparser.c_ast.NodeVisitor):
 
         if import_line:
             self.output_buffer.append('from enum import IntEnum\n')
-            self.output_buffer.append('\n')
+        self.output_buffer.append('\n')
         self.output_buffer.append('\n')
         self.output_buffer.append('class {}(IntEnum)'
                                   ':\n'.format(self.output_class_name))
