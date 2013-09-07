@@ -187,6 +187,38 @@ def eprint(msg):
     sys.stderr.write("{}\n".format(msg))
 
 
+def translate(filename, args, portion=None):
+    try:
+        ast = pycparser.parse_file(filename, use_cpp=True)
+
+        et_obj = EnumTranslator(ast, args.enum, args.output_class)
+        translate_params = {
+            'import_line': args.importline,
+            'header': args.header,
+            'comment': args.comment,
+            'hash_type': 'SHA-1',
+            'hash_value': sha1sum(args.header),
+            'portion': portion
+        }
+
+        et_obj.translate(translate_params, args.stop)
+    except pycparser.plyparser.ParseError as exc:
+        eprint('Translation error, try to use -p option with proper '
+               'boundaries')
+        eprint(exc)
+        return
+    except TypeError:
+        eprint('Translation error, try to use -s option with a stop '
+               'enumerator parameter')
+        return
+
+    if args.output:
+        with open(args.output, 'w') as ftw:
+            et_obj.write(ftw)
+    else:
+        et_obj.write()
+
+
 def _main():
     """
     Manage command line arguments and
@@ -229,49 +261,17 @@ def _main():
     if args.output:
         args.importline = True
 
-    if args.portion:
+    if not args.portion:
+        translate(args.header, args)
+    else:
         start, stop = args.portion.split(':')
-        with open(args.header, 'r') as src:
-            content = src.readlines()[int(start) - 1:int(stop) - 1]
-        ftemp = tempfile.NamedTemporaryFile(mode='w', delete=False)
-        ftemp.write(''.join(content))
-        ftemp.flush()
-        filename = ftemp.name
-    else:
-        filename = args.header
-
-    try:
-        ast = pycparser.parse_file(filename, use_cpp=True)
-
-        et_obj = EnumTranslator(ast, args.enum, args.output_class)
-        translate_params = {
-            'import_line': args.importline,
-            'header': args.header,
-            'comment': args.comment,
-            'hash_type': 'SHA-1',
-            'hash_value': sha1sum(args.header),
-        }
-
-        et_obj.translate(translate_params, args.stop)
-    except pycparser.plyparser.ParseError as exc:
-        eprint('Translation error, try to use -p option with proper '
-               'boundaries')
-        eprint(exc)
-        exit()
-    except TypeError:
-        eprint('Translation error, try to use -s option with a stop '
-               'enumerator parameter')
-        exit()
-
-    if args.output:
-        with open(args.output, 'w') as ftw:
-            et_obj.write(ftw)
-    else:
-        et_obj.write()
-
-    if args.portion:
-        ftemp.close()
-        os.unlink(ftemp.name)
+        with open(args.header, 'r') as src, \
+             tempfile.NamedTemporaryFile(mode='w', delete=False) as ftemp:
+            portion = (int(start), int(stop))
+            content = src.readlines()[portion[0]-1:portion[1]-1]
+            ftemp.write(''.join(content))
+            ftemp.flush()
+            translate(ftemp.name, args, portion=portion)
 
 
 if __name__ == '__main__':
