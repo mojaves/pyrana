@@ -8,6 +8,7 @@ import io
 import unittest
 import hashlib
 import os
+import os.path
 
 # FIXME
 from tests.mockslib import MockLavf, MockFF, MockPacket, MockAVFormatContext
@@ -118,16 +119,16 @@ class TestDemuxer(unittest.TestCase):
             assert dec
 
     def test_extract_stream(self):
-        basepath = 'tests/data/'
+        basepath = os.path.join('tests', 'data')
         test_f = 'bbb_sample.ogg'
-        test_path = basepath + test_f
+        test_path = os.path.join(basepath, test_f)
         out_rf_f0 = 'out0_read_frame.ogg'
         out_rf_f1 = 'out1_read_frame.ogg'
         out_it_f0 = 'out0_iter.ogg'
         out_it_f1 = 'out1_iter.ogg'
 
         with open(test_path, 'rb') as fin, \
-                open(basepath + out_rf_f0, 'wb') as fout:
+                open(os.path.join(basepath, out_rf_f0), 'wb') as fout:
             dmx = pyrana.formats.Demuxer(fin)
             while True:
                 try:
@@ -135,11 +136,11 @@ class TestDemuxer(unittest.TestCase):
                     w = fout.write(bytes(pkt))
                 except pyrana.errors.EOSError:
                     break
-        rf0_dig = md5sum(basepath + out_rf_f0)
-        os.remove(basepath + out_rf_f0)
+        rf0_dig = md5sum(os.path.join(basepath, out_rf_f0))
+        os.remove(os.path.join(basepath, out_rf_f0))
 
         with open(test_path, 'rb') as fin, \
-                open(basepath + out_rf_f1, 'wb') as fout:
+                open(os.path.join(basepath, out_rf_f1), 'wb') as fout:
             dmx = pyrana.formats.Demuxer(fin)
             while True:
                 try:
@@ -147,24 +148,24 @@ class TestDemuxer(unittest.TestCase):
                     w = fout.write(bytes(pkt))
                 except pyrana.errors.EOSError:
                     break
-        rf1_dig = md5sum(basepath + out_rf_f1)
-        os.remove(basepath + out_rf_f1)
+        rf1_dig = md5sum(os.path.join(basepath, out_rf_f1))
+        os.remove(os.path.join(basepath, out_rf_f1))
 
         with open(test_path, 'rb') as fin, \
-                open(basepath + out_it_f0, 'wb') as fout:
+                open(os.path.join(basepath, out_it_f0), 'wb') as fout:
             dmx = pyrana.formats.Demuxer(fin)
             for pkt in dmx.stream(0):
                 w = fout.write(bytes(pkt))
-        iter0_dig = md5sum(basepath + out_it_f0)
-        os.remove(basepath + out_it_f0)
+        iter0_dig = md5sum(os.path.join(basepath, out_it_f0))
+        os.remove(os.path.join(basepath, out_it_f0))
 
         with open(test_path, 'rb') as fin, \
-                open(basepath + out_it_f1, 'wb') as fout:
+                open(os.path.join(basepath, out_it_f1), 'wb') as fout:
             dmx = pyrana.formats.Demuxer(fin)
             for pkt in dmx.stream(1):
                 w = fout.write(bytes(pkt))
-        iter1_dig = md5sum(basepath + out_it_f1)
-        os.remove(basepath + out_it_f1)
+        iter1_dig = md5sum(os.path.join(basepath, out_it_f1))
+        os.remove(os.path.join(basepath, out_it_f1))
 
         assert(rf0_dig == iter0_dig)
         assert(rf1_dig == iter1_dig)
