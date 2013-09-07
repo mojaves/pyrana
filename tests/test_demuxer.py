@@ -126,8 +126,18 @@ class TestDemuxer(unittest.TestCase):
                 md5.update(bytes(pkt))
         return md5.hexdigest()
 
+    def get_stream_any_md5(self):
+        md5 = hashlib.md5()
+        with open('tests/data/bbb_sample.ogg', 'rb') as fin:
+            dmx = pyrana.formats.Demuxer(fin)
+            for pkt in dmx:        
+                md5.update(bytes(pkt))
+        return md5.hexdigest()
+
     def get_stream_ref_md5(self, sid):
-        with open('tests/data/bbb_sample_{}.ref'.format(sid)) as fin:
+        filename = 'tests/data/bbb_sample_{}.ref'.format(
+            sid if sid != -1 else 'any')
+        with open(filename) as fin:
             dig = fin.readline()
         return dig
 
@@ -139,6 +149,9 @@ class TestDemuxer(unittest.TestCase):
         assert(self.get_stream_md5(1) ==
             self.get_stream_ref_md5(1))
 
+    def test_extract_stream_it_any(self):
+        assert(self.get_stream_any_md5() ==
+            self.get_stream_ref_md5(-1))
 
 if __name__ == "__main__":
     unittest.main()
