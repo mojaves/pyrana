@@ -235,6 +235,7 @@ def _main():
             content = src.readlines()[int(start) - 1:int(stop) - 1]
         ftemp = tempfile.NamedTemporaryFile(mode='w', delete=False)
         ftemp.write(''.join(content))
+        ftemp.flush()
         filename = ftemp.name
     else:
         filename = args.header
