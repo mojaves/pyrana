@@ -35,7 +35,7 @@ def decoder_for_stream(ctx, stream_id, vdec, adec):
     return xdec(ctx)
 
 
-class CodecMixin:
+class CodecMixin(object):
     """
     Mixin. Abstracts the common codec attributes:
     parameters reference, read-only access, extradata

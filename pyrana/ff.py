@@ -215,7 +215,7 @@ def singleton(cls):
 
 
 @singleton
-class FF:
+class FF(object):
     """
     FFMpeg abstraction objects.
     Needs to be a singleton because the FFI instance has to be

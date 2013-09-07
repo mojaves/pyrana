@@ -55,7 +55,7 @@ def find_stream(streams, nth, media):
     raise pyrana.errors.NotFoundError(msg)
 
 
-class Buffer:
+class Buffer(object):
     """
     Wrapper class for a buffer properly aligned for
     optimal usage by ffmpeg libraries.
@@ -133,7 +133,7 @@ def _new_cpkt(ffh, size):
 
 # In the current incarnation, it could be happily replaced by a namedtuple.
 # however, things are expected to change once Muxer get implemented.
-class Packet:
+class Packet(object):
     """
     a Packet object represents an immutable, encoded packet of a
     multimedia stream.
@@ -272,7 +272,7 @@ def _seek(handle, offset, whence):
     return ret
 
 
-class IOSource:
+class IOSource(object):
     """
     wraps the avio handling.
     A separate classe is advisable because
@@ -405,7 +405,7 @@ def _read_frame(ffh, ctx, new_pkt, stream_id):
     return Packet.from_cdata(pkt)
 
 
-class Demuxer:
+class Demuxer(object):
     """
     Demuxer object. Use a file-like for real I/O.
     The file-like must be already open, and must support read()
@@ -570,7 +570,7 @@ class Demuxer:
         return self._streams
 
 
-class Muxer:
+class Muxer(object):
     """
     Muxer object. Use a file-like for real I/O.
     The file-like must be already open, and must support write()
