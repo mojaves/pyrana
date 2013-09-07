@@ -127,13 +127,15 @@ class TestDemuxer(unittest.TestCase):
         return md5.hexdigest()
 
     def get_stream_ref_md5(self, sid):
-        with open('tests/data/bbb_sample_{}.ref'.format(sid), 'r') as fin:
+        with open('tests/data/bbb_sample_{}.ref'.format(sid)) as fin:
             dig = fin.readline()
         return dig
 
-    def test_extract_stream_it(self):
+    def test_extract_stream_it_0(self):
         assert(self.get_stream_md5(0) ==
             self.get_stream_ref_md5(0))
+    
+    def test_extract_stream_it_1(self):
         assert(self.get_stream_md5(1) ==
             self.get_stream_ref_md5(1))
 
