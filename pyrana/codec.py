@@ -75,11 +75,20 @@ class BaseDecoder(CodecMixin):
             self._codec = ffh.lavc.avcodec_find_decoder_by_name(name)
         else:
             raise pyrana.errors.SetupError("not yet supported")
+        self._ctx = ffh.lavc.avcodec_alloc_context3(self._codec)
+        self._open()
+
+    def _open(self):
+        ffh = self._ff
+        err = ffh.lavc.avcodec_open2(self._ctx, self._codec, ffh.ffi.NULL)
+        if err < 0:
+            raise pyrana.errors.SetupError("avcodec open failed: %i" % err)
+        return self
 
     def __repr__(self):
         ffh = self._ff
         # how funny. If we use an array of chars like a string, it crashes.
-        codec_id = self._codec.id if self._codec else self._ctx.codec_id
+        codec_id = self._codec.id  # if self._codec else self._ctx.codec_id
         cname = ffh.lavc.avcodec_get_name(codec_id)
         return "Decoder(input_codec=%s)" % (to_str(cname))
 
@@ -91,8 +100,10 @@ class BaseDecoder(CodecMixin):
         The libav object must be already initialized and ready to go.
         WARNING: raw access. Use with care.
         """
+        ffh = pyrana.ff.get_handle()
         dec = object.__new__(cls)
         CodecMixin.__init__(dec, {})  # MUST be explicit
+        ctx.codec = ffh.lavc.avcodec_find_decoder(ctx.codec_id)
         dec._codec = ctx.codec
         dec._ctx = ctx
-        return dec
+        return dec._open()

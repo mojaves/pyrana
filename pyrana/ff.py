@@ -80,6 +80,8 @@ def _wire(ffi):
          typedef struct AVProgram AVProgram;
          typedef struct AVChapter AVChapter;
 
+         typedef struct AVCodec AVCodec;
+
          typedef struct AVCodecContext {
             const AVClass *av_class;
             int log_level_offset;
@@ -91,6 +93,7 @@ def _wire(ffi):
             unsigned int stream_codec_tag;
             /* ... */
          } AVCodecContext;
+         AVCodecContext *avcodec_alloc_context3(const AVCodec *codec);
 
          typedef struct AVStream {
             int index;
@@ -160,6 +163,9 @@ def _wire(ffi):
          int avcodec_is_open(AVCodecContext *s);
          int av_codec_is_encoder(const AVCodec *codec);
          int av_codec_is_decoder(const AVCodec *codec);
+
+         int avcodec_open2(AVCodecContext *avctx, const AVCodec *codec, AVDictionary **options);
+         int avcodec_close(AVCodecContext *avctx);
 
          /* TODO: replace magic number - 8 */
          typedef struct AVFrame {
