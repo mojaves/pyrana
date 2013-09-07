@@ -444,7 +444,11 @@ class Demuxer(object):
         return self
 
     def __next__(self):
-        return self.stream()
+        try:
+            return self.read_frame()
+        except pyrana.errors.EOSError:
+            pass
+        raise StopIteration
 
     def close(self):
         """
@@ -549,12 +553,12 @@ class Demuxer(object):
         generator that returns all packets that belong to a
         specified stream id.
         """
-        try:
-            while True:
-                pkt = self.read_frame(sid)
-                yield pkt
-        except pyrana.errors.EOSError:
-            raise StopIteration
+        while True:
+            try:
+                yield self.read_frame(sid)
+            except pyrana.errors.EOSError:
+                break
+        raise StopIteration
 
     @property
     def streams(self):
