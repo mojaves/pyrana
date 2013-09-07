@@ -26,13 +26,13 @@ class NoValueException(Exception):
     pass
 
 
-def compute_sha1_hash(file_to_hash):
+def sha1sum(path):
     """
     Returns the SHA-1 hash of the file passed
     as input
     """
     sha1 = hashlib.sha1()
-    with open(file_to_hash, 'rb') as fth:
+    with open(path, 'rb') as fth:
         sha1.update(fth.read())
     return sha1.hexdigest()
 
@@ -249,7 +249,7 @@ def _main():
             'header': args.header,
             'comment': args.comment,
             'hash_type': 'SHA-1',
-            'hash_value': compute_sha1_hash(args.header),
+            'hash_value': sha1sum(args.header),
         }
 
         et_obj.translate(translate_params, args.stop)
