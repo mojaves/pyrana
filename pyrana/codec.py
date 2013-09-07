@@ -67,7 +67,7 @@ class BaseDecoder(CodecMixin):
     """
     Decoder base class. Common both to audio and video decoders.
     """
-    def __init__(self, input_codec, params=None):
+    def __init__(self, input_codec, params=None, delay_open=False):
         super(BaseDecoder, self).__init__(params)
         ffh = self._ff
         if isinstance(input_codec, str):
@@ -76,10 +76,14 @@ class BaseDecoder(CodecMixin):
         else:
             raise pyrana.errors.SetupError("not yet supported")
         self._ctx = ffh.lavc.avcodec_alloc_context3(self._codec)
-        self._open()
+        if not delay_open:
+            self._open()
 
-    def _open(self):
-        ffh = self._ff
+    def _open(self, ffh=None):  # ffh parameter only for testing purposes.
+        """
+        opens the codec into the codec context.
+        """
+        ffh = self._ff if ffh is None else ffh
         err = ffh.lavc.avcodec_open2(self._ctx, self._codec, ffh.ffi.NULL)
         if err < 0:
             raise pyrana.errors.SetupError("avcodec open failed: %i" % err)
