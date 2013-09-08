@@ -132,6 +132,17 @@ def _new_cpkt(ffh, size):
     return _alloc_pkt(ffh, pkt, size)
 
 
+@contextmanager
+def raw_packet(size):
+    """
+    context manager for a raw ffmpeg packet of the given size.
+    """
+    ffh = pyrana.ff.get_handle()
+    pkt = _new_cpkt(ffh, size)
+    yield pkt
+    ffh.lavc.av_free_packet(pkt)
+
+
 # In the current incarnation, it could be happily replaced by a namedtuple.
 # however, things are expected to change once Muxer get implemented.
 class Packet(object):
@@ -240,11 +251,16 @@ class Packet(object):
         """
         return bool(self._pkt.flags & PacketFlags.AV_PKT_FLAG_KEY)
 
-    # FIXME: ensure R/O and (thus) simplify
     @contextmanager
     def raw_pkt(self):
+        """
+        raw access to the underlying FFmpeg packet.
+        used by decoders in some corner but important cases.
+        For internal usage only.
+        TODO: ensure R/O and (thus) simplify
+        """
         yield self._pkt
-        self._raw_data = ffi.buffer(self._pkt.data, self._pkt.size)
+        self._raw_data = self._ff.ffi.buffer(self._pkt.data, self._pkt.size)
 
 
 def _read(handle, buf, buf_size):
