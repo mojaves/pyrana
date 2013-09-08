@@ -3,6 +3,7 @@ This module provides the transport layer interface: encoded packets,
 Muxer, Demuxers and their support code.
 """
 
+from contextlib import contextmanager
 from enum import IntEnum
 
 from pyrana.common import MediaType, to_media_type
@@ -238,6 +239,12 @@ class Packet(object):
         (provided by libav*)
         """
         return bool(self._pkt.flags & PacketFlags.AV_PKT_FLAG_KEY)
+
+    # FIXME: ensure R/O and (thus) simplify
+    @contextmanager
+    def raw_pkt(self):
+        yield self._pkt
+        self._raw_data = ffi.buffer(self._pkt.data, self._pkt.size)
 
 
 def _read(handle, buf, buf_size):

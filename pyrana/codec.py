@@ -63,6 +63,18 @@ class CodecMixin(object):
         raise NotImplementedError
 
 
+class BaseFrame(object):
+    def __init__(self):
+        pass
+
+    def __del__(self):
+        pass
+
+    @classmethod
+    def from_cdata(cls, frame):
+        pass
+
+
 class BaseDecoder(CodecMixin):
     """
     Decoder base class. Common both to audio and video decoders.
@@ -76,6 +88,7 @@ class BaseDecoder(CodecMixin):
         else:
             raise pyrana.errors.SetupError("not yet supported")
         self._ctx = ffh.lavc.avcodec_alloc_context3(self._codec)
+        self._got_frame = ffh.ffi.new("int [1]")
         if not delay_open:
             self._open()
 

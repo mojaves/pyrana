@@ -184,6 +184,13 @@ def _wire(ffi):
          void avcodec_get_frame_defaults(AVFrame *frame);
          void avcodec_free_frame(AVFrame **frame);
 
+         int avcodec_decode_video2(AVCodecContext *avctx, AVFrame *picture,
+                                   int *got_picture_ptr,
+                                   const AVPacket *avpkt);
+         int avcodec_decode_audio4(AVCodecContext *avctx, AVFrame *frame,
+                                   int *got_frame_ptr,
+                                   const AVPacket *avpkt);
+
          const char *av_get_media_type_string(enum AVMediaType media_type);
 
          int av_opt_get_int   (void *obj, const char *name, int search_flags, int64_t    *out_val);
