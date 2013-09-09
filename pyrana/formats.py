@@ -402,8 +402,8 @@ def _video_stream_info(ctx):
     extract the video stream info from an AVCodecContext (ctx)
     """
     return {
-        "width": 0,  # FIXME
-        "height": 0  # FIXME
+        "width": ctx.width,
+        "height": ctx.height
     }
 
 
