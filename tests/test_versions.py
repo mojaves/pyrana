@@ -26,8 +26,14 @@ class TestCommonData(unittest.TestCase):
         with self.assertRaises(LibraryVersionError):
            pyrana.versions.autoverify(MockHandle(ver, ver, ver))
 
-    def test_autoverify_bad_lavc(self):
-        bad = (50, 0, 0)
+    def test_autoverify_bad_lavc_low(self):
+        bad = (53, 0, 0)
+        good = (54, 0, 0)
+        with self.assertRaises(LibraryVersionError):
+            pyrana.versions.autoverify(MockHandle(bad, good, good))
+
+    def test_autoverify_bad_lavc_high(self):
+        bad = (55, 0, 0)
         good = (54, 0, 0)
         with self.assertRaises(LibraryVersionError):
             pyrana.versions.autoverify(MockHandle(bad, good, good))

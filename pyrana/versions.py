@@ -40,6 +40,8 @@ def autoverify(ffh=None):
         raise LibraryVersionError("missing libraries")
     if lavc < av_version_pack(54, 0, 0):
         raise LibraryVersionError("unsupported libavcodec")
+    if lavc >= av_version_pack(55, 0, 0):
+        raise LibraryVersionError("unsupported libavcodec")
     if lavf < av_version_pack(54, 0, 0):
         raise LibraryVersionError("unsupported libavformat")
     if lavu < av_version_pack(52, 0, 0):
