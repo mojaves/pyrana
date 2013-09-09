@@ -75,6 +75,11 @@ def _wire(ffi):
          int av_copy_packet(AVPacket *dst, AVPacket *src);
          void av_free_packet(AVPacket *pkt);
 
+         typedef struct AVRational{
+              int num;
+              int den;
+         } AVRational;
+
          typedef struct AVDictionary AVDictionary;
          typedef struct AVClass AVClass;
          typedef struct AVProgram AVProgram;
@@ -91,6 +96,26 @@ def _wire(ffi):
             enum AVCodecID codec_id;
             unsigned int codec_tag;
             unsigned int stream_codec_tag;
+            /*attribute_deprecated*/ int sub_id;
+            void *priv_data;
+            struct AVCodecInternal *internal;
+            void *opaque;
+            int bit_rate;
+            int bit_rate_tolerance;
+            int global_quality;
+            int compression_level;
+            int flags;
+            int flags2;
+            uint8_t *extradata;
+            int extradata_size;
+            AVRational time_base;
+            int ticks_per_frame;
+            int delay;
+            int width, height;
+            int coded_width, coded_height;
+            int gop_size;
+            enum AVPixelFormat pix_fmt;
+            int me_method;
             /* ... */
          } AVCodecContext;
          AVCodecContext *avcodec_alloc_context3(const AVCodec *codec);
