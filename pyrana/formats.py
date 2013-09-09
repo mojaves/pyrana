@@ -515,8 +515,8 @@ class Demuxer(object):
     def flush(self):
         """
         returns any Packet buffered by Demuxer, if any.
+        However, normally demuxer do not buffer packets. Decoder do.
         """
-        # FIXME
         raise pyrana.errors.EOSError("No Packets buffered")
 
     def open_decoder(self, stream_id):
