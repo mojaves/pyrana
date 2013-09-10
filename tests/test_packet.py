@@ -121,8 +121,8 @@ class TestPacket(unittest.TestCase):
 
     def test_raw_pkt(self):
         pkt = pyrana.formats.Packet(0, _B)
-        cpkt = pkt.raw_pkt()
-        assert(cpkt)
+        with pkt.raw_pkt() as cpkt:
+            assert(cpkt)
 
 
 if __name__ == "__main__":
