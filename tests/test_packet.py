@@ -119,6 +119,11 @@ class TestPacket(unittest.TestCase):
         pkt = pyrana.formats.Packet(0, _B)
         assert(hash(pkt))
 
+    def test_raw_pkt(self):
+        pkt = pyrana.formats.Packet(0, _B)
+        cpkt = pkt.raw_pkt()
+        assert(cpkt)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -52,6 +52,10 @@ class TestFormatFuncs(unittest.TestCase):
                                         MediaType.AVMEDIA_TYPE_VIDEO)
         assert idx == 0
 
+    def test_raw_packet(self):
+        with pyrana.formats.raw_packet(128) as cpkt:
+            assert(cpkt.size == 128)
+
 
 if __name__ == "__main__":
     unittest.main()
