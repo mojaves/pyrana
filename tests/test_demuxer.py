@@ -29,6 +29,7 @@ def md5sum(filename):
 def mock_new_pkt(ffh, size):
     return bytes(size)
 
+
 def gen_packets(dmx, stream_id=STREAM_ANY):
     return iter(dmx) if stream_id == STREAM_ANY else dmx.stream(stream_id)
 
@@ -139,15 +140,15 @@ class TestDemuxer(unittest.TestCase):
 
     def test_extract_stream_it_0(self):
         assert(self.stream_md5(0) ==
-            self.stream_ref_md5(0))
-    
+               self.stream_ref_md5(0))
+
     def test_extract_stream_it_1(self):
         assert(self.stream_md5(1) ==
-            self.stream_ref_md5(1))
+               self.stream_ref_md5(1))
 
     def test_extract_stream_it_any(self):
         assert(self.stream_md5() ==
-            self.stream_ref_md5())
+               self.stream_ref_md5())
 
 if __name__ == "__main__":
     unittest.main()
