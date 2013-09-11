@@ -98,13 +98,6 @@ class TestDemuxer(unittest.TestCase):
         with self.assertRaises(pyrana.errors.EOSError):
             pyrana.formats._read_frame(ffh, ctx, mock_new_pkt, 0)
 
-    def test_flush_empty_before_read(self):
-        with open(os.path.join('tests/data/bbb_sample.ogg'), 'rb') as f:
-            dmx = pyrana.formats.Demuxer(f)
-            with self.assertRaises(pyrana.errors.EOSError):
-                pkt = dmx.flush()
-                assert not len(pkt)
-
     def test_open_decoder_invalid_stream1(self):
         with open(os.path.join('tests/data/bbb_sample.ogg'), 'rb') as f:
             dmx = pyrana.formats.Demuxer(f)
