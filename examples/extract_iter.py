@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
 
 """
-extracts a raw stream from a media file.
+extracts a raw stream from a media file,
+using the python iterator interface,
 """
-# this pyrana example is just a step further the
-# `probe' one. It demonstrates the most basic way
-# to access the encoded data extracted from a media
-# file.
-#
-# meet the Packets.
+# This pyrana example is an extension of thw
+# `extract' one. It shows a more pythonic
+# interface with respect to the basic one.
+# featurewise and performancewise, the two interfaces
+# are (almost) identical.
+# So, you're encouraged to use this one unless
+# you've crystal clear why it does NOT fit in your code.
 
 import sys
 import pyrana.formats
@@ -19,7 +21,7 @@ import pyrana.errors
 pyrana.setup()
 
 
-def itercopy(src, sid, out):
+def copy_all_iter(src, out):
     try:
         dmx = pyrana.formats.Demuxer(src)
         # equivalent to:
@@ -28,28 +30,34 @@ def itercopy(src, sid, out):
         # in turn equivalent to (thanks to the default args):
         # for pkt in dmx.stream():
         #     pass
+        #
+        # As you have proably noted, you cannot specify
+        # a specific stream with this interface.
+        # It would'nt make sense to do so because the very
+        # act to consider a Demuxer as an (abstract) collection
+        # of Packets inhibits any filtering at this level.
+        #
+        # In a nutshell: if you want a specific stream,
+        # you must use the Demuxer.stream() API.
         for pkt in dmx:
             w = out.write(bytes(pkt))
     except pyrana.errors.PyranaError as err:
         sys.stderr.write("%s\n" % err)
 
 
-def extract_stream(src, sid, out):
-    try:
-        dmx = pyrana.formats.Demuxer(src)
-        for pkt in dmx.stream(sid):
-            w = out.write(bytes(pkt))
-    except pyrana.errors.PyranaError as err:
-        sys.stderr.write("%s\n" % err)
-
-
+# as stated above, the stream_id do not make sense here.
 def _main(exe, args):
     try:
-        src, sid, dst = args
+        src, dst = args
+        # BIG FAT WARNING!
+        # this IS NOT AN EXACT COPY!
+        # You are going to lose the stream header and
+        # the stream trailer, if any.
+        # use this code as reference, NOT as template code.
         with open(src, "rb") as fin, open(dst, 'wb') as fout:
-            extract_stream(fin, int(sid), fout)
+            copy_all_iter(fin, fout)
     except ValueError:
-        sys.stderr.write("usage: %s source_file stream_id dest_file\n" % exe)
+        sys.stderr.write("usage: %s source_file dest_file\n" % exe)
         sys.exit(1)
 
 

@@ -19,6 +19,8 @@ import pyrana.errors
 pyrana.setup()
 
 
+# for a more pythonic and definitely recommended interface,
+# look at the `extract_iter.py' example.
 def extract_stream(src, sid, out):
     try:
         dmx = pyrana.formats.Demuxer(src)
