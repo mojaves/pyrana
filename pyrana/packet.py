@@ -177,5 +177,8 @@ class Packet(object):
         For internal usage only.
         TODO: ensure R/O and (thus) simplify
         """
+        orig_data = self._pkt.data
+        orig_size = self._pkt.size
         yield self._pkt
-        self._raw_data = self._ff.ffi.buffer(self._pkt.data, self._pkt.size)
+        self._pkt.data = orig_data
+        self._pkt.size = orig_size

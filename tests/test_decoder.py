@@ -39,16 +39,14 @@ class TestBaseCodecs(unittest.TestCase):
         with self.assertRaises(pyrana.errors.NeedFeedError):
             frame = dec.flush()
 
-    # FIXME known broken: it makes everything crash and burn.
-#    def test_decoder_video_first_packet(self):
-#        with open(os.path.join('tests/data/bbb_sample.ogg'), 'rb') as f:
-#            dmx = pyrana.formats.Demuxer(f)
-#            dec = dmx.open_decoder(0)
-#            frame = dec.decode(dmx.stream(0))
-#            assert(frame)
-#            print(repr(frame))
-#            assert(repr(frame))
-#            assert(False)
+    # FIXME
+    def test_decoder_video_first_packet(self):
+        with open(os.path.join('tests/data/bbb_sample.ogg'), 'rb') as f:
+            dmx = pyrana.formats.Demuxer(f)
+            dec = dmx.open_decoder(0)
+            frame = dec.decode(dmx.stream(0))
+            assert(frame)
+            assert(repr(frame))
 
 
 if __name__ == "__main__":
