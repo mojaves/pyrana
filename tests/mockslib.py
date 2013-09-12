@@ -37,6 +37,9 @@ class MockCFFI:
     def __init__(self):
         self.NULL = None
 
+    def new(self, what):
+        return {}
+
 
 class MockFF:
     def __init__(self, faulty):

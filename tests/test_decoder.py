@@ -1,9 +1,13 @@
 #!/usr/bin/python
 
+import os.path
 import unittest
+
 import pyrana.ff
+import pyrana.formats
 import pyrana.errors
 import pyrana.codec
+import pyrana.video
 
 
 class TestBaseCodecs(unittest.TestCase):
@@ -24,6 +28,29 @@ class TestBaseCodecs(unittest.TestCase):
         dec = pyrana.codec.BaseDecoder("flac")
         assert(dec)
         assert(repr(dec))
+
+    def test_decoder_video(self):
+        dec = pyrana.video.Decoder("mpeg1video")
+        assert(dec)
+        assert(repr(dec))
+
+    def test_decoder_video_empty_flush(self):
+        dec = pyrana.video.Decoder("mpeg1video")
+        with self.assertRaises(pyrana.errors.NeedFeedError):
+            frame = dec.flush()
+
+    # FIXME
+    def test_decoder_video_first_packet(self):
+        with open(os.path.join('tests/data/bbb_sample.ogg'), 'rb') as f:
+            dmx = pyrana.formats.Demuxer(f)
+            dec = dmx.open_decoder(0)
+            pkt = dmx.read_frame()
+            assert(pkt)
+            frame = dec.decode(pkt)
+            assert(frame)
+            print(repr(frame))
+            assert(repr(frame))
+            assert(False)
 
 
 if __name__ == "__main__":

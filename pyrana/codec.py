@@ -65,14 +65,28 @@ class CodecMixin(object):
 
 class BaseFrame(object):
     def __init__(self):
-        pass
+        self._ff = pyrana.ff.get_handle()
+        self._frame = None
 
     def __del__(self):
-        pass
+        self._ff.lavc.avcodec_free_frame(self._pframe)
+
+    def __repr__(self):
+        return "BaseFrame()"
 
     @classmethod
-    def from_cdata(cls, frame):
-        pass
+    def from_cdata(cls, cfrm):
+        """
+        builds a pyrana generic Base Frame from (around) a (cffi-wrapped)
+        libav* AVFrame object.
+        The libav object must be already initialized and ready to go.
+        WARNING: raw access. Use with care.
+        """
+        ffh = pyrana.ff.get_handle()
+        frame = object.__new__(cls)
+        frame._ff = ffh
+        frame._frame = cfrm
+        return frame
 
 
 class BaseDecoder(CodecMixin):
@@ -88,7 +102,6 @@ class BaseDecoder(CodecMixin):
         else:
             raise pyrana.errors.SetupError("not yet supported")
         self._ctx = ffh.lavc.avcodec_alloc_context3(self._codec)
-        self._got_frame = ffh.ffi.new("int [1]")
         if not delay_open:
             self._open()
 
@@ -97,6 +110,9 @@ class BaseDecoder(CodecMixin):
         opens the codec into the codec context.
         """
         ffh = self._ff if ffh is None else ffh
+        self._got_frame = ffh.ffi.new("int [1]")
+        self._ppframe = self._ff.ffi.new('AVFrame **')
+        # FIXME: memleaks on _ppframe?
         err = ffh.lavc.avcodec_open2(self._ctx, self._codec, ffh.ffi.NULL)
         if err < 0:
             raise pyrana.errors.SetupError("avcodec open failed: %i" % err)
