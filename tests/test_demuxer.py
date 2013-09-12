@@ -16,6 +16,7 @@ from tests.mockslib import MockLavf, MockFF, MockAVFormatContext
 
 
 _B = b'\0' * 1024 * 64
+BBB_SAMPLE = os.path.join('tests', 'data', 'bbb_sample.ogg')
 
 
 def md5sum(filename):
@@ -51,12 +52,12 @@ class TestDemuxer(unittest.TestCase):
             assert dmx
 
     def test_open_sample_ogg(self):
-        with open(os.path.join('tests/data/bbb_sample.ogg'), 'rb') as f:
+        with open(BBB_SAMPLE, 'rb') as f:
             dmx = pyrana.formats.Demuxer(f)
             assert dmx
 
     def test_open_sample_ogg_streams(self):
-        with open(os.path.join('tests/data/bbb_sample.ogg'), 'rb') as f:
+        with open(BBB_SAMPLE, 'rb') as f:
             dmx = pyrana.formats.Demuxer(f)
             self.assertEqual(len(dmx.streams), 2)
 
@@ -80,7 +81,7 @@ class TestDemuxer(unittest.TestCase):
             assert not frame
 
     def test_read_first_packet(self):
-        with open(os.path.join('tests/data/bbb_sample.ogg'), 'rb') as f:
+        with open(BBB_SAMPLE, 'rb') as f:
             dmx = pyrana.formats.Demuxer(f)
             pkt = dmx.read_frame()
             assert pkt
@@ -99,33 +100,33 @@ class TestDemuxer(unittest.TestCase):
             pyrana.formats._read_frame(ffh, ctx, mock_new_pkt, 0)
 
     def test_open_decoder_invalid_stream1(self):
-        with open(os.path.join('tests/data/bbb_sample.ogg'), 'rb') as f:
+        with open(BBB_SAMPLE, 'rb') as f:
             dmx = pyrana.formats.Demuxer(f)
             with self.assertRaises(pyrana.errors.ProcessingError):
                 dec = dmx.open_decoder(-1)
 
     def test_open_decoder_invalid_stream2(self):
-        with open(os.path.join('tests/data/bbb_sample.ogg'), 'rb') as f:
+        with open(BBB_SAMPLE, 'rb') as f:
             dmx = pyrana.formats.Demuxer(f)
             with self.assertRaises(pyrana.errors.ProcessingError):
                 dec = dmx.open_decoder(1024)
 
     def test_open_decoder(self):
-        with open(os.path.join('tests/data/bbb_sample.ogg'), 'rb') as f:
+        with open(BBB_SAMPLE, 'rb') as f:
             dmx = pyrana.formats.Demuxer(f)
             dec = dmx.open_decoder(0)
             assert dec
 
     def stream_md5(self, stream_id=STREAM_ANY):
         md5 = hashlib.md5()
-        with open(os.path.join('tests/data/bbb_sample.ogg'), 'rb') as fin:
+        with open(BBB_SAMPLE, 'rb') as fin:
             dmx = pyrana.formats.Demuxer(fin)
             for pkt in gen_packets(dmx, stream_id):
                 md5.update(bytes(pkt))
         return md5.hexdigest()
 
     def stream_ref_md5(self, stream_id=STREAM_ANY):
-        filename = os.path.join('tests/data/bbb_sample_{}.ref'.format(
+        filename = os.path.join('tests', 'data', 'bbb_sample_{}.ref'.format(
             stream_id if stream_id != STREAM_ANY else 'any'))
         with open(filename) as fin:
             dig = fin.readline()
