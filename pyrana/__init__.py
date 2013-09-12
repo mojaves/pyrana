@@ -23,7 +23,7 @@ _enforce_platform(platform)
 
 
 # backward compatibility
-from pyrana.formats import TS_NULL
+from pyrana.packet import TS_NULL
 # meh.
 from pyrana.errors import *
 

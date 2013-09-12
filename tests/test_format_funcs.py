@@ -2,6 +2,7 @@
 
 import unittest
 import pyrana.formats
+import pyrana.packet
 import pyrana.errors
 from pyrana.common import MediaType
 
@@ -53,7 +54,7 @@ class TestFormatFuncs(unittest.TestCase):
         assert idx == 0
 
     def test_raw_packet(self):
-        with pyrana.formats.raw_packet(128) as cpkt:
+        with pyrana.packet.raw_packet(128) as cpkt:
             assert(cpkt.size == 128)
 
 
