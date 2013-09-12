@@ -10,10 +10,21 @@ from pyrana.common import MediaType, to_media_type
 from pyrana.common import find_source_format
 from pyrana.common import get_field_int
 from pyrana.codec import decoder_for_stream
-import pyrana.audio
-import pyrana.video
+import pyrana.audio  # see #1 below
+import pyrana.video  # see #1 below
 import pyrana.errors
 import pyrana.ff
+
+# #1 those are upside down dependencies which needs to be removed.
+# From a layering standpoint, Demuxer/Muxer/Packets are at a lowe
+# level wrt Decoder/Encoder/Frames.
+# thus, this module is a lower level one and it is not good (tm)
+# to have lower-level modules depending on higher ones.
+# A bit more formally, those are upside arrows in the dependency
+# graphs. We're just one step away from a cycle in the dependency
+# graph aka cyclic import, and that is not good.
+# the proper fix would probably be something like moving
+# decoder_for_stream and friends in a separate module.
 
 
 STREAM_ANY = -1
