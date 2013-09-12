@@ -74,8 +74,9 @@ class Decoder(BaseDecoder):
         A packet can legally contain more than one frame.
         """
         ffh = self._ff
-        self._ppframe[0] = ffh.lavc.avcodec_alloc_frame()
-        ret = ffh.lavc.avcodec_decode_video2(self._ctx, self._ppframe[0],
+        ppframe = ffh.ffi.new('AVFrame **')
+        ppframe[0] = ffh.lavc.avcodec_alloc_frame()
+        ret = ffh.lavc.avcodec_decode_video2(self._ctx, ppframe[0],
                                              self._got_frame, pkt)
         if ret < 0:
             self._ff.lavc.avcodec_free_frame(self._ppframe)
@@ -83,10 +84,10 @@ class Decoder(BaseDecoder):
             raise pyrana.errors.ProcessingError(msg)
 
         if not self._got_frame[0]:
-            self._ff.lavc.avcodec_free_frame(self._ppframe)
+            self._ff.lavc.avcodec_free_frame(ppframe)
             raise pyrana.errors.NeedFeedError()
 
-        return ret, Frame.from_cdata(self._ppframe[0])
+        return ret, Frame.from_cdata(ppframe[0])
 
     def decode_packet(self, packet):
         """
@@ -99,12 +100,19 @@ class Decoder(BaseDecoder):
                 pkt.data += ret
                 pkt.size -= ret
 
-    def decode(self, packet):
+    def decode(self, packets):
         """
-        decode(packet) -> frame
+        XXX
         """
-        frames = list(self.decode_packet(packet))
-        return frames[0] if len(frames) == 1 else frames
+        frames = []
+        pkt_seq = iter(packets)
+        pkt = next(pkt_seq)
+        while not frames:
+            try:
+                frames.extend(frm for frm in self.decode_packet(pkt))
+            except pyrana.errors.NeedFeedError:
+                pkt = next(pkt_seq)
+        return frames if len(frames) > 1 else frames[0]
 
     def flush(self):
         """

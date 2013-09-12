@@ -69,7 +69,8 @@ class BaseFrame(object):
         self._frame = None
 
     def __del__(self):
-        self._ff.lavc.avcodec_free_frame(self._pframe)
+#        self._ff.lavc.avcodec_free_frame(self._frame)
+        pass
 
     def __repr__(self):
         return "BaseFrame()"
@@ -111,8 +112,6 @@ class BaseDecoder(CodecMixin):
         """
         ffh = self._ff if ffh is None else ffh
         self._got_frame = ffh.ffi.new("int [1]")
-        self._ppframe = self._ff.ffi.new('AVFrame **')
-        # FIXME: memleaks on _ppframe?
         err = ffh.lavc.avcodec_open2(self._ctx, self._codec, ffh.ffi.NULL)
         if err < 0:
             raise pyrana.errors.SetupError("avcodec open failed: %i" % err)
