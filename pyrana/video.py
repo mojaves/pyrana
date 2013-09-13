@@ -3,9 +3,10 @@ this module provides the video codec interface.
 Encoders, Decoders and their support code.
 """
 
-import pyrana.errors
 from pyrana.codec import BaseFrame, BaseDecoder, CodecMixin
 from pyrana.pixelfmt import PixelFormat
+import pyrana.errors
+import pyrana.ff
 
 
 INPUT_CODECS = frozenset()
@@ -42,9 +43,10 @@ class Frame(BaseFrame):
     def __repr__(self):
         # FIXME
         return "Frame(pict_type=%i, is_interlaced=%s, top_field_first=%s)" \
-               " #%i/%i" % (self.pict_type, self.is_interlaced,
-                            self.top_field_first, self.coded_pict_number,
-                            self.display_pict_number)
+               " # %ix%i@%i %i/%i" % (self.pict_type,
+                    self.is_interlaced, self.top_field_first,
+                    self.width, self.height, self.pixel_format,
+                    self.coded_pict_number, self.display_pict_number)
 
     @property
     def width(self):
@@ -83,6 +85,7 @@ def _wire_dec(dec):
     ffh = pyrana.ff.get_handle()
     dec._av_decode = ffh.lavc.avcodec_decode_video2
     dec._new_frame = Frame.from_cdata
+    dec._mtype = "video"
     return dec
 
 

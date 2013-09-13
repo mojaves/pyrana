@@ -5,6 +5,8 @@ Encoders, Decoders and their support code.
 
 from pyrana.codec import BaseFrame, BaseDecoder, CodecMixin
 from pyrana.samplefmt import SampleFormat
+import pyrana.errors
+import pyrana.ff
 
 
 INPUT_CODECS = frozenset()
@@ -17,7 +19,9 @@ class Frame(BaseFrame):
     """
     def __repr__(self):
         # FIXME
-        return "Audio Frame()"
+        return "Frame(sample_format=%i, num_samples=%i," \
+               " sample_rate=%i, channels=%i)" % (self.sample_format,
+                self.num_samples, self.sample_rate, self.channels)
 
     @property
     def sample_format(self):
@@ -39,6 +43,7 @@ def _wire_dec(dec):
     ffh = pyrana.ff.get_handle()
     dec._av_decode = ffh.lavc.avcodec_decode_audio4
     dec._new_frame = Frame.from_cdata
+    dec._mtype = "audio"
     return dec
 
 
