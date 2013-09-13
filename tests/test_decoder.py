@@ -34,10 +34,24 @@ class TestBaseCodecs(unittest.TestCase):
         assert(dec)
         assert(repr(dec))
 
+    def test_decoder_audio_empty_flush(self):
+        dec = pyrana.audio.Decoder("flac")
+        with self.assertRaises(pyrana.errors.NeedFeedError):
+            frame = dec.flush()
+
     def test_decoder_video_empty_flush(self):
         dec = pyrana.video.Decoder("mpeg1video")
         with self.assertRaises(pyrana.errors.NeedFeedError):
             frame = dec.flush()
+
+    # FIXME
+    def test_decoder_audio_first_packet(self):
+        with open(os.path.join('tests/data/bbb_sample.ogg'), 'rb') as f:
+            dmx = pyrana.formats.Demuxer(f)
+            dec = dmx.open_decoder(1)
+            frame = dec.decode(dmx.stream(1))
+            assert(frame)
+            assert(repr(frame))
 
     # FIXME
     def test_decoder_video_first_packet(self):
