@@ -55,6 +55,10 @@ class Frame(BaseFrame):
         return self._frame.height
 
     @property
+    def pixel_format(self):
+        return self._frame.format  # FIXME
+
+    @property
     def pict_type(self):
         return self._frame.pict_type  # FIXME
 
@@ -94,7 +98,6 @@ class Decoder(BaseDecoder):
 
     @classmethod
     def from_cdata(cls, ctx):
-        ffh = pyrana.ff.get_handle()
         dec = BaseDecoder.from_cdata(ctx)
         return _wire_dec(dec)
 
