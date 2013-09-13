@@ -124,6 +124,8 @@ class BaseDecoder(CodecMixin):
         opens the codec into the codec context.
         """
         ffh = self._ff if ffh is None else ffh
+        self._av_decode = None
+        self._new_frame = None
         self._got_frame = ffh.ffi.new("int [1]")
         err = ffh.lavc.avcodec_open2(self._ctx, self._codec, ffh.ffi.NULL)
         if err < 0:
@@ -136,6 +138,25 @@ class BaseDecoder(CodecMixin):
         codec_id = self._codec.id  # if self._codec else self._ctx.codec_id
         cname = ffh.lavc.avcodec_get_name(codec_id)
         return "Decoder(input_codec=%s)" % (to_str(cname))
+
+    def _decode_pkt(self, pkt):
+        """
+        A packet can legally contain more than one frame.
+        """
+        ffh = self._ff
+        ppframe = ffh.ffi.new('AVFrame **')
+        ppframe[0] = ffh.lavc.avcodec_alloc_frame()
+        ret = self._av_decode(self._ctx, ppframe[0], self._got_frame, pkt)
+        if ret < 0:
+            ffh.lavc.avcodec_free_frame(ppframe)
+            msg = "Error decoding video frame: %i" % ret
+            raise pyrana.errors.ProcessingError(msg)
+
+        if not self._got_frame[0]:
+            ffh.lavc.avcodec_free_frame(ppframe)
+            raise pyrana.errors.NeedFeedError()
+
+        return ret, self._new_frame(ppframe)
 
     def decode_packet(self, packet):
         """

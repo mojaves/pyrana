@@ -75,6 +75,13 @@ class Frame(BaseFrame):
         return bool(self._frame.interlaced_frame)
 
 
+def _wire_dec(dec):
+    ffh = pyrana.ff.get_handle()
+    dec._av_decode = ffh.lavc.avcodec_decode_video2
+    dec._new_frame = Frame.from_cdata
+    return dec
+
+
 class Decoder(BaseDecoder):
     """
     - add the 'params' property (read-only preferred alias for getParams)
@@ -83,26 +90,13 @@ class Decoder(BaseDecoder):
     """
     def __init__(self, input_codec, params=None):
         super(Decoder, self).__init__(input_codec, params)
+        _wire_dec(self)
 
-    def _decode_pkt(self, pkt):
-        """
-        A packet can legally contain more than one frame.
-        """
-        ffh = self._ff
-        ppframe = ffh.ffi.new('AVFrame **')
-        ppframe[0] = ffh.lavc.avcodec_alloc_frame()
-        ret = ffh.lavc.avcodec_decode_video2(self._ctx, ppframe[0],
-                                             self._got_frame, pkt)
-        if ret < 0:
-            self._ff.lavc.avcodec_free_frame(self._ppframe)
-            msg = "Error decoding video frame: %i" % ret
-            raise pyrana.errors.ProcessingError(msg)
-
-        if not self._got_frame[0]:
-            self._ff.lavc.avcodec_free_frame(ppframe)
-            raise pyrana.errors.NeedFeedError()
-
-        return ret, Frame.from_cdata(ppframe)
+    @classmethod
+    def from_cdata(cls, ctx):
+        ffh = pyrana.ff.get_handle()
+        dec = BaseDecoder.from_cdata(ctx)
+        return _wire_dec(dec)
 
 
 #class Encoder(CodecMixin):
