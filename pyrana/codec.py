@@ -149,7 +149,7 @@ class BaseDecoder(CodecMixin):
         ret = self._av_decode(self._ctx, ppframe[0], self._got_frame, pkt)
         if ret < 0:
             ffh.lavc.avcodec_free_frame(ppframe)
-            msg = "Error decoding video frame: %i" % ret
+            msg = "Error decoding %s frame: %i" % (self._mtype, ret)
             raise pyrana.errors.ProcessingError(msg)
 
         if not self._got_frame[0]:
