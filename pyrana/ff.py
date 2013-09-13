@@ -84,6 +84,7 @@ def _wire(ffi):
          typedef struct AVClass AVClass;
          typedef struct AVProgram AVProgram;
          typedef struct AVChapter AVChapter;
+         typedef struct AVPanScan AVPanScan;
 
          typedef struct AVCodec AVCodec;
 
@@ -177,7 +178,7 @@ def _wire(ffi):
              enum AVMediaType type;
              enum AVCodecID id;
              int capabilities;
-              /* ... */
+             /* ... */
          } AVCodec;
          AVCodec *av_codec_next(const AVCodec *c);
          AVCodec *avcodec_find_decoder(enum AVCodecID id);
@@ -202,7 +203,46 @@ def _wire(ffi):
              int format;
              int key_frame;
              enum AVPictureType pict_type;
-             /* ... */
+             uint8_t *base[8];
+             AVRational sample_aspect_ratio;
+             int64_t pts;
+             int64_t pkt_pts;
+             int64_t pkt_dts;
+             int coded_picture_number;
+             int display_picture_number;
+             int quality;
+             int reference;
+             int8_t *qscale_table;
+             int qstride;
+             int qscale_type;
+             uint8_t *mbskip_table;
+             int16_t (*motion_val[2])[2];
+             uint32_t *mb_type;
+             short *dct_coeff;
+             int8_t *ref_index[2];
+             void *opaque;
+             uint64_t error[8];
+             int type;
+             int repeat_pict;
+             int interlaced_frame;
+             int top_field_first;
+             int palette_has_changed;
+             int buffer_hints;
+             AVPanScan *pan_scan;
+             int64_t reordered_opaque;
+             void *hwaccel_picture_private;
+             struct AVCodecContext *owner;
+             void *thread_opaque;
+             uint8_t motion_subsample_log2;
+             int sample_rate;
+             uint64_t channel_layout;
+             int64_t best_effort_timestamp;
+             int64_t pkt_pos;
+             int64_t pkt_duration;
+             AVDictionary *metadata;
+             int decode_error_flags;
+             int channels;
+             int pkt_size;
          } AVFrame;
 
          AVFrame *avcodec_alloc_frame(void);
