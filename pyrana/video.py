@@ -4,9 +4,7 @@ Encoders, Decoders and their support code.
 """
 
 import pyrana.errors
-from pyrana.packet import raw_packet
-from pyrana.codec import BaseDecoder, CodecMixin
-from pyrana.codec import BaseFrame
+from pyrana.codec import BaseFrame, BaseDecoder, CodecMixin
 from pyrana.pixelfmt import PixelFormat
 
 
@@ -105,39 +103,6 @@ class Decoder(BaseDecoder):
             raise pyrana.errors.NeedFeedError()
 
         return ret, Frame.from_cdata(ppframe)
-
-    def decode_packet(self, packet):
-        """
-        XXX
-        """
-        with packet.raw_pkt() as pkt:
-            while pkt.size > 0:
-                ret, frame = self._decode_pkt(pkt)
-                yield frame
-                pkt.data += ret
-                pkt.size -= ret
-
-    def decode(self, packets):
-        """
-        XXX
-        """
-        frames = []
-        pkt_seq = iter(packets)
-        pkt = next(pkt_seq)
-        while not frames:
-            try:
-                frames.extend(frm for frm in self.decode_packet(pkt))
-            except pyrana.errors.NeedFeedError:
-                pkt = next(pkt_seq)
-        return frames if len(frames) > 1 else frames[0]
-
-    def flush(self):
-        """
-        flush() -> Frame
-        """
-        with raw_packet(0) as cpkt:
-            _, frame = self._decode_pkt(cpkt)
-            return frame
 
 
 #class Encoder(CodecMixin):

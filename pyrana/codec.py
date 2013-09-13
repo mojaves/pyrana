@@ -10,6 +10,7 @@ from types import MappingProxyType as frozendict
 # http://me.veekun.com/blog/2013/08/05/ \
 #        frozendicthack-or-activestate-code-considered-harmful/
 
+from pyrana.packet import raw_packet
 from pyrana.common import MediaType, to_media_type, to_str
 import pyrana.errors
 import pyrana.ff
@@ -135,6 +136,39 @@ class BaseDecoder(CodecMixin):
         codec_id = self._codec.id  # if self._codec else self._ctx.codec_id
         cname = ffh.lavc.avcodec_get_name(codec_id)
         return "Decoder(input_codec=%s)" % (to_str(cname))
+
+    def decode_packet(self, packet):
+        """
+        XXX
+        """
+        with packet.raw_pkt() as pkt:
+            while pkt.size > 0:
+                ret, frame = self._decode_pkt(pkt)
+                yield frame
+                pkt.data += ret
+                pkt.size -= ret
+
+    def decode(self, packets):
+        """
+        XXX
+        """
+        frames = []
+        pkt_seq = iter(packets)
+        pkt = next(pkt_seq)
+        while not frames:
+            try:
+                frames.extend(frm for frm in self.decode_packet(pkt))
+            except pyrana.errors.NeedFeedError:
+                pkt = next(pkt_seq)
+        return frames if len(frames) > 1 else frames[0]
+
+    def flush(self):
+        """
+        flush() -> frame
+        """
+        with raw_packet(0) as cpkt:
+            _, frame = self._decode_pkt(cpkt)
+            return frame
 
     @classmethod
     def from_cdata(cls, ctx):
