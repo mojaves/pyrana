@@ -66,17 +66,28 @@ class CodecMixin(object):
 class BaseFrame(object):
     def __init__(self):
         self._ff = pyrana.ff.get_handle()
+        self._ppframe = None
         self._frame = None
 
     def __del__(self):
-#        self._ff.lavc.avcodec_free_frame(self._frame)
-        pass
+        self._ff.lavc.avcodec_free_frame(self._ppframe)
 
     def __repr__(self):
         return "BaseFrame()"
 
+    @property
+    def is_key(self):
+        return self._frame.key_frame
+
+    @property
+    def pts(self):
+        """
+        the Presentation TimeStamp of this Frame.
+        """
+        return self._frame.pts
+
     @classmethod
-    def from_cdata(cls, cfrm):
+    def from_cdata(cls, ppframe):
         """
         builds a pyrana generic Base Frame from (around) a (cffi-wrapped)
         libav* AVFrame object.
@@ -86,7 +97,8 @@ class BaseFrame(object):
         ffh = pyrana.ff.get_handle()
         frame = object.__new__(cls)
         frame._ff = ffh
-        frame._frame = cfrm
+        frame._ppframe = ppframe
+        frame._frame = ppframe[0]
         return frame
 
 

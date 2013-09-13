@@ -36,28 +36,45 @@ OUTPUT_CODECS = frozenset()
 #        return Plane # FIXME
 #    def convert(self, *args):
 #        return Image
-#
-#
-#class Frame:
-#    def __init__(self, image, pts, is_key, is_interlaced, top_field_first):
-#        """not yet decided"""
-#        pass
-#    pts
-#    is_key
-#    image
-#    top_field_first
-#    is_interlaced
-#    pic_type # can only set by decoder/encoder
-#    coded_num # ditto
-#    display_num # ditto
-#
 
 class Frame(BaseFrame):
     """
     A Video frame.
     """
     def __repr__(self):
-        return "Frame() video"
+        # FIXME
+        return "Frame(pict_type=%i, is_interlaced=%s, top_field_first=%s)" \
+               " #%i/%i" % (self.pict_type, self.is_interlaced,
+                            self.top_field_first, self.coded_pict_number,
+                            self.display_pict_number)
+
+    @property
+    def width(self):
+        return self._frame.width
+
+    @property
+    def height(self):
+        return self._frame.height
+
+    @property
+    def pict_type(self):
+        return self._frame.pict_type  # FIXME
+
+    @property
+    def coded_pict_number(self):
+        return self._frame.coded_picture_number
+
+    @property
+    def display_pict_number(self):
+        return self._frame.display_picture_number
+
+    @property
+    def top_field_first(self):
+        return bool(self._frame.top_field_first)
+
+    @property
+    def is_interlaced(self):
+        return bool(self._frame.interlaced_frame)
 
 
 class Decoder(BaseDecoder):
@@ -87,7 +104,7 @@ class Decoder(BaseDecoder):
             self._ff.lavc.avcodec_free_frame(ppframe)
             raise pyrana.errors.NeedFeedError()
 
-        return ret, Frame.from_cdata(ppframe[0])
+        return ret, Frame.from_cdata(ppframe)
 
     def decode_packet(self, packet):
         """
