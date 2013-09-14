@@ -64,4 +64,4 @@ def setup():
         pyrana.video.OUTPUT_CODECS = vcods
 
 
-__all__ = ['versions', 'formats', 'audio', 'video']
+__all__ = ['versions', 'formats', 'audio', 'video', 'packet', 'errors']
