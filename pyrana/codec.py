@@ -111,7 +111,16 @@ class BaseFrame(object):
         return frame
 
 
-def _null_cb(*args):
+def _null_av_decode(*args):
+    """
+    private use only. Placeholder callable for hooks
+    in the BaseDecoder which MUST have to be replaced in the
+    specific {Audio,Video,...} Decoders.
+    """
+    return -1
+
+
+def _null_new_frame(*args):
     """
     private use only. Placeholder callable for hooks
     in the BaseDecoder which MUST have to be replaced in the
@@ -133,8 +142,8 @@ class BaseDecoder(CodecMixin):
         else:
             raise pyrana.errors.SetupError("not yet supported")
         self._ctx = ffh.lavc.avcodec_alloc_context3(self._codec)
-        self._av_decode = _null_cb
-        self._new_frame = _null_cb
+        self._av_decode = _null_av_decode
+        self._new_frame = _null_new_frame
         self._got_frame = None
         self._mtype = "abstract"
         if not delay_open:
@@ -224,8 +233,8 @@ class BaseDecoder(CodecMixin):
         ctx.codec = ffh.lavc.avcodec_find_decoder(ctx.codec_id)
         dec._codec = ctx.codec
         dec._ctx = ctx
-        dec._av_decode = _null_cb
-        dec._new_frame = _null_cb
+        dec._av_decode = _null_av_decode
+        dec._new_frame = _null_new_frame
         dec._got_frame = None
         dec._mtype = "abstract"
         return dec._open()

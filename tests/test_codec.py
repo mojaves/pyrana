@@ -51,6 +51,11 @@ class TestBaseDecoder(unittest.TestCase):
         with self.assertRaises(pyrana.errors.SetupError):
             dec._open(ffh)
 
+    def test_decode_fail(self):
+        dec = BaseDecoder('mjpeg')
+        with self.assertRaises(pyrana.errors.ProcessingError):
+            dec._decode_pkt(None)  # FIXME
+
 
 class TestCodecFuncs(unittest.TestCase):
     def test_builder_unsupported(self):
