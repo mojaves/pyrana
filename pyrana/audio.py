@@ -3,7 +3,7 @@ this module provides the audio codec interface.
 Encoders, Decoders and their support code.
 """
 
-from pyrana.codec import BaseFrame, BaseDecoder, CodecMixin
+from pyrana.codec import BaseFrame, BaseDecoder
 from pyrana.ffenums import SampleFormat
 import pyrana.errors
 import pyrana.ff
@@ -25,21 +25,38 @@ class Frame(BaseFrame):
 
     @property
     def sample_format(self):
-        return self._frame.format  # FIXME
+        """
+        Frame sample format. Expected to be always equal
+        to the stream sample format.
+        """
+        return self._frame.format  # FIXME: convert to Enum
 
     @property
     def num_samples(self):
+        """
+        The number of audio samples (per channel) described by this frame.
+        """
         return self._frame.nb_samples
 
     @property
     def sample_rate(self):
-        return self._frame.sample_rate
+        """
+        Sample rate of the audio data.
+        """
+        return self._ff.lavc.av_frame_get_sample_rate(self._frame)
 
     @property
     def channels(self):
-        return self._frame.channels
+        """
+        The number of audio channels, only used for audio.
+        """
+        return self._ff.lavc.av_frame_get_channels(self._frame)
+
 
 def _wire_dec(dec):
+    """
+    Inject the audio decoding hooks in a generic decoder.
+    """
     ffh = pyrana.ff.get_handle()
     dec._av_decode = ffh.lavc.avcodec_decode_audio4
     dec._new_frame = Frame.from_cdata
@@ -59,28 +76,11 @@ class Decoder(BaseDecoder):
 
     @classmethod
     def from_cdata(cls, ctx):
+        """
+        builds a pyrana Audio Decoder from (around) a (cffi-wrapped) libav*
+        (audio)decoder object.
+        The libav object must be already initialized and ready to go.
+        WARNING: raw access. Use with care.
+        """
         dec = BaseDecoder.from_cdata(ctx)
         return _wire_dec(dec)
-
-
-#class Encoder(CodecMixin):
-#    """
-#    Like the old Pyrana class,
-#    - add the 'params' property (read-only preferred alias for getParams)
-#    - no conversion/scaling will be performed
-#    - add flush() operation
-#    """
-#    def __init__(self, name, params=None):
-#        CodecMixin.__init__(self, params)
-#        # yes, here we're *intentionally* calling
-#        # the superclass init explicitely.
-#        # we *want* this dependency explicit
-#        # TODO
-#
-#    def encode(self, frame):
-#        """encode(frame) -> Packet"""
-#        raise NotImplementedError
-#
-#    def flush(self):
-#        """flush() -> Packet"""
-#        raise NotImplementedError

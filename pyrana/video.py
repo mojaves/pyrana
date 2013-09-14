@@ -3,7 +3,7 @@ this module provides the video codec interface.
 Encoders, Decoders and their support code.
 """
 
-from pyrana.codec import BaseFrame, BaseDecoder, CodecMixin
+from pyrana.codec import BaseFrame, BaseDecoder
 from pyrana.ffenums import PixelFormat
 import pyrana.errors
 import pyrana.ff
@@ -36,6 +36,7 @@ OUTPUT_CODECS = frozenset()
 #    def convert(self, *args):
 #        return Image
 
+
 class Frame(BaseFrame):
     """
     A Video frame.
@@ -52,38 +53,68 @@ class Frame(BaseFrame):
 
     @property
     def width(self):
+        """
+        Frame width. Expected to be always equal to the stream width.
+        """
         return self._frame.width
 
     @property
     def height(self):
+        """
+        Frame height. Expected to be always equal to the stream height.
+        """
         return self._frame.height
 
     @property
     def pixel_format(self):
-        return self._frame.format  # FIXME
+        """
+        Frame pixel format. Expected to be always equal
+        to the stream pixel format.
+        """
+        return self._frame.format  # FIXME: convert to Enum
+
+    # FIXME: access the ASR.
 
     @property
     def pict_type(self):
-        return self._frame.pict_type  # FIXME
+        """
+        Picture type of the frame, see AVPictureType.
+        """
+        return self._frame.pict_type  # FIXME: convert to Enum
 
     @property
     def coded_pict_number(self):
+        """
+        Picture number in bitstream order.
+        """
         return self._frame.coded_picture_number
 
     @property
     def display_pict_number(self):
+        """
+        Picture number in display order.
+        """
         return self._frame.display_picture_number
 
     @property
     def top_field_first(self):
+        """
+        If is_interlaced(), is top field displayed first?
+        """
         return bool(self._frame.top_field_first)
 
     @property
     def is_interlaced(self):
+        """
+        Is the content of the picture interlaced?
+        """
         return bool(self._frame.interlaced_frame)
 
 
 def _wire_dec(dec):
+    """
+    Inject the video decoding hooks in a generic decoder.
+    """
     ffh = pyrana.ff.get_handle()
     dec._av_decode = ffh.lavc.avcodec_decode_video2
     dec._new_frame = Frame.from_cdata
@@ -103,31 +134,11 @@ class Decoder(BaseDecoder):
 
     @classmethod
     def from_cdata(cls, ctx):
+        """
+        builds a pyrana Video Decoder from (around) a (cffi-wrapped) libav*
+        (video)decoder object.
+        The libav object must be already initialized and ready to go.
+        WARNING: raw access. Use with care.
+        """
         dec = BaseDecoder.from_cdata(ctx)
         return _wire_dec(dec)
-
-
-#class Encoder(CodecMixin):
-#    """
-#    - add the 'params' property (read-only preferred alias for getParams)
-#    - no conversion/scaling will be performed
-#    - add flush() operation
-#    """
-#    def __init__(self, output_codec, params=None):
-#        CodecMixin.__init__(self, params)
-#        # yes, here we're *intentionally* calling
-#        # the superclass init explicitely.
-#        # we *want* this dependency explicit
-#        # TODO
-#
-#    def encode(self, frame):
-#        """
-#        encode(Frame) -> Packet
-#        """
-#        raise NotImplementedError
-#
-#    def flush(self):
-#        """
-#        flush() -> Packet
-#        """
-#        raise NotImplementedError

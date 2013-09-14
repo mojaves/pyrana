@@ -65,6 +65,11 @@ class CodecMixin(object):
 
 
 class BaseFrame(object):
+    """
+    Abstract Frame class. Provides bookkeeping and access
+    to attributes common to frames of all media types.
+    Do not use directly.
+    """
     def __init__(self):
         self._ff = pyrana.ff.get_handle()
         self._ppframe = None
@@ -78,12 +83,15 @@ class BaseFrame(object):
 
     @property
     def is_key(self):
+        """
+        Is this a key frame?
+        """
         return self._frame.key_frame
 
     @property
     def pts(self):
         """
-        the Presentation TimeStamp of this Frame.
+        The Presentation TimeStamp of this Frame.
         """
         return self._frame.pts
 
@@ -103,6 +111,15 @@ class BaseFrame(object):
         return frame
 
 
+def _null_cb(*args):
+    """
+    private use only. Placeholder callable for hooks
+    in the BaseDecoder which MUST have to be replaced in the
+    specific {Audio,Video,...} Decoders.
+    """
+    raise NotImplementedError("Generic decoders cannot run")
+
+
 class BaseDecoder(CodecMixin):
     """
     Decoder base class. Common both to audio and video decoders.
@@ -116,6 +133,10 @@ class BaseDecoder(CodecMixin):
         else:
             raise pyrana.errors.SetupError("not yet supported")
         self._ctx = ffh.lavc.avcodec_alloc_context3(self._codec)
+        self._av_decode = _null_cb
+        self._new_frame = _null_cb
+        self._got_frame = None
+        self._mtype = "abstract"
         if not delay_open:
             self._open()
 
@@ -124,8 +145,6 @@ class BaseDecoder(CodecMixin):
         opens the codec into the codec context.
         """
         ffh = self._ff if ffh is None else ffh
-        self._av_decode = None
-        self._new_frame = None
         self._got_frame = ffh.ffi.new("int [1]")
         err = ffh.lavc.avcodec_open2(self._ctx, self._codec, ffh.ffi.NULL)
         if err < 0:
@@ -205,4 +224,8 @@ class BaseDecoder(CodecMixin):
         ctx.codec = ffh.lavc.avcodec_find_decoder(ctx.codec_id)
         dec._codec = ctx.codec
         dec._ctx = ctx
+        dec._av_decode = _null_cb
+        dec._new_frame = _null_cb
+        dec._got_frame = None
+        dec._mtype = "abstract"
         return dec._open()

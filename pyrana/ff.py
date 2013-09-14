@@ -249,6 +249,9 @@ def _wire(ffi):
          void avcodec_get_frame_defaults(AVFrame *frame);
          void avcodec_free_frame(AVFrame **frame);
 
+        int av_frame_get_channels(const AVFrame *frame);
+        int av_frame_get_sample_rate(const AVFrame *frame);
+
          int avcodec_decode_video2(AVCodecContext *avctx, AVFrame *picture,
                                    int *got_picture_ptr,
                                    const AVPacket *avpkt);
