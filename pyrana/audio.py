@@ -19,9 +19,9 @@ class Frame(BaseFrame):
     """
     def __repr__(self):
         # FIXME
-        return "Frame(sample_format=%i, num_samples=%i," \
-               " sample_rate=%i, channels=%i)" % (self.sample_format,
-                self.num_samples, self.sample_rate, self.channels)
+        return "Frame(sfmt=%i, samples=%i, rate=%i, chans=%i)" % (
+                self.sample_format, self.num_samples,
+                self.sample_rate, self.channels)
 
     @property
     def sample_format(self):

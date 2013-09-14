@@ -42,8 +42,8 @@ class Frame(BaseFrame):
     """
     def __repr__(self):
         # FIXME
-        return "%sFrame(pts=%i, pict_type=%i, is_interlaced=%s," \
-               " top_field_first=%s) # %ix%i@%i %i/%i" \
+        return "%sFrame(pts=%i, ptype=%i, ilace=%s, tff=%s)" \
+               " # %ix%i@%i %i/%i" \
                     % ("Key" if self.is_key else "",
                        self.pts, self.pict_type,
                        self.is_interlaced, self.top_field_first,
