@@ -4,7 +4,7 @@ Encoders, Decoders and their support code.
 """
 
 from pyrana.codec import BaseFrame, BaseDecoder, CodecMixin
-from pyrana.samplefmt import SampleFormat
+from pyrana.ffenums import SampleFormat
 import pyrana.errors
 import pyrana.ff
 

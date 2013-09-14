@@ -149,3 +149,23 @@ class PixelFormat(IntEnum):
     AV_PIX_FMT_GBRP14BE = 315
     AV_PIX_FMT_GBRP14LE = 316
     AV_PIX_FMT_NB = 317
+
+
+class SampleFormat(IntEnum):
+    """
+    Wraps the Sample Formats
+    File: /usr/include/libavutil/samplefmt.h
+    SHA-1: fd8c0c10256909ce67c45dbbed5ead599180b348
+    """
+    AV_SAMPLE_FMT_NONE = -1
+    AV_SAMPLE_FMT_U8 = 0
+    AV_SAMPLE_FMT_S16 = 1
+    AV_SAMPLE_FMT_S32 = 2
+    AV_SAMPLE_FMT_FLT = 3
+    AV_SAMPLE_FMT_DBL = 4
+    AV_SAMPLE_FMT_U8P = 5
+    AV_SAMPLE_FMT_S16P = 6
+    AV_SAMPLE_FMT_S32P = 7
+    AV_SAMPLE_FMT_FLTP = 8
+    AV_SAMPLE_FMT_DBLP = 9
+    AV_SAMPLE_FMT_NB = 10
