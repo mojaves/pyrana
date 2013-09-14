@@ -42,11 +42,13 @@ class Frame(BaseFrame):
     """
     def __repr__(self):
         # FIXME
-        return "Frame(pict_type=%i, is_interlaced=%s, top_field_first=%s)" \
-               " # %ix%i@%i %i/%i" % (self.pict_type,
-                    self.is_interlaced, self.top_field_first,
-                    self.width, self.height, self.pixel_format,
-                    self.coded_pict_number, self.display_pict_number)
+        return "%sFrame(pts=%i, pict_type=%i, is_interlaced=%s," \
+               " top_field_first=%s) # %ix%i@%i %i/%i" \
+                    % ("Key" if self.is_key else "",
+                       self.pts, self.pict_type,
+                       self.is_interlaced, self.top_field_first,
+                       self.width, self.height, self.pixel_format,
+                       self.coded_pict_number, self.display_pict_number)
 
     @property
     def width(self):
