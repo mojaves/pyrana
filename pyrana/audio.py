@@ -5,6 +5,7 @@ Encoders, Decoders and their support code.
 
 from pyrana.common import to_sample_format
 from pyrana.codec import BaseFrame, BaseDecoder
+# the following is just to export to the clients the Enums.
 from pyrana.ffenums import SampleFormat
 import pyrana.errors
 import pyrana.ff

@@ -5,6 +5,7 @@ Encoders, Decoders and their support code.
 
 from pyrana.common import to_pixel_format, to_picture_type
 from pyrana.codec import BaseFrame, BaseDecoder
+# the following is just to export to the clients the Enums.
 from pyrana.ffenums import PixelFormat, PictureType
 import pyrana.errors
 import pyrana.ff
