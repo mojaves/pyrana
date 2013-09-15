@@ -5,10 +5,11 @@ Encoders, Decoders and their support code.
 
 from pyrana.common import to_sample_format
 from pyrana.codec import BaseFrame, BaseDecoder
-# the following is just to export to the clients the Enums.
-from pyrana.ffenums import SampleFormat
 import pyrana.errors
 import pyrana.ff
+# the following is just to export to the clients the Enums.
+# pylint: disable=W0611
+from pyrana.ffenums import SampleFormat
 
 
 INPUT_CODECS = frozenset()
@@ -20,7 +21,6 @@ class Frame(BaseFrame):
     An Audio frame.
     """
     def __repr__(self):
-        # FIXME
         return "Frame(sfmt=%i, samples=%i, rate=%i, chans=%i)" % (
                 self.sample_format, self.num_samples,
                 self.sample_rate, self.channels)

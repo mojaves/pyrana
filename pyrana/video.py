@@ -5,10 +5,11 @@ Encoders, Decoders and their support code.
 
 from pyrana.common import to_pixel_format, to_picture_type
 from pyrana.codec import BaseFrame, BaseDecoder
-# the following is just to export to the clients the Enums.
-from pyrana.ffenums import PixelFormat, PictureType
 import pyrana.errors
 import pyrana.ff
+# the following is just to export to the clients the Enums.
+# pylint: disable=W0611
+from pyrana.ffenums import PixelFormat, PictureType
 
 
 INPUT_CODECS = frozenset()
@@ -35,8 +36,17 @@ class Frame(BaseFrame):
                                                       self._frame.height,
                                                       1)
 
+    def __bytes__(self):
+        pixels = bytearray(len(self))
+        # TODO
+        return bytes(pixels)
+
     @property
     def planes(self):
+        """
+        Return the number of planes in the Picture data.
+        e.g. RGB: 1; YUV420: 3
+        """
         desc = self._ff.lavu.av_pix_fmt_desc_get(self._frame.format)
         return desc.nb_components
 
