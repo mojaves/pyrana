@@ -7,6 +7,7 @@ from enum import IntEnum
 
 import pyrana.errors
 import pyrana.ff
+from pyrana.ffenums import PixelFormat, SampleFormat, PictureType
 
 
 class MediaType(IntEnum):
@@ -30,14 +31,45 @@ def to_str(cstr, ffi=None):
     return ffi.string(cstr).decode('utf-8')
 
 
-def to_media_type(ival):
+def to_enum_value(ival, enum_class, fallback, starter=-1):
     """
     convert the integer argument to the corresponding
-    MediaType enumerator value, if feasible, or
-    AVMEDIA_TYPE_UNKNOWN otherwise.
+    enumerator value on the given enumeration, if feasible,
+    or the fallback value otherwise.
     """
-    rmap = dict(enumerate(MediaType, -1))  # WARNING!
-    return rmap.get(ival, MediaType.AVMEDIA_TYPE_UNKNOWN)
+    rmap = dict(enumerate(enum_class, starter))
+    return rmap.get(ival, fallback)
+
+
+def to_media_type(ival):
+    """
+    MediaType value converter.
+    """
+    return to_enum_value(ival, MediaType,
+                         MediaType.AVMEDIA_TYPE_UNKNOWN)
+
+
+def to_pixel_format(ival):
+    """
+    PixelFormat value converter.
+    """
+    return to_enum_value(ival, PixelFormat,
+                         PixelFormat.AV_PIX_FMT_NONE)
+
+def to_sample_format(ival):
+    """
+    SampleFormat value converter.
+    """
+    return to_enum_value(ival, SampleFormat,
+                         SampleFormat.AV_SAMPLE_FMT_NONE)
+
+
+def to_picture_type(ival):
+    """
+    PictureType value converter.
+    """
+    return to_enum_value(ival, PictureType,
+                         PictureType.AV_PICTURE_TYPE_NONE)
 
 
 def _iter_fmts(ffi, format_next):

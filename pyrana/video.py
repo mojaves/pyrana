@@ -3,38 +3,15 @@ this module provides the video codec interface.
 Encoders, Decoders and their support code.
 """
 
+from pyrana.common import to_pixel_format, to_picture_type
 from pyrana.codec import BaseFrame, BaseDecoder
-from pyrana.ffenums import PixelFormat
+from pyrana.ffenums import PixelFormat, PictureType
 import pyrana.errors
 import pyrana.ff
 
 
 INPUT_CODECS = frozenset()
 OUTPUT_CODECS = frozenset()
-
-#
-#class Plane:
-#    # no constructor, can be generated only from Images
-#    plane_id
-#    stride
-#    width
-#    height
-#    pixel_format
-#    data
-#    size
-#
-#
-#class Image:
-#    def __init__(self, width, height, pixel_format, data):
-#        """not yet decided"""
-#        pass
-#    width
-#    height
-#    pixel_format
-#    def plane(self, num):
-#        return Plane # FIXME
-#    def convert(self, *args):
-#        return Image
 
 
 class Frame(BaseFrame):
@@ -71,7 +48,7 @@ class Frame(BaseFrame):
         Frame pixel format. Expected to be always equal
         to the stream pixel format.
         """
-        return self._frame.format  # FIXME: convert to Enum
+        return to_pixel_format(self._frame.format)
 
     # FIXME: access the ASR.
 
@@ -80,7 +57,7 @@ class Frame(BaseFrame):
         """
         Picture type of the frame, see AVPictureType.
         """
-        return self._frame.pict_type  # FIXME: convert to Enum
+        return to_picture_type(self._frame.pict_type)
 
     @property
     def coded_pict_number(self):

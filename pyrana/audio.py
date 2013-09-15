@@ -3,6 +3,7 @@ this module provides the audio codec interface.
 Encoders, Decoders and their support code.
 """
 
+from pyrana.common import to_sample_format
 from pyrana.codec import BaseFrame, BaseDecoder
 from pyrana.ffenums import SampleFormat
 import pyrana.errors
@@ -29,7 +30,7 @@ class Frame(BaseFrame):
         Frame sample format. Expected to be always equal
         to the stream sample format.
         """
-        return self._frame.format  # FIXME: convert to Enum
+        return to_sample_format(self._frame.format)
 
     @property
     def num_samples(self):
