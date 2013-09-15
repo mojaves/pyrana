@@ -79,7 +79,7 @@ class BaseFrame(object):
         self._ff.lavc.avcodec_free_frame(self._ppframe)
 
     def __repr__(self):
-        return "BaseFrame(pts=%i, is_key=%s)" % (self.pts, self.is_key)
+        return "BaseFrame()"
 
     def __bytes__(self):
         raise NotImplementedError
