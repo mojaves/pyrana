@@ -29,6 +29,17 @@ class Frame(BaseFrame):
                        self.width, self.height, self.pixel_format,
                        self.coded_pict_number, self.display_pict_number)
 
+    def __len__(self):
+        return self._ff.lavu.av_image_get_buffer_size(self._frame.format,
+                                                      self._frame.width,
+                                                      self._frame.height,
+                                                      1)
+
+    @property
+    def planes(self):
+        desc = self._ff.lavu.av_pix_fmt_desc_get(self._frame.format)
+        return desc.nb_components
+
     @property
     def width(self):
         """

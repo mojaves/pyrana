@@ -249,8 +249,10 @@ def _wire(ffi):
          void avcodec_get_frame_defaults(AVFrame *frame);
          void avcodec_free_frame(AVFrame **frame);
 
-        int av_frame_get_channels(const AVFrame *frame);
-        int av_frame_get_sample_rate(const AVFrame *frame);
+         int av_frame_get_channels(const AVFrame *frame);
+         int av_frame_get_sample_rate(const AVFrame *frame);
+
+         int av_image_get_buffer_size(enum AVPixelFormat pix_fmt, int width, int height, int align);
 
          int avcodec_decode_video2(AVCodecContext *avctx, AVFrame *picture,
                                    int *got_picture_ptr,
@@ -261,8 +263,19 @@ def _wire(ffi):
 
          const char *av_get_media_type_string(enum AVMediaType media_type);
 
-         int av_opt_get_int   (void *obj, const char *name, int search_flags, int64_t    *out_val);
-         int av_opt_get_double(void *obj, const char *name, int search_flags, double     *out_val);
+         int av_opt_get_int(void *obj, const char *name, int search_flags, int64_t *out_val);
+         int av_opt_get_double(void *obj, const char *name, int search_flags, double *out_val);
+
+         typedef struct AVPixFmtDescriptor {
+            const char *name;
+            uint8_t nb_components;
+            uint8_t log2_chroma_w;
+            uint8_t log2_chroma_h;
+            uint8_t flags;
+            /* ... */
+         } AVPixFmtDescriptor;
+
+         const AVPixFmtDescriptor *av_pix_fmt_desc_get(enum AVPixelFormat pix_fmt);
          """)
 
 
