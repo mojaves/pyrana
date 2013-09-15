@@ -79,7 +79,19 @@ class BaseFrame(object):
         self._ff.lavc.avcodec_free_frame(self._ppframe)
 
     def __repr__(self):
-        return "BaseFrame()"
+        return "BaseFrame(pts=%i, is_key=%s)" % (self.pts, self.is_key)
+
+    def __bytes__(self):
+        raise NotImplementedError
+
+    def __len__(self):
+        raise NotImplementedError
+
+    def handle(self):
+        """
+        Returns a file-like which provides frame data access.
+        """
+        raise NotImplementedError
 
     @property
     def is_key(self):
