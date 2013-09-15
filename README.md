@@ -23,7 +23,7 @@ pymedia2-pyrana.
 License Notice
 --------------
 
-While Pyrana itself is licensed under the ZLIB license (see COPYING),
+While Pyrana itself is licensed under the ZLIB license (see LICENSE),
 the package needs the FFmpeg libraries, which have different licenses
 (most notably LGPL and GPL) depending on the configuration.
 
@@ -39,8 +39,8 @@ in every major release.
 Requirements
 ------------
 
-* (c)python at least 3.3
-* [FFmpeg](http://ffmpeg.org) at least 1.2.0 (the last SVN/GIT snapshot is usually fine).
+* [python](http://www.python.org) version 3.3. Tested under CPython only (yet).
+* [ffmpeg](http://ffmpeg.org) at least 1.2.0 (the last SVN/GIT snapshot is usually fine).
   [libav](http://libav.org) unsupported. May or may not work.
 * [cffi](http://cffi.readthedocs.org/en/release-0.7.2/)
 

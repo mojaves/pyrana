@@ -10,8 +10,10 @@ Check the license of the libraries you're currently using.
 
 Short version:
 --------------
-ZLIB license (any use is allowed as long as you don't
-remove or alter the copyright notice nor claim you wrote the code.
+
+ZLIB licensed. Any use is allowed as long as you
+* do NOT claim you wrote the code;
+* remove or alter the copyright notice;
 
 Long version:
 -------------
