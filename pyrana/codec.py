@@ -81,12 +81,6 @@ class BaseFrame(object):
     def __repr__(self):
         return "BaseFrame()"
 
-    def __bytes__(self):
-        raise NotImplementedError
-
-    def __len__(self):
-        raise NotImplementedError
-
     def handle(self):
         """
         Returns a file-like which provides frame data access.
@@ -138,7 +132,7 @@ def _null_new_frame(*args):
     in the BaseDecoder which MUST have to be replaced in the
     specific {Audio,Video,...} Decoders.
     """
-    raise NotImplementedError("Generic decoders cannot run")
+    raise pyrana.errors.ProcessingError("Generic decoders cannot run")
 
 
 class BaseDecoder(CodecMixin):

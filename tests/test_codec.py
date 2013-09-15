@@ -35,6 +35,16 @@ class TestBaseFrame(unittest.TestCase):
         assert(frame)
         assert(repr(frame))
 
+    def test_no_handle(self):
+        frame = BaseFrame()
+        with self.assertRaises(NotImplementedError):
+            hndl = frame.handle()
+
+
+def av_decode_dummy(ctx, pframe, flag, pkt):
+    flag[0] = 1
+    return 0
+
 
 class TestBaseDecoder(unittest.TestCase):
     @classmethod
@@ -55,6 +65,22 @@ class TestBaseDecoder(unittest.TestCase):
         dec = BaseDecoder('mjpeg')
         with self.assertRaises(pyrana.errors.ProcessingError):
             dec._decode_pkt(None)  # FIXME
+
+    def test_stub_decode_no_frame(self):
+        dec = BaseDecoder('mjpeg')
+        dec._av_decode = av_decode_dummy
+        with self.assertRaises(pyrana.errors.ProcessingError):
+            frame = dec._decode_pkt(None)
+
+    def test_stub_flush(self):
+        ref = {}
+        def new_frame_dummy(unused):
+            return ref
+        dec = BaseDecoder('mjpeg')
+        dec._av_decode = av_decode_dummy
+        dec._new_frame = new_frame_dummy
+        frame = dec.flush()
+        assert(frame is ref)
 
 
 class TestCodecFuncs(unittest.TestCase):
