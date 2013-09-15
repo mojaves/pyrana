@@ -40,7 +40,7 @@ Requirements
 ------------
 
 * [python](http://www.python.org) version 3.3. Tested under CPython only (yet).
-* [ffmpeg](http://ffmpeg.org) at least 1.2.0 (the last SVN/GIT snapshot is usually fine).
+* [ffmpeg](http://ffmpeg.org) 1.2.x. 2.0.x unsupported. May or may not work.
   [libav](http://libav.org) unsupported. May or may not work.
 * [cffi](http://cffi.readthedocs.org/en/release-0.7.2/)
 
