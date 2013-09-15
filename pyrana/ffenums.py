@@ -169,3 +169,19 @@ class SampleFormat(IntEnum):
     AV_SAMPLE_FMT_FLTP = 8
     AV_SAMPLE_FMT_DBLP = 9
     AV_SAMPLE_FMT_NB = 10
+
+
+class PictureType(IntEnum):
+    """
+    File: /usr/include/libavutil/avutil.h
+    SHA-1: f1c7e9e2e1ee6c926efe926604aa20d404f183e0
+    Portion: [214, 224]
+    """
+    AV_PICTURE_TYPE_NONE = 0
+    AV_PICTURE_TYPE_I = 1
+    AV_PICTURE_TYPE_P = 2
+    AV_PICTURE_TYPE_B = 3
+    AV_PICTURE_TYPE_S = 4
+    AV_PICTURE_TYPE_SI = 5
+    AV_PICTURE_TYPE_SP = 6
+    AV_PICTURE_TYPE_BI = 7
