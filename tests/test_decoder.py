@@ -10,6 +10,9 @@ import pyrana.codec
 import pyrana.video
 
 
+BBB_SAMPLE = os.path.join('tests', 'data', 'bbb_sample.ogg')
+
+
 class TestBaseCodecs(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -55,12 +58,18 @@ class TestBaseCodecs(unittest.TestCase):
 
     # FIXME
     def test_decoder_video_first_packet(self):
-        with open(os.path.join('tests/data/bbb_sample.ogg'), 'rb') as f:
+        with open(BBB_SAMPLE, 'rb') as f:
             dmx = pyrana.formats.Demuxer(f)
             dec = dmx.open_decoder(0)
             frame = dec.decode(dmx.stream(0))
             assert(frame)
             assert(repr(frame))
+
+    def test_decoder_video_from_file_xdata(self):
+        with open(BBB_SAMPLE, 'rb') as f:
+            dmx = pyrana.formats.Demuxer(f)
+            dec = dmx.open_decoder(0)
+            assert(dec.extra_data)
 
 
 if __name__ == "__main__":

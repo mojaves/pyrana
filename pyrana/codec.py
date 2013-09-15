@@ -48,6 +48,7 @@ class CodecMixin(object):
         self._params = params
         self._codec = None
         self._ctx = None
+        self._xdata = None
 
     @property
     def params(self):
@@ -59,9 +60,12 @@ class CodecMixin(object):
     @property
     def extra_data(self):
         """
-        bytearray, read-write
+        bytearray-like, read-write
         """
-        raise NotImplementedError
+        if self._xdata is None and self._ctx is not None:
+            self._xdata = self._ff.ffi.buffer(self._ctx.extradata,
+                                              self._ctx.extradata_size)
+        return self._xdata
 
 
 class BaseFrame(object):
