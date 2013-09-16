@@ -1,6 +1,5 @@
 unsigned avcodec_version(void);
 unsigned avformat_version(void);
-unsigned avutil_version(void);
 
 void av_register_all(void);
 void avcodec_register_all(void);
@@ -15,10 +14,6 @@ typedef struct AVOutputFormat {
 } AVOutputFormat;
 AVInputFormat *av_iformat_next(AVInputFormat *F);
 AVOutputFormat *av_oformat_next(AVOutputFormat *F);
-
-void *av_malloc(size_t size);
-void *av_mallocz(size_t size);
-void av_free(void *ptr);
 
 typedef struct AVIOContext AVIOContext;
 AVIOContext *avio_alloc_context(
@@ -60,11 +55,6 @@ int av_grow_packet(AVPacket *pkt, int grow_by);
 int av_dup_packet(AVPacket *pkt);
 int av_copy_packet(AVPacket *dst, AVPacket *src);
 void av_free_packet(AVPacket *pkt);
-
-typedef struct AVRational{
-     int num;
-     int den;
-} AVRational;
 
 typedef struct AVDictionary AVDictionary;
 typedef struct AVClass AVClass;
@@ -324,20 +314,3 @@ int avcodec_decode_video2(AVCodecContext *avctx, AVFrame *picture,
 int avcodec_decode_audio4(AVCodecContext *avctx, AVFrame *frame,
                           int *got_frame_ptr,
                           const AVPacket *avpkt);
-
-const char *av_get_media_type_string(enum AVMediaType media_type);
-
-int av_opt_get_int(void *obj, const char *name, int search_flags, int64_t *out_val);
-int av_opt_get_double(void *obj, const char *name, int search_flags, double *out_val);
-
-typedef struct AVPixFmtDescriptor {
-   const char *name;
-   uint8_t nb_components;
-   uint8_t log2_chroma_w;
-   uint8_t log2_chroma_h;
-   uint8_t flags;
-   /* ... */
-} AVPixFmtDescriptor;
-
-const AVPixFmtDescriptor *av_pix_fmt_desc_get(enum AVPixelFormat pix_fmt);
-int av_get_bytes_per_sample(enum AVSampleFormat sample_fmt);
