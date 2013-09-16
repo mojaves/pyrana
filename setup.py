@@ -27,6 +27,7 @@ setup(name='pymedia2-pyrana',
       author_email = 'fromani@gmail.com',
       url='http://bitbucket.org/mojaves/pyrana',
       packages=[ 'pyrana' ],
+      package_data={'pyarana': ['hfiles/*.*']},
       install_requires=dependencies(),
       classifiers = [
         'Development Status :: 2 - Pre-Alpha',
