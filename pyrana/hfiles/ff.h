@@ -72,6 +72,8 @@
  typedef struct AVChapter AVChapter;
  typedef struct AVPanScan AVPanScan;
 
+ typedef struct AVFrame AVFrame;
+
  typedef struct AVCodec AVCodec;
 
  typedef struct AVCodecContext {
@@ -83,7 +85,7 @@
     enum AVCodecID codec_id;
     unsigned int codec_tag;
     unsigned int stream_codec_tag;
-    /*attribute_deprecated*/ int sub_id;
+    int sub_id;
     void *priv_data;
     struct AVCodecInternal *internal;
     void *opaque;
@@ -103,6 +105,83 @@
     int gop_size;
     enum AVPixelFormat pix_fmt;
     int me_method;
+    void (*draw_horiz_band)(struct AVCodecContext *s,
+                            const AVFrame *src, int offset[8],
+                            int y, int type, int height);
+    enum AVPixelFormat (*get_format)(struct AVCodecContext *s,
+                                     const enum AVPixelFormat * fmt);
+    int max_b_frames;
+    float b_quant_factor;
+    int rc_strategy;
+    int b_frame_strategy;
+    int luma_elim_threshold;
+    int chroma_elim_threshold;
+    float b_quant_offset;
+    int has_b_frames;
+    int mpeg_quant;
+    float i_quant_factor;
+    float i_quant_offset;
+    float lumi_masking;
+    float temporal_cplx_masking;
+    float spatial_cplx_masking;
+    float p_masking;
+    float dark_masking;
+    int slice_count;
+    int prediction_method;
+    int *slice_offset;
+    AVRational sample_aspect_ratio;
+    int me_cmp;
+    int me_sub_cmp;
+    int mb_cmp;
+    int ildct_cmp;
+    int dia_size;
+    int last_predictor_count;
+    int pre_me;
+    int me_pre_cmp;
+    int pre_dia_size;
+    int me_subpel_quality;
+    int dtg_active_format;
+    int me_range;
+    int intra_quant_bias;
+    int inter_quant_bias;
+    int color_table_id;
+    int slice_flags;
+    int xvmc_acceleration;
+    int mb_decision;
+    uint16_t *intra_matrix;
+    uint16_t *inter_matrix;
+    int scenechange_threshold;
+    int noise_reduction;
+    int inter_threshold;
+    int quantizer_noise_shaping;
+    int me_threshold;
+    int mb_threshold;
+    int intra_dc_precision;
+    int skip_top;
+    int skip_bottom;
+    float border_masking;
+    int mb_lmin;
+    int mb_lmax;
+    int me_penalty_compensation;
+    int bidir_refine;
+    int brd_scale;
+    int keyint_min;
+    int refs;
+    int chromaoffset;
+    int scenechange_factor;
+    int mv0_threshold;
+    int b_sensitivity;
+    enum AVColorPrimaries color_primaries;
+    enum AVColorTransferCharacteristic color_trc;
+    enum AVColorSpace colorspace;
+    enum AVColorRange color_range;
+    enum AVChromaLocation chroma_sample_location;
+    int slices;
+    enum AVFieldOrder field_order;
+    /* audio only */
+    int sample_rate;
+    int channels;
+    enum AVSampleFormat sample_fmt;
     /* ... */
  } AVCodecContext;
  AVCodecContext *avcodec_alloc_context3(const AVCodec *codec);
@@ -261,3 +340,4 @@
  } AVPixFmtDescriptor;
 
  const AVPixFmtDescriptor *av_pix_fmt_desc_get(enum AVPixelFormat pix_fmt);
+int av_get_bytes_per_sample(enum AVSampleFormat sample_fmt);
