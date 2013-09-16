@@ -1,9 +1,10 @@
 """
-FIXME: WRITEME
+CFFI frontend code for pyrana.
+This module is not part of the pyrana public API.
 """
 
-from functools import wraps
 import cffi
+from functools import wraps
 import os.path
 import glob
 
@@ -21,7 +22,7 @@ def load_h(path="hfiles"):
 
 
 # The dreaded singleton. It is a necessary evil[1] and this is the reason why:
-# https://bitbucket.org/cffi/cffi/issue/4/typeerror-initializer-for-ctype-double
+# bitbucket.org/cffi/cffi/issue/4/typeerror-initializer-for-ctype-double
 
 # http://wiki.python.org/moin/PythonDecoratorLibrary#Singleton
 def singleton(cls):

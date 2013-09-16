@@ -24,8 +24,10 @@ _enforce_platform(platform)
 
 # backward compatibility
 from pyrana.packet import TS_NULL
-# meh.
-from pyrana.errors import *
+from pyrana.errors import \
+    LibraryVersionError, EOSError, NeedFeedError,\
+    ProcessingError, SetupError, UnsupportedError,\
+    NotFoundError
 
 
 # better explicit than implicit.

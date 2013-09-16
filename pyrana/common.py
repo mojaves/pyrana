@@ -56,6 +56,7 @@ def to_pixel_format(ival):
     return to_enum_value(ival, PixelFormat,
                          PixelFormat.AV_PIX_FMT_NONE)
 
+
 def to_sample_format(ival):
     """
     SampleFormat value converter.
