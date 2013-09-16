@@ -54,6 +54,13 @@ class Frame(BaseFrame):
         """
         return self._ff.lavc.av_frame_get_channels(self._frame)
 
+    @property
+    def bps(self):
+        """
+        Bytes per sample.
+        """
+        return self._ff.lavu.av_get_bytes_per_sample(self._frame.format);
+
 
 def _wire_dec(dec):
     """

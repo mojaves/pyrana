@@ -92,14 +92,14 @@ def _codec_name(ffh, codec_id):
     return ffh.ffi.string(avcodec.name).decode('utf-8')
 
 
-def _audio_stream_info(ctx):
+def _audio_stream_info(ctx, ffh):
     """
     extract the audio stream info from an AVCodecContext (ctx)
     """
     return {
         "sample_rate": get_field_int(ctx, "ar"),
         "channels": get_field_int(ctx, "ac"),
-        "sample_bytes": 2  # FIXME: BPP is hardcoded
+        "sample_bytes": ffh.lavu.av_get_bytes_per_sample(ctx.sample_fmt)
     }
 
 
@@ -255,7 +255,7 @@ class Demuxer(object):
             "bit_rate": get_field_int(ctx, "b")
         }
         if _type == MediaType.AVMEDIA_TYPE_AUDIO:
-            info.update(_audio_stream_info(ctx))
+            info.update(_audio_stream_info(ctx, ffh))
         if _type == MediaType.AVMEDIA_TYPE_VIDEO:
             info.update(_video_stream_info(ctx))
         return info
