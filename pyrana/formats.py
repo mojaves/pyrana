@@ -3,7 +3,6 @@ This module provides the transport layer interface: encoded packets,
 Muxer, Demuxers and their support code.
 """
 
-from contextlib import contextmanager
 from enum import IntEnum
 
 from pyrana.common import MediaType, to_media_type

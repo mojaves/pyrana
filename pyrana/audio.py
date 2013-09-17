@@ -59,7 +59,7 @@ class Frame(BaseFrame):
         """
         Bytes per sample.
         """
-        return self._ff.lavu.av_get_bytes_per_sample(self._frame.format);
+        return self._ff.lavu.av_get_bytes_per_sample(self._frame.format)
 
 
 def _wire_dec(dec):
@@ -80,7 +80,7 @@ class Decoder(BaseDecoder):
     - add flush() operation
     """
     def __init__(self, input_codec, params=None):
-        super().__init__(input_codec, params)
+        super(Decoder, self).__init__(input_codec, params)
         _wire_dec(self)
 
     @classmethod

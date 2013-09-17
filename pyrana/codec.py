@@ -145,7 +145,7 @@ class BaseDecoder(CodecMixin):
     Decoder base class. Common both to audio and video decoders.
     """
     def __init__(self, input_codec, params=None, delay_open=False):
-        super().__init__(params)
+        super(BaseDecoder, self).__init__(params)
         ffh = self._ff
         if isinstance(input_codec, str):
             name = input_codec.encode('utf-8')

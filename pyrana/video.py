@@ -17,19 +17,26 @@ OUTPUT_CODECS = frozenset()
 
 
 def _image_from_frame(ffh, frame, pixfmt):
+    """
+    builds an Image from a C-frame, by converting the data
+    into the given pixfmt. Assumes the source pixfmt is
+    different from the source one; otherwise, you just
+    need a new Image with a shared underlying Frame
+    (see Frame.image()).
+    """
     # if we got here, either we have an HUGE bug lurking or
     # srcFormat is already good.
     if not ffh.sws.sws_isSupportedOutput(pixfmt):
         msg = "unsupported pixel format: %s" % pixfmt
         raise pyrana.errors.ProcessingError(msg)
-    NULL = ffh.ffi.NULL
+    null = ffh.ffi.NULL
     width, height = frame.width, frame.height
-    sws = ffh.sws.sws_getCachedContext(NULL,
+    sws = ffh.sws.sws_getCachedContext(null,
                                        width, height, frame.format,
                                        width, height, pixfmt,
                                        1,  # FIXME
-                                       NULL, NULL, NULL)
-    if sws is NULL:
+                                       null, null, null)
+    if sws is null:
         msg = "cannot get a SWScale context"
         raise pyrana.errors.ProcessingError(msg)
     ppframe = ffh.ffi.new('AVFrame **')
@@ -40,7 +47,9 @@ def _image_from_frame(ffh, frame, pixfmt):
                                   width, height, pixfmt, 1)
     if ret < 0:
         ffh.lavc.avcodec_free_frame(ppframe)
-        raise pyrana.errors.ProcessingError("FIXME")
+        msg = "unable to alloc a %ix%i(%s) picture" \
+              % (width, height, pixfmt)
+        raise pyrana.errors.ProcessingError(msg)
     ret = ffh.sws.sws_scale(sws,
                             frame.data, frame.linesize,
                             0, height,
@@ -48,7 +57,8 @@ def _image_from_frame(ffh, frame, pixfmt):
     if ret < 0:
         ffh.lavu.av_free(ppframe[0].data[0])  # FIXME
         ffh.lavc.avcodec_free_frame(ppframe)
-        raise pyrana.errors.ProcessingError("FIXME")
+        msg = "swscale failed in pixfmt conversion"
+        raise pyrana.errors.ProcessingError(msg)
     ppframe[0].width = width
     ppframe[0].height = height
     ppframe[0].format = pixfmt
@@ -56,11 +66,25 @@ def _image_from_frame(ffh, frame, pixfmt):
 
 
 class Image(object):
+    """
+    Represents the Picture data inside a Frame.
+    """
     def __init__(self):
+        # mostly for documentation purposes, and to make pylint happy.
+        self._ff = None
+        self._sws = None
+        self._ppframe = None
         raise pyrana.errors.SetupError("Cannot be created directly. Yet.")
 
     @classmethod
     def from_cdata(cls, ppframe, sws=None):
+        """
+        builds a pyrana Image from a (cffi-wrapped) libav*
+        Frame object. The Picture data itself will still be hold in the
+        Frame object.
+        The libav object must be already initialized and ready to go.
+        WARNING: raw access. Use with care.
+        """
         ffh = pyrana.ff.get_handle()
         image = object.__new__(cls)
         image._ff = ffh
@@ -69,7 +93,10 @@ class Image(object):
         return image
 
     def __repr__(self):
-        return "TODO"
+        return "Image(width=%i, height=%i, pixfmt=%s,"\
+               " planes=%i, shared=%s)" \
+               % (self.width, self.height, self.pixel_format,
+                  self.planes, self.is_shared)
 
     def __del__(self):
         if not self.is_shared:
@@ -93,9 +120,16 @@ class Image(object):
 
     @property
     def is_shared(self):
+        """
+        Is the underlying C-Frame shared with the parent py-Frame?
+        """
         return self._sws is None
 
     def convert(self, pixfmt):
+        """
+        convert the Image data in a new PixelFormat.
+        returns a brand new, independent Image.
+        """
         return _image_from_frame(self._ff, self._ppframe[0], pixfmt)
 
     @property
@@ -139,7 +173,7 @@ class Frame(BaseFrame):
     A Video frame.
     """
     def __repr__(self):
-        base = super().__repr__()
+        base = super(Frame, self).__repr__()
         # FIXME
         return "%s, ptype=%i, ilace=%s, tff=%s, cnum=%i, dnum=%i)" \
                     % (base[:-1],
@@ -150,6 +184,10 @@ class Frame(BaseFrame):
     # FIXME: access the ASR.
 
     def image(self, pixfmt=None):
+        """
+        Returns a new Image object which provides access to the
+        Picture (thus the pixel as bytes()) data.
+        """
         if pixfmt is None:  # native data, no conversion
             return Image.from_cdata(self._ppframe)
         return _image_from_frame(self._ff, self._ppframe[0], pixfmt)
@@ -208,7 +246,7 @@ class Decoder(BaseDecoder):
     - add flush() operation
     """
     def __init__(self, input_codec, params=None):
-        super().__init__(input_codec, params)
+        super(Decoder, self).__init__(input_codec, params)
         _wire_dec(self)
 
     @classmethod
