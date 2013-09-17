@@ -38,16 +38,11 @@ class Frame(BaseFrame):
 
     def __bytes__(self):
         pixels = bytearray(len(self))
-        print(len(pixels), len(self))
         idx = 0
         while self._frame.data[idx] != self._ff.ffi.NULL:
-            print(self._frame.data[idx])
-            print(self._frame.linesize[idx], self._frame.width,
-                    self._frame.height)
+            # TODO
             idx += 1
-        X = bytes(pixels)
-        print(len(X))
-        return X
+        return bytes(pixels)
 
     @property
     def planes(self):
