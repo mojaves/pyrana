@@ -21,9 +21,9 @@ class Frame(BaseFrame):
     An Audio frame.
     """
     def __repr__(self):
-        return "Frame(sfmt=%i, samples=%i, rate=%i, chans=%i)" % (
+        return "Frame(sfmt=%i, samples=%i, rate=%i, chans=%i, bps=%i)" % (
                 self.sample_format, self.num_samples,
-                self.sample_rate, self.channels)
+                self.sample_rate, self.channels, self.bps)
 
     @property
     def sample_format(self):
