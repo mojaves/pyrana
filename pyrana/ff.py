@@ -55,7 +55,7 @@ class FF(object):
     """
     FFMpeg abstraction objects.
     Needs to be a singleton because the FFI instance has to be
-    one and exacly one.
+    one and exactly one.
     Do not use directly. Use get_handle() instead.
     """
     def __init__(self):
