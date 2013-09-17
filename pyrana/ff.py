@@ -15,6 +15,7 @@ def load_h(path="hfiles"):
     """
     data = []
     root = os.path.abspath(os.path.dirname(__file__))
+    # FIXME: of course this is too lousy to be the real fix.
     for hfile in sorted(glob.glob(os.path.join(root, path, '*.h'))):
         with open(hfile, 'rt') as src:
             data.append(src.read())
