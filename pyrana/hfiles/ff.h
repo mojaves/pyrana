@@ -306,8 +306,6 @@ void avcodec_free_frame(AVFrame **frame);
 int av_frame_get_channels(const AVFrame *frame);
 int av_frame_get_sample_rate(const AVFrame *frame);
 
-int av_image_get_buffer_size(enum AVPixelFormat pix_fmt, int width, int height, int align);
-
 int avcodec_decode_video2(AVCodecContext *avctx, AVFrame *picture,
                           int *got_picture_ptr,
                           const AVPacket *avpkt);
