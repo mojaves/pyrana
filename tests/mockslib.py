@@ -72,14 +72,18 @@ class MockPlat:
 
 
 class MockHandle:
-    def __init__(self, lavc, lavf, lavu):
+    def __init__(self, lavc, lavf, lavu, sws):
         from pyrana.versions import av_version_pack
         self._lavc = av_version_pack(*lavc)
         self._lavf = av_version_pack(*lavf)
         self._lavu = av_version_pack(*lavu)
+        self._sws = av_version_pack(*sws)
 
     def versions(self):
         return (self._lavc, self._lavf, self._lavu)
+
+    def aux_versions(self):
+        return (self._sws, )
 
 
 class MockHandleFaulty:
