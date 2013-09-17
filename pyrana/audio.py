@@ -80,7 +80,7 @@ class Decoder(BaseDecoder):
     - add flush() operation
     """
     def __init__(self, input_codec, params=None):
-        super(Decoder, self).__init__(input_codec, params)
+        super().__init__(input_codec, params)
         _wire_dec(self)
 
     @classmethod

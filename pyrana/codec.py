@@ -80,10 +80,11 @@ class BaseFrame(object):
         self._frame = None
 
     def __del__(self):
+        # FIXME: is really the data safely handled? check for memleaks.
         self._ff.lavc.avcodec_free_frame(self._ppframe)
 
     def __repr__(self):
-        return "BaseFrame()"
+        return "%sFrame(pts=%i)" % ("Key" if self.is_key else "", self.pts)
 
     def handle(self):
         """
@@ -96,14 +97,14 @@ class BaseFrame(object):
         """
         Is this a key frame?
         """
-        return self._frame.key_frame
+        return self._frame.key_frame if self._frame else False
 
     @property
     def pts(self):
         """
         The Presentation TimeStamp of this Frame.
         """
-        return self._frame.pts
+        return self._frame.pts if self._frame else 0
 
     @classmethod
     def from_cdata(cls, ppframe):
@@ -144,7 +145,7 @@ class BaseDecoder(CodecMixin):
     Decoder base class. Common both to audio and video decoders.
     """
     def __init__(self, input_codec, params=None, delay_open=False):
-        super(BaseDecoder, self).__init__(params)
+        super().__init__(params)
         ffh = self._ff
         if isinstance(input_codec, str):
             name = input_codec.encode('utf-8')

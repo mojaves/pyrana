@@ -16,33 +16,87 @@ INPUT_CODECS = frozenset()
 OUTPUT_CODECS = frozenset()
 
 
-class Frame(BaseFrame):
-    """
-    A Video frame.
-    """
+def _image_from_frame(ffh, frame, pixfmt):
+    # if we got here, either we have an HUGE bug lurking or
+    # srcFormat is already good.
+    if not ffh.sws.sws_isSupportedOutput(pixfmt):
+        msg = "unsupported pixel format: %s" % pixfmt
+        raise pyrana.errors.ProcessingError(msg)
+    NULL = ffh.ffi.NULL
+    width, height = frame.width, frame.height
+    sws = ffh.sws.sws_getCachedContext(NULL,
+                                       width, height, frame.format,
+                                       width, height, pixfmt,
+                                       1,  # FIXME
+                                       NULL, NULL, NULL)
+    if sws is NULL:
+        msg = "cannot get a SWScale context"
+        raise pyrana.errors.ProcessingError(msg)
+    ppframe = ffh.ffi.new('AVFrame **')
+    ppframe[0] = ffh.lavc.avcodec_alloc_frame()  # FIXME context manager!
+    # alignement does more hurt than good here.
+    ret = ffh.lavu.av_image_alloc(ppframe[0].data,
+                                  ppframe[0].linesize,
+                                  width, height, pixfmt, 1)
+    if ret < 0:
+        ffh.lavc.avcodec_free_frame(ppframe)
+        raise pyrana.errors.ProcessingError("FIXME")
+    ret = ffh.sws.sws_scale(sws,
+                            frame.data, frame.linesize,
+                            0, height,
+                            ppframe[0].data, ppframe[0].linesize)
+    if ret < 0:
+        ffh.lavu.av_free(ppframe[0].data[0])  # FIXME
+        ffh.lavc.avcodec_free_frame(ppframe)
+        raise pyrana.errors.ProcessingError("FIXME")
+    ppframe[0].width = width
+    ppframe[0].height = height
+    ppframe[0].format = pixfmt
+    return Image.from_cdata(ppframe, sws)
+
+
+class Image(object):
+    def __init__(self):
+        raise pyrana.errors.SetupError("Cannot be created directly. Yet.")
+
+    @classmethod
+    def from_cdata(cls, ppframe, sws=None):
+        ffh = pyrana.ff.get_handle()
+        image = object.__new__(cls)
+        image._ff = ffh
+        image._sws = sws
+        image._ppframe = ppframe
+        return image
+
     def __repr__(self):
-        # FIXME
-        return "%sFrame(pts=%i, ptype=%i, ilace=%s, tff=%s)" \
-               " # %ix%i@%i %i/%i" \
-                    % ("Key" if self.is_key else "",
-                       self.pts, self.pict_type,
-                       self.is_interlaced, self.top_field_first,
-                       self.width, self.height, self.pixel_format,
-                       self.coded_pict_number, self.display_pict_number)
+        return "TODO"
+
+    def __del__(self):
+        if not self.is_shared:
+            self._ff.lavc.avcodec_free_frame(self._ppframe)
 
     def __len__(self):
-        return self._ff.lavu.av_image_get_buffer_size(self._frame.format,
-                                                      self._frame.width,
-                                                      self._frame.height,
+        frm = self._ppframe[0]
+        return self._ff.lavu.av_image_get_buffer_size(frm.format,
+                                                      frm.width,
+                                                      frm.height,
                                                       1)
 
     def __bytes__(self):
+        frm = self._ppframe[0]
         pixels = bytearray(len(self))
         idx = 0
-        while self._frame.data[idx] != self._ff.ffi.NULL:
+        while frm.data[idx] != self._ff.ffi.NULL:
             # TODO
             idx += 1
         return bytes(pixels)
+
+    @property
+    def is_shared(self):
+        return self._sws is None
+
+    def convert(self, pixfmt):
+        return _image_from_frame(self._ff, self._ppframe[0], pixfmt)
 
     @property
     def planes(self):
@@ -50,7 +104,8 @@ class Frame(BaseFrame):
         Return the number of planes in the Picture data.
         e.g. RGB: 1; YUV420: 3
         """
-        desc = self._ff.lavu.av_pix_fmt_desc_get(self._frame.format)
+        frm = self._ppframe[0]
+        desc = self._ff.lavu.av_pix_fmt_desc_get(frm.format)
         return desc.nb_components
 
     @property
@@ -58,14 +113,16 @@ class Frame(BaseFrame):
         """
         Frame width. Expected to be always equal to the stream width.
         """
-        return self._frame.width
+        frm = self._ppframe[0]
+        return frm.width
 
     @property
     def height(self):
         """
         Frame height. Expected to be always equal to the stream height.
         """
-        return self._frame.height
+        frm = self._ppframe[0]
+        return frm.height
 
     @property
     def pixel_format(self):
@@ -73,9 +130,29 @@ class Frame(BaseFrame):
         Frame pixel format. Expected to be always equal
         to the stream pixel format.
         """
-        return to_pixel_format(self._frame.format)
+        frm = self._ppframe[0]
+        return to_pixel_format(frm.format)
+
+
+class Frame(BaseFrame):
+    """
+    A Video frame.
+    """
+    def __repr__(self):
+        base = super().__repr__()
+        # FIXME
+        return "%s, ptype=%i, ilace=%s, tff=%s, cnum=%i, dnum=%i)" \
+                    % (base[:-1],
+                       self.pict_type,
+                       self.is_interlaced, self.top_field_first,
+                       self.coded_pict_number, self.display_pict_number)
 
     # FIXME: access the ASR.
+
+    def image(self, pixfmt=None):
+        if pixfmt is None:  # native data, no conversion
+            return Image.from_cdata(self._ppframe)
+        return _image_from_frame(self._ff, self._ppframe[0], pixfmt)
 
     @property
     def pict_type(self):
@@ -131,7 +208,7 @@ class Decoder(BaseDecoder):
     - add flush() operation
     """
     def __init__(self, input_codec, params=None):
-        super(Decoder, self).__init__(input_codec, params)
+        super().__init__(input_codec, params)
         _wire_dec(self)
 
     @classmethod
