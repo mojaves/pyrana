@@ -27,6 +27,7 @@ const AVPixFmtDescriptor *av_pix_fmt_desc_get(enum AVPixelFormat pix_fmt);
 int av_get_bytes_per_sample(enum AVSampleFormat sample_fmt);
 
 /* imgutils.h */
+int av_image_get_linesize(enum AVPixelFormat pix_fmt, int width, int plane);
 int av_image_get_buffer_size(enum AVPixelFormat pix_fmt,
                              int width, int height, int align);
 
