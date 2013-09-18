@@ -108,18 +108,37 @@ class Image(object):
     def __bytes__(self):
         frm = self._ppframe[0]
         pixels = bytearray(len(self))
-        idx = 0
-        dst = 0
+        idx, dst = 0, 0
         while frm.data[idx] != self._ff.ffi.NULL:
-            bwidth = self._ff.lavu.av_image_get_linesize(frm.format,
-                                                         frm.width, idx)
-            plane = self._ff.ffi.buffer(frm.data[idx], frm.height * bwidth)
-            src = 0
-            for h in range(frm.height):
-                dst += h * bwidth
-                src += h * frm.linesize[idx]
-                pixels[dst:dst+bwidth] = plane[src:src+bwidth]
+            pixels, dst = self._dump_plane(self, idx, pixels, dst)
             idx += 1
+        return bytes(pixels)
+
+    def _dump_plane(self, idx, pixels=None, dst=0):
+        """
+        Dump (a copy of) a single plane into a (optionally given)
+        bytearray.
+        """
+        src = 0
+        ffh = self._ff
+        frm = self._ppframe[0]
+        bwidth = ffh.lavu.av_image_get_linesize(frm.format, frm.width, idx)
+        size = frm.height * bwidth
+        pixels = bytearray(size) if pixels is None else pixels  # FIXME
+        plane = ffh.ffi.buffer(frm.data[idx], size)
+        for h in range(frm.height):
+            dst += h * bwidth
+            src += h * frm.linesize[idx]
+            pixels[dst:dst+bwidth] = plane[src:src+bwidth]
+        return pixels, dst
+
+    def plane(self, idx):
+        """
+        Read-only byte access to a single plane of the Image.
+        """
+        if idx < 0 or idx > 7 or frm.data[idx] == self._ff.ffi.NULL:
+            raise ProcessingError("bad plane %i" % idx)
+        pixels, _ = self._dump_plane(idx)
         return bytes(pixels)
 
     @property
