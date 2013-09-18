@@ -140,6 +140,27 @@ def _null_new_frame(*args):
     raise pyrana.errors.ProcessingError("Generic decoders cannot run")
 
 
+class FrameBinder(object):
+    """
+    allocates an AVFrame and cleans it up on exception.
+    FIXME: weakrefs?
+    """
+    def __init__(self, ffh):
+        self._ff = ffh
+
+    def __enter__(self):
+        self._ppframe = self._ff.ffi.new('AVFrame **')
+        self._ppframe[0] = self._ff.lavc.avcodec_alloc_frame()
+        return self._ppframe
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        if exc_type is not None:
+            self._ff.lavu.av_free(self._ppframe[0].data[0])  # FIXME
+            self._ff.lavc.avcodec_free_frame(self._ppframe)
+            return False
+        return True
+
+
 class BaseDecoder(CodecMixin):
     """
     Decoder base class. Common both to audio and video decoders.
@@ -172,30 +193,25 @@ class BaseDecoder(CodecMixin):
         return self
 
     def __repr__(self):
-        ffh = self._ff
         # how funny. If we use an array of chars like a string, it crashes.
         codec_id = self._codec.id  # if self._codec else self._ctx.codec_id
-        cname = ffh.lavc.avcodec_get_name(codec_id)
+        cname = self._ff.lavc.avcodec_get_name(codec_id)
         return "Decoder(input_codec=%s)" % (to_str(cname))
 
     def _decode_pkt(self, pkt):
         """
         A packet can legally contain more than one frame.
         """
-        ffh = self._ff
-        ppframe = ffh.ffi.new('AVFrame **')
-        ppframe[0] = ffh.lavc.avcodec_alloc_frame()
-        ret = self._av_decode(self._ctx, ppframe[0], self._got_frame, pkt)
-        if ret < 0:
-            ffh.lavc.avcodec_free_frame(ppframe)
-            msg = "Error decoding %s frame: %i" % (self._mtype, ret)
-            raise pyrana.errors.ProcessingError(msg)
+        with FrameBinder(self._ff) as ppframe:
+            ret = self._av_decode(self._ctx, ppframe[0], self._got_frame, pkt)
+            if ret < 0:
+                msg = "Error decoding %s frame: %i" % (self._mtype, ret)
+                raise pyrana.errors.ProcessingError(msg)
 
-        if not self._got_frame[0]:
-            ffh.lavc.avcodec_free_frame(ppframe)
-            raise pyrana.errors.NeedFeedError()
+            if not self._got_frame[0]:
+                raise pyrana.errors.NeedFeedError()
 
-        return ret, self._new_frame(ppframe)
+            return ret, self._new_frame(ppframe)
 
     def decode_packet(self, packet):
         """

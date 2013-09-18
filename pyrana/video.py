@@ -4,8 +4,8 @@ Encoders, Decoders and their support code.
 """
 
 from pyrana.common import to_pixel_format, to_picture_type
-from pyrana.codec import BaseFrame, BaseDecoder
-import pyrana.errors
+from pyrana.codec import BaseFrame, BaseDecoder, FrameBinder
+from pyrana.errors import ProcessingError, SetupError
 import pyrana.ff
 # the following is just to export to the clients the Enums.
 # pylint: disable=W0611
@@ -28,7 +28,7 @@ def _image_from_frame(ffh, frame, pixfmt):
     # srcFormat is already good.
     if not ffh.sws.sws_isSupportedOutput(pixfmt):
         msg = "unsupported pixel format: %s" % pixfmt
-        raise pyrana.errors.ProcessingError(msg)
+        raise ProcessingError(msg)
     null = ffh.ffi.NULL
     width, height = frame.width, frame.height
     sws = ffh.sws.sws_getCachedContext(null,
@@ -38,31 +38,27 @@ def _image_from_frame(ffh, frame, pixfmt):
                                        null, null, null)
     if sws is null:
         msg = "cannot get a SWScale context"
-        raise pyrana.errors.ProcessingError(msg)
-    ppframe = ffh.ffi.new('AVFrame **')
-    ppframe[0] = ffh.lavc.avcodec_alloc_frame()  # FIXME context manager!
-    # alignement does more hurt than good here.
-    ret = ffh.lavu.av_image_alloc(ppframe[0].data,
-                                  ppframe[0].linesize,
-                                  width, height, pixfmt, 1)
-    if ret < 0:
-        ffh.lavc.avcodec_free_frame(ppframe)
-        msg = "unable to alloc a %ix%i(%s) picture" \
-              % (width, height, pixfmt)
-        raise pyrana.errors.ProcessingError(msg)
-    ret = ffh.sws.sws_scale(sws,
-                            frame.data, frame.linesize,
-                            0, height,
-                            ppframe[0].data, ppframe[0].linesize)
-    if ret < 0:
-        ffh.lavu.av_free(ppframe[0].data[0])  # FIXME
-        ffh.lavc.avcodec_free_frame(ppframe)
-        msg = "swscale failed in pixfmt conversion"
-        raise pyrana.errors.ProcessingError(msg)
-    ppframe[0].width = width
-    ppframe[0].height = height
-    ppframe[0].format = pixfmt
-    return Image.from_cdata(ppframe, sws)
+        raise ProcessingError(msg)
+    with FrameBinder(ffh) as ppframe:
+        # alignement does more hurt than good here.
+        ret = ffh.lavu.av_image_alloc(ppframe[0].data,
+                                      ppframe[0].linesize,
+                                      width, height, pixfmt, 1)
+        if ret < 0:
+            msg = "unable to alloc a %ix%i(%s) picture" \
+                  % (width, height, pixfmt)
+            raise ProcessingError(msg)
+        ret = ffh.sws.sws_scale(sws,
+                                frame.data, frame.linesize,
+                                0, height,
+                                ppframe[0].data, ppframe[0].linesize)
+        if ret < 0:
+            msg = "swscale failed in pixfmt conversion"
+            raise ProcessingError(msg)
+        ppframe[0].width = width
+        ppframe[0].height = height
+        ppframe[0].format = pixfmt
+        return Image.from_cdata(ppframe, sws)
 
 
 class Image(object):
@@ -74,7 +70,7 @@ class Image(object):
         self._ff = None
         self._sws = None
         self._ppframe = None
-        raise pyrana.errors.SetupError("Cannot be created directly. Yet.")
+        raise SetupError("Cannot be created directly. Yet.")
 
     @classmethod
     def from_cdata(cls, ppframe, sws=None):
