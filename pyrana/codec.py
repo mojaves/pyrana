@@ -236,7 +236,7 @@ class BaseDecoder(CodecMixin):
                 frames.extend(frm for frm in self.decode_packet(pkt))
             except pyrana.errors.NeedFeedError:
                 pkt = next(pkt_seq)
-        return frames if len(frames) > 1 else frames[0]
+        return frames
 
     def flush(self):
         """
