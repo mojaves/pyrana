@@ -109,8 +109,16 @@ class Image(object):
         frm = self._ppframe[0]
         pixels = bytearray(len(self))
         idx = 0
+        dst = 0
         while frm.data[idx] != self._ff.ffi.NULL:
-            # TODO
+            bwidth = self._ff.lavu.av_image_get_linesize(frm.format,
+                                                         frm.width, idx)
+            plane = self._ff.ffi.buffer(frm.data[idx], frm.height * bwidth)
+            src = 0
+            for h in range(frm.height):
+                dst += h * bwidth
+                src += h * frm.linesize[idx]
+                pixels[dst:dst+bwidth] = plane[src:src+bwidth]
             idx += 1
         return bytes(pixels)
 
@@ -134,9 +142,8 @@ class Image(object):
         Return the number of planes in the Picture data.
         e.g. RGB: 1; YUV420: 3
         """
-        frm = self._ppframe[0]
-        desc = self._ff.lavu.av_pix_fmt_desc_get(frm.format)
-        return desc.nb_components
+        return sum(int(self._ppframe[0].data[idx] != self._ff.ffi.NULL)
+                   for idx in range(8))  # FIXME
 
     @property
     def width(self):
