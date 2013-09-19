@@ -155,7 +155,6 @@ class FrameBinder(object):
 
     def __exit__(self, exc_type, exc_value, traceback):
         if exc_type is not None:
-            self._ff.lavu.av_free(self._ppframe[0].data[0])  # FIXME
             self._ff.lavc.avcodec_free_frame(self._ppframe)
             return False
         return True
