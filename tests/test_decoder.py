@@ -9,7 +9,7 @@ import pyrana.errors
 import pyrana.codec
 import pyrana.video
 
-from tests.mockslib import MockFF, MockFrame
+from tests.mockslib import MockFF, MockFrame, MockLavu, MockSws
 
 
 BBB_SAMPLE = os.path.join('tests', 'data', 'bbb_sample.ogg')
@@ -158,6 +158,25 @@ class TestImage(unittest.TestCase):
         ffh = MockFF(faulty=True)
         with self.assertRaises(pyrana.errors.ProcessingError):
             pyrana.video._image_from_frame(ffh, frame, pixfmt)
+
+    def test_cannot_alloc_av_image(self):
+        pixfmt = pyrana.video.PixelFormat.AV_PIX_FMT_RGB24
+        frame = MockFrame(pixfmt)
+        ffh = MockFF(faulty=False)
+        # inject only a faulty lavu
+        ffh.lavu = MockLavu(faulty=True)
+        with self.assertRaises(pyrana.errors.ProcessingError):
+            pyrana.video._image_from_frame(ffh, frame, pixfmt)
+        assert(ffh.lavu.img_allocs == 1)
+
+    def test_cannot_convert(self):
+        pixfmt = pyrana.video.PixelFormat.AV_PIX_FMT_YUV420P  # 0
+        frame = MockFrame(pixfmt)
+        ffh = MockFF(faulty=False)
+        ffh.sws = MockSws(False, True, pixfmt)
+        with self.assertRaises(pyrana.errors.ProcessingError):
+            pyrana.video._image_from_frame(ffh, frame, pixfmt)
+        assert(ffh.sws.scale_done == 1)
 
 
 if __name__ == "__main__":

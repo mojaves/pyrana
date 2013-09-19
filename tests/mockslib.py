@@ -8,20 +8,37 @@ class MockFrame:
         self.width = width
         self.height = height
         self.format = pixfmt
+        self.data = []
+        self.linesize = []
 
 
 class MockSws:
-    def __init__(self, faulty, supported=True):
+    def __init__(self, faulty, supported=True, bad_pix_fmt=0):
         self.faulty = faulty
         self.supported = supported
+        self.bad_pix_fmt = bad_pix_fmt
+        self.src_pix_fmt = None
+        self.dst_pix_fmt = None
+        self.context_got = 0
+        self.scale_done = 0
 
     def sws_isSupportedOutput(self, pixfmt):
         return self.supported
 
-    def sws_getCachedContext(self, *args):
+    def sws_getCachedContext(self, ctx,
+                             src_w, src_h, src_format,
+                             dst_w, dst_h, dst_format,
+                             *args):
         if self.faulty:
             return None
-        return {}  # FIXME
+        self.src_pix_fmt = src_format
+        self.dst_pix_fmt = dst_format
+        self.context_got += 1
+        return {'src_pixfmt':src_format, 'dst_pixfmt':dst_format }
+
+    def sws_scale(self, ctx, data, linesize, flags, height, dst_data, dst_linesize):
+        self.scale_done += 1
+        return -1 if self.faulty or self.bad_pix_fmt == self.dst_pix_fmt else 0
 
 
 class MockLavc:
@@ -41,6 +58,14 @@ class MockLavc:
     def avcodec_open2(context, codec, params):
         return -1
 
+    @staticmethod
+    def avcodec_alloc_frame():
+        return MockFrame(0)  # XXX
+
+    @staticmethod
+    def avcodec_free_frame(frame):
+        pass
+
 
 class MockLavf:
     def __init__(self, faulty):
@@ -52,6 +77,17 @@ class MockLavf:
     @staticmethod
     def av_read_frame(ctx, pkt):
         return -1
+
+
+class MockLavu:
+    def __init__(self, faulty):
+        self.faulty = faulty
+        self.img_allocs = 0
+
+    def av_image_alloc(self, data, linesize,
+                       width, height, pixfmt, align):
+        self.img_allocs += 1
+        return -1 if self.faulty else 0
 
 
 class MockCFFI:
@@ -67,6 +103,7 @@ class MockFF:
         self.ffi = MockCFFI()
         self.lavc = MockLavc()
         self.lavf = MockLavf(faulty)
+        self.lavu = MockLavu(faulty)
         self.sws = MockSws(faulty)
 
 
