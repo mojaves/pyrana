@@ -140,6 +140,16 @@ def _null_new_frame(*args):
     raise pyrana.errors.ProcessingError("Generic decoders cannot run")
 
 
+def _new_av_frame_pp(ffh):
+    """
+    allocates an indirect AVFrame reference
+    needed by the constraint of the FFMpeg API.
+    """
+    ppframe = ffh.ffi.new('AVFrame **')
+    ppframe[0] = ffh.lavc.avcodec_alloc_frame()
+    return ppframe
+
+
 class FrameBinder(object):
     """
     allocates an AVFrame and cleans it up on exception.
@@ -149,8 +159,7 @@ class FrameBinder(object):
         self._ff = ffh
 
     def __enter__(self):
-        self._ppframe = self._ff.ffi.new('AVFrame **')
-        self._ppframe[0] = self._ff.lavc.avcodec_alloc_frame()
+        self._ppframe = _new_av_frame_pp(self._ff)
         return self._ppframe
 
     def __exit__(self, exc_type, exc_value, traceback):

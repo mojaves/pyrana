@@ -36,7 +36,7 @@ def _image_from_frame(ffh, frame, pixfmt):
                                        width, height, pixfmt,
                                        1,  # FIXME
                                        null, null, null)
-    if sws is null:
+    if not sws:
         msg = "cannot get a SWScale context"
         raise ProcessingError(msg)
     with FrameBinder(ffh) as ppframe:

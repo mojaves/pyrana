@@ -3,6 +3,27 @@
 #TODO: learn the mock package
 
 
+class MockFrame:
+    def __init__(self, pixfmt, width=320, height=200):
+        self.width = width
+        self.height = height
+        self.format = pixfmt
+
+
+class MockSws:
+    def __init__(self, faulty, supported=True):
+        self.faulty = faulty
+        self.supported = supported
+
+    def sws_isSupportedOutput(self, pixfmt):
+        return self.supported
+
+    def sws_getCachedContext(self, *args):
+        if self.faulty:
+            return None
+        return {}  # FIXME
+
+
 class MockLavc:
     @staticmethod
     def av_new_packet(pkt, size):
@@ -43,9 +64,10 @@ class MockCFFI:
 
 class MockFF:
     def __init__(self, faulty):
-        self.lavf = MockLavf(faulty)
-        self.lavc = MockLavc()
         self.ffi = MockCFFI()
+        self.lavc = MockLavc()
+        self.lavf = MockLavf(faulty)
+        self.sws = MockSws(faulty)
 
 
 class MockAVFormatContext:
