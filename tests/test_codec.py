@@ -63,7 +63,7 @@ class TestBaseDecoder(unittest.TestCase):
     def test_decode_fail(self):
         dec = BaseDecoder('mjpeg')
         with self.assertRaises(pyrana.errors.ProcessingError):
-            dec._decode_pkt(None)  # FIXME
+            dec._decode_pkt(b'XXX')  # FIXME
 
     def test_stub_decode_no_frame(self):
         dec = BaseDecoder('mjpeg')
