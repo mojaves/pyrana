@@ -3,6 +3,7 @@ this module provides the video codec interface.
 Encoders, Decoders and their support code.
 """
 
+from enum import IntEnum
 from pyrana.common import to_pixel_format, to_picture_type
 from pyrana.codec import BaseFrame, BaseDecoder, FrameBinder
 from pyrana.errors import ProcessingError, SetupError
@@ -14,6 +15,29 @@ from pyrana.ffenums import PixelFormat, PictureType
 
 INPUT_CODECS = frozenset()
 OUTPUT_CODECS = frozenset()
+
+
+NUM_PLANES = 8
+
+
+class SWSMode(IntEnum):
+    """
+    SWS operational flags.
+    This wasn't a proper enum, rather a collection
+    of #defines, and that's the reason why it is
+    defined here.
+    """
+    SWS_FAST_BILINEAR = 1
+    SWS_BILINEAR = 2
+    SWS_BICUBIC = 4
+    SWS_X = 8
+    SWS_POINT = 0x10
+    SWS_AREA = 0x20
+    SWS_BICUBLIN = 0x40
+    SWS_GAUSS = 0x80
+    SWS_SINC = 0x100
+    SWS_LANCZOS = 0x200
+    SWS_SPLINE = 0x400
 
 
 def _image_from_frame(ffh, frame, pixfmt):
@@ -34,8 +58,10 @@ def _image_from_frame(ffh, frame, pixfmt):
     sws = ffh.sws.sws_getCachedContext(null,
                                        width, height, frame.format,
                                        width, height, pixfmt,
-                                       1,  # FIXME
+                                       SWSMode.SWS_BILINEAR,
                                        null, null, null)
+    # we don't care about the _resizing_ algorithm here, because
+    # we will NOT do any resizing.
     if not sws:
         msg = "cannot get a SWScale context"
         raise ProcessingError(msg)
@@ -110,7 +136,7 @@ class Image(object):
         pixels = bytearray(len(self))
         idx, dst = 0, 0
         while frm.data[idx] != self._ff.ffi.NULL:
-            pixels, dst = self._dump_plane(self, idx, pixels, dst)
+            pixels, dst = self._dump_plane(idx, pixels, dst)
             idx += 1
         return bytes(pixels)
 
@@ -124,11 +150,11 @@ class Image(object):
         frm = self._ppframe[0]
         bwidth = ffh.lavu.av_image_get_linesize(frm.format, frm.width, idx)
         size = frm.height * bwidth
-        pixels = bytearray(size) if pixels is None else pixels  # FIXME
+        pixels = bytearray(size) if pixels is None else pixels
         plane = ffh.ffi.buffer(frm.data[idx], size)
-        for h in range(frm.height):
-            dst += h * bwidth
-            src += h * frm.linesize[idx]
+        for line in range(frm.height):
+            dst += line * bwidth
+            src += line * frm.linesize[idx]
             pixels[dst:dst+bwidth] = plane[src:src+bwidth]
         return pixels, dst
 
@@ -136,7 +162,8 @@ class Image(object):
         """
         Read-only byte access to a single plane of the Image.
         """
-        if idx < 0 or idx > 7 or frm.data[idx] == self._ff.ffi.NULL:
+        if idx < 0 or idx >= NUM_PLANES or \
+           self._ppframe[0].data[idx] == self._ff.ffi.NULL:
             raise ProcessingError("bad plane %i" % idx)
         pixels, _ = self._dump_plane(idx)
         return bytes(pixels)
@@ -162,7 +189,7 @@ class Image(object):
         e.g. RGB: 1; YUV420: 3
         """
         return sum(int(self._ppframe[0].data[idx] != self._ff.ffi.NULL)
-                   for idx in range(8))  # FIXME
+                   for idx in range(NUM_PLANES))
 
     @property
     def width(self):
@@ -196,12 +223,11 @@ class Frame(BaseFrame):
     """
     def __repr__(self):
         base = super(Frame, self).__repr__()
-        # FIXME
         return "%s, ptype=%i, ilace=%s, tff=%s, cnum=%i, dnum=%i)" \
-                    % (base[:-1],
-                       self.pict_type,
-                       self.is_interlaced, self.top_field_first,
-                       self.coded_pict_number, self.display_pict_number)
+               % (base[:-1],
+                  self.pict_type,
+                  self.is_interlaced, self.top_field_first,
+                  self.coded_pict_number, self.display_pict_number)
 
     # FIXME: access the ASR.
 

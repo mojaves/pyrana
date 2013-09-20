@@ -130,7 +130,7 @@ class Frame(BaseFrame):
         base = super(Frame, self).__repr__()
         # FIXME
         return "%s)" \
-                    % (base[:-1])  # FIXME
+               % (base[:-1])  # FIXME
 
     def samples(self, smpfmt=None):
         """
@@ -140,7 +140,6 @@ class Frame(BaseFrame):
         if smpfmt is None:  # native data, no conversion
             return Samples.from_cdata(self._ppframe)
         return _samples_from_frame(self._ff, self._ppframe[0], smpfmt)
-
 
 
 def _wire_dec(dec):

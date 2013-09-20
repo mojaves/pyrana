@@ -122,21 +122,26 @@ class BaseFrame(object):
         return frame
 
 
-def _null_av_decode(*args):
+def _null_av_decode(ctx, frame, flag, pkt):
     """
     private use only. Placeholder callable for hooks
     in the BaseDecoder which MUST have to be replaced in the
     specific {Audio,Video,...} Decoders.
     """
+    assert(ctx)
+    assert(frame)
+    assert(flag)
+    assert(pkt)
     return -1
 
 
-def _null_new_frame(*args):
+def _null_new_frame(frame):
     """
     private use only. Placeholder callable for hooks
     in the BaseDecoder which MUST have to be replaced in the
     specific {Audio,Video,...} Decoders.
     """
+    assert(frame)
     raise pyrana.errors.ProcessingError("Generic decoders cannot run")
 
 
@@ -156,6 +161,7 @@ class FrameBinder(object):
     FIXME: weakrefs?
     """
     def __init__(self, ffh):
+        self._ppframe = None  # for documentation only
         self._ff = ffh
 
     def __enter__(self):
