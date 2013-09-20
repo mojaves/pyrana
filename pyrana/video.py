@@ -89,7 +89,7 @@ class Image(object):
         return image
 
     def __repr__(self):
-        return "Image(width=%i, height=%i, pixfmt=%s,"\
+        return "Image(width=%i, height=%i, pixfmt=%s," \
                " planes=%i, shared=%s)" \
                % (self.width, self.height, self.pixel_format,
                   self.planes, self.is_shared)
