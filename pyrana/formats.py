@@ -201,6 +201,18 @@ class Demuxer(object):
         # to ignore any errors here, deemed as not critical
         self._ready = True
 
+    def seek_frame(self, stream_id, frameno):
+        """
+        seek to the given frame number in the stream.
+        """
+        raise NotImplementedError
+
+    def seek_ts(self, stream_id, ts):
+        """
+        seek to the given timestamp (msecs) in the stream.
+        """
+        pass
+
     def read_frame(self, stream_id=STREAM_ANY):
         """
         reads and returns a new complete encoded frame (enclosed in a Packet)
