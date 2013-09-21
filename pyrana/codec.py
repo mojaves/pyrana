@@ -215,7 +215,16 @@ class BaseDecoder(CodecMixin):
 
     def _decode_pkt(self, pkt):
         """
-        A packet can legally contain more than one frame.
+        Fed a packet of data into decoder, and see if there is a decoded frame
+        available. Decoder are complex beasts which must deal with all sort
+        of compressed data, and the first line of defense is buffering.
+        Often for legitimate purposes (unreliable media, e.g. broadcasting),
+        an encoded stream can be split in many small packets, thus a decoder
+        may need a lot of them to reconstruct a frame.
+        This method deals with the [many packets -> one frame] scenario.
+        However, reliable medias are quite common too, so it is not uncommon
+        to have a relationship frames:packets close to one; and, most
+        important, libavformat does some packing too.
         """
         with FrameBinder(self._ff) as ppframe:
             ret = self._av_decode(self._ctx, ppframe[0], self._got_frame, pkt)
@@ -230,7 +239,17 @@ class BaseDecoder(CodecMixin):
 
     def decode_packet(self, packet):
         """
-        XXX
+        Generator method.
+        Decode a single packet (as in returned by a Demuxer) and extracts
+        all the frames encoded into it.
+        An encoded packet can legally contain more than one frame, altough
+        this is not so common.
+        This method deals with the [one packet -> many frames] scenario.
+        The internal underlying decoder does its own buffer, so you can
+        freely dispose the packet(s) fed into this method after it exited.
+        raises ProcessingError if decoding fails;
+        raises NeedFeedError if decoding partially succeeds, but more
+        data is needed to reconstruct a full frame.
         """
         with packet.raw_pkt() as pkt:
             while pkt.size > 0:
@@ -241,7 +260,12 @@ class BaseDecoder(CodecMixin):
 
     def decode(self, packets):
         """
-        XXX
+        Decode data from a logical stream of packets, and returns when
+        the first next frame is available.
+        The input stream can be
+        - a materialized sequence of packets (list, tuple...)
+        - a generator (e.g. Demuxer.stream()).
+        FIXME: clean up the consumption of the sequence
         """
         frames = []
         pkt_seq = iter(packets)
@@ -255,7 +279,11 @@ class BaseDecoder(CodecMixin):
 
     def flush(self):
         """
-        flush() -> frame
+        emits all frames that can be recostructed by the data
+        buffered into the Decoder, and empties such buffers.
+        call it last, do not intermix with decode*() calls.
+        caution: more than one frame can be buffered.
+        Raises NeedFeedError if all the internal buffers are empty.
         """
         with raw_packet(0) as cpkt:
             _, frame = self._decode_pkt(cpkt)
