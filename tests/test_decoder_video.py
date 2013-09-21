@@ -15,6 +15,14 @@ from tests.mockslib import MockFF, MockFrame, MockLavu, MockSws
 BBB_SAMPLE = os.path.join('tests', 'data', 'bbb_sample.ogg')
 
 
+def _next_image(dmx, dec, sid=0, pixfmt=None):
+    frame = dec.decode(dmx.stream(sid))
+    assert(frame)
+    img = frame.image(pixfmt)
+    assert(img)
+    return img
+
+
 class TestImage(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -36,10 +44,7 @@ class TestImage(unittest.TestCase):
         with open(BBB_SAMPLE, 'rb') as f:
             dmx = pyrana.formats.Demuxer(f)
             dec = dmx.open_decoder(0)
-            frames = dec.decode(dmx.stream(0))
-            assert(frames)
-            img = frames[0].image()
-            assert(img)
+            img = _next_image(dmx, dec)
             assert(repr(img))
             assert(len(img) >= img.width * img.height)
             assert(img.is_shared)
@@ -49,9 +54,7 @@ class TestImage(unittest.TestCase):
         with open(BBB_SAMPLE, 'rb') as f:
             dmx = pyrana.formats.Demuxer(f)
             dec = dmx.open_decoder(0)
-            frames = dec.decode(dmx.stream(0))
-            img = frames[0].image(pyrana.video.PixelFormat.AV_PIX_FMT_RGB24)
-            assert(img)
+            img = _next_image(dmx, dec, pixfmt=pyrana.video.PixelFormat.AV_PIX_FMT_RGB24)
             assert(not img.is_shared)
 
     # FIXME: bulky. Also depends on decoder.
@@ -59,18 +62,16 @@ class TestImage(unittest.TestCase):
         with open(BBB_SAMPLE, 'rb') as f:
             dmx = pyrana.formats.Demuxer(f)
             dec = dmx.open_decoder(0)
-            frames = dec.decode(dmx.stream(0))
+            frame = dec.decode(dmx.stream(0))
             with self.assertRaises(pyrana.errors.ProcessingError):
-                img = frames[0].image(pyrana.video.PixelFormat.AV_PIX_FMT_NB)
+                img = frame.image(pyrana.video.PixelFormat.AV_PIX_FMT_NB)
 
     # FIXME: bulky. Also depends on decoder.
     def test_convert_from_live_frame_indirect(self):
         with open(BBB_SAMPLE, 'rb') as f:
             dmx = pyrana.formats.Demuxer(f)
             dec = dmx.open_decoder(0)
-            frames = dec.decode(dmx.stream(0))
-            img = frames[0].image()
-            assert(img)
+            img = _next_image(dmx, dec)
             assert(img.is_shared)
             img2 = img.convert(pyrana.video.PixelFormat.AV_PIX_FMT_RGB24)
             assert(img2)
@@ -81,8 +82,7 @@ class TestImage(unittest.TestCase):
         with open(BBB_SAMPLE, 'rb') as f:
             dmx = pyrana.formats.Demuxer(f)
             dec = dmx.open_decoder(0)
-            frames = dec.decode(dmx.stream(0))
-            img = frames[0].image()
+            img = _next_image(dmx, dec)
             with self.assertRaises(pyrana.errors.ProcessingError):
                 img2 = img.convert(pyrana.video.PixelFormat.AV_PIX_FMT_NB)
 

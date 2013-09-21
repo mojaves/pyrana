@@ -36,9 +36,9 @@ class TestSamples(unittest.TestCase):
         with open(BBB_SAMPLE, 'rb') as f:
             dmx = pyrana.formats.Demuxer(f)
             dec = dmx.open_decoder(1)
-            frames = dec.decode(dmx.stream(1))
-            assert(frames)
-            smp = frames[0].samples()
+            frame = dec.decode(dmx.stream(1))
+            assert(frame)
+            smp = frame.samples()
             assert(smp)
             assert(repr(smp))
             assert(len(smp))

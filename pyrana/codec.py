@@ -190,6 +190,7 @@ class BaseDecoder(CodecMixin):
         self._ctx = ffh.lavc.avcodec_alloc_context3(self._codec)
         self._av_decode = _null_av_decode
         self._new_frame = _null_new_frame
+        self._frames = []  # internal buffering
         self._got_frame = None
         self._mtype = "abstract"
         if not delay_open:
@@ -245,12 +246,12 @@ class BaseDecoder(CodecMixin):
         frames = []
         pkt_seq = iter(packets)
         pkt = next(pkt_seq)
-        while not frames:
+        while not self._frames:
             try:
-                frames.extend(frm for frm in self.decode_packet(pkt))
+                self._frames.extend(frm for frm in self.decode_packet(pkt))
             except pyrana.errors.NeedFeedError:
                 pkt = next(pkt_seq)
-        return frames
+        return self._frames[0]
 
     def flush(self):
         """
@@ -276,6 +277,7 @@ class BaseDecoder(CodecMixin):
         dec._ctx = ctx
         dec._av_decode = _null_av_decode
         dec._new_frame = _null_new_frame
+        dec._frames = []  # internal buffering
         dec._got_frame = None
         dec._mtype = "abstract"
         return dec._open()
