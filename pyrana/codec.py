@@ -267,7 +267,6 @@ class BaseDecoder(CodecMixin):
         - a generator (e.g. Demuxer.stream()).
         FIXME: clean up the consumption of the sequence
         """
-        frames = []
         pkt_seq = iter(packets)
         pkt = next(pkt_seq)
         while not self._frames:
