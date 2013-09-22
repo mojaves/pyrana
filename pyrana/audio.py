@@ -27,12 +27,12 @@ class Samples(object):
     def __init__(self):
         # mostly for documentation purposes, and to make pylint happy.
         self._ff = None
-        self._res = None
+        self._swr = None
         self._ppframe = None
         raise SetupError("Cannot be created directly. Yet.")
 
     @classmethod
-    def from_cdata(cls, ppframe, res=None):
+    def from_cdata(cls, ppframe, swr=None):
         """
         builds a pyrana Image from a (cffi-wrapped) libav*
         Frame object. The Picture data itself will still be hold in the
@@ -43,7 +43,7 @@ class Samples(object):
         ffh = pyrana.ff.get_handle()
         samples = object.__new__(cls)
         samples._ff = ffh
-        samples._res = res
+        samples._swr = swr
         samples._ppframe = ppframe
         return samples
 
@@ -71,7 +71,7 @@ class Samples(object):
         """
         Is the underlying C-Frame shared with the parent py-Frame?
         """
-        return self._res is None
+        return self._swr is None
 
     def convert(self, smpfmt):
         """
