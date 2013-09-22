@@ -122,6 +122,7 @@ class Image(object):
 
     def __del__(self):
         if not self.is_shared:
+            self._ff.lavu.av_free(self._ppframe[0].data)
             self._ff.lavc.avcodec_free_frame(self._ppframe)
 
     def __len__(self):
