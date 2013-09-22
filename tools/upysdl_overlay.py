@@ -83,6 +83,13 @@ class SDLViewer(object):
         self._rect.y = 0
         self._rect.w = w
         self._rect.h = h
+        ys = w * h
+        self._Ybuf = self._ffi.new("uint8_t[]", ys)
+        self._Ubuf = self._ffi.new("uint8_t[]", int(ys/2))
+        self._Vbuf = self._ffi.new("uint8_t[]", int(ys/2))
+        self._Y = self._ffi.buffer(self._Ybuf, ys)
+        self._U = self._ffi.buffer(self._Ubuf, int(ys/2))
+        self._V = self._ffi.buffer(self._Vbuf, int(ys/2))
         self._SDL.SDL_WM_SetCaption(b"pyrana SDL preview", self._ffi.NULL)
         self._surface = self._SDL.SDL_SetVideoMode(w, h, 0, SDL_HWSURFACE)
         if self._surface is self._ffi.NULL:
@@ -100,9 +107,13 @@ class SDLViewer(object):
 
     def show(self, Y, U, V):
         self._SDL.SDL_LockYUVOverlay(self._overlay)
-        self._overlay.pixels[0] = Y
-        self._overlay.pixels[1] = U
-        self._overlay.pixels[2] = V
+        ys = self._rect.w * self._rect.h
+        self._Y[:ys] = Y
+        self._U[:int(ys/2)] = U
+        self._V[:int(ys/2)] = V
+        self._overlay.pixels[0] = self._Ybuf
+        self._overlay.pixels[1] = self._Ubuf
+        self._overlay.pixels[2] = self._Vbuf
         self._SDL.SDL_UnlockYUVOverlay(self._overlay)
         self._SDL.SDL_DisplayYUVOverlay(self._overlay, self._rect);
 
@@ -118,6 +129,7 @@ def _main(fname):
 
     with open(fname, 'rb') as src:
         dmx = pyrana.formats.Demuxer(src)
+        print(dmx.streams[0])
         width = dmx.streams[0]['width']
         height = dmx.streams[0]['height']
 
@@ -130,9 +142,7 @@ def _main(fname):
         while True:
             frame = vdec.decode(dmx.stream(0))
             img = frame.image()
-            view.show(img.plane(0),
-                      img.plane(1),
-                      img.plane(2))
+            view.show(img.plane(0), img.plane(1), img.plane(2))
 
 
     SDL.SDL_Quit()
