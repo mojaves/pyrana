@@ -4,6 +4,7 @@
 import cffi
 import pyrana.formats
 import pyrana.errors
+import time
 import sys
 
 SDL_INIT_TIMER       = 0x00000001
@@ -74,22 +75,26 @@ class SDLViewer(object):
         self._surface = None
         self._overlay = None
         self._rect = self._ffi.new("SDL_Rect *")
+        self._frames = 0
 
     def get_error(self):
         return self._ffi.string(self._SDL.SDL_GetError())
+
+    @property
+    def frames(self):
+        return self._frames
 
     def setup(self, w, h):
         self._rect.x = 0
         self._rect.y = 0
         self._rect.w = w
         self._rect.h = h
-        ys = w * h
-        self._Ybuf = self._ffi.new("uint8_t[]", ys)
-        self._Ubuf = self._ffi.new("uint8_t[]", int(ys/2))
-        self._Vbuf = self._ffi.new("uint8_t[]", int(ys/2))
-        self._Y = self._ffi.buffer(self._Ybuf, ys)
-        self._U = self._ffi.buffer(self._Ubuf, int(ys/2))
-        self._V = self._ffi.buffer(self._Vbuf, int(ys/2))
+        self._Ybuf = self._ffi.new("uint8_t[]", w*h)
+        self._Ubuf = self._ffi.new("uint8_t[]", w*h)
+        self._Vbuf = self._ffi.new("uint8_t[]", w*h)
+        self._Y = self._ffi.buffer(self._Ybuf, w*h)
+        self._U = self._ffi.buffer(self._Ubuf, w*h)
+        self._V = self._ffi.buffer(self._Vbuf, w*h)
         self._SDL.SDL_WM_SetCaption(b"pyrana SDL preview", self._ffi.NULL)
         self._surface = self._SDL.SDL_SetVideoMode(w, h, 0, SDL_HWSURFACE)
         if self._surface is self._ffi.NULL:
@@ -107,33 +112,24 @@ class SDLViewer(object):
 
     def show(self, Y, U, V):
         self._SDL.SDL_LockYUVOverlay(self._overlay)
-        ys = self._rect.w * self._rect.h
-        self._Y[:ys] = Y
-        self._U[:int(ys/2)] = U
-        self._V[:int(ys/2)] = V
+        self._Y[:len(Y)] = Y
+        self._U[:len(U)] = U
+        self._V[:len(V)] = V
         self._overlay.pixels[0] = self._Ybuf
         self._overlay.pixels[1] = self._Ubuf
         self._overlay.pixels[2] = self._Vbuf
         self._SDL.SDL_UnlockYUVOverlay(self._overlay)
         self._SDL.SDL_DisplayYUVOverlay(self._overlay, self._rect);
+        self._frames += 1
 
 
-def _main(fname):
-    ffi = cffi.FFI()
-    ffi.cdef(_SDL_DECLS)
-    SDL = ffi.dlopen("SDL")
-
-    SDL.SDL_Init(SDL_INIT_VIDEO)
-    pyrana.setup()
-
-
+def play_file(fname, view):
     with open(fname, 'rb') as src:
         dmx = pyrana.formats.Demuxer(src)
         print(dmx.streams[0])
         width = dmx.streams[0]['width']
         height = dmx.streams[0]['height']
 
-        view = SDLViewer(ffi, SDL)
         view.setup(width, height)
 
         vdec = dmx.open_decoder(0)  # FIXME
@@ -145,7 +141,28 @@ def _main(fname):
             view.show(img.plane(0), img.plane(1), img.plane(2))
 
 
-    SDL.SDL_Quit()
+def _main(fname):
+    ffi = cffi.FFI()
+    ffi.cdef(_SDL_DECLS)
+    SDL = ffi.dlopen("SDL")
+
+    SDL.SDL_Init(SDL_INIT_VIDEO)
+    pyrana.setup()
+
+    view = SDLViewer(ffi, SDL)
+
+    start = time.time()
+    try:
+        play_file(fname, view)
+    except:  # FIXME
+        stop = time.time()
+    finally:
+        pass
+#        SDL.SDL_Quit()
+
+    elapsed = stop - start
+    print("\n%i frames in %f seconds = %3.f FPS" % (
+          view.frames, elapsed, view.frames/elapsed))
 
 
 if __name__ == "__main__":
