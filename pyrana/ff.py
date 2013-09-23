@@ -66,6 +66,7 @@ class FF(object):
         self.lavf = self.ffi.dlopen("avformat")
         self.lavu = self.ffi.dlopen("avutil")
         self.sws = self.ffi.dlopen("swscale")
+        self.swr = self.ffi.dlopen("swresample")
 
     def setup(self):
         """
@@ -88,7 +89,7 @@ class FF(object):
         fetch the version of the FFMpeg auxiliary libraries.
         """
         return (self.sws.swscale_version(),
-                )
+                self.swr.swresample_version())
 
 
 def get_handle():

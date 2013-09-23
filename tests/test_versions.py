@@ -18,43 +18,50 @@ class TestCommonData(unittest.TestCase):
 
     def test_autoverify_good(self):
         ver = (54, 0, 0)
-        pyrana.versions.autoverify(MockHandle(ver, ver, ver, ver))
+        pyrana.versions.autoverify(MockHandle(ver, ver, ver, ver, ver))
         assert(True)
 
     def test_autoverify_bad_all(self):
         ver = (50, 0, 0)
+        swr = (0, 0, 0)
         with self.assertRaises(LibraryVersionError):
-           pyrana.versions.autoverify(MockHandle(ver, ver, ver, ver))
+           pyrana.versions.autoverify(MockHandle(ver, ver, ver, ver, swr))
 
     def test_autoverify_bad_lavc_low(self):
         bad = (53, 0, 0)
         good = (54, 0, 0)
         with self.assertRaises(LibraryVersionError):
-            pyrana.versions.autoverify(MockHandle(bad, good, good, good))
+            pyrana.versions.autoverify(MockHandle(bad, good, good, good, good))
 
     def test_autoverify_bad_lavc_high(self):
         bad = (55, 0, 0)
         good = (54, 0, 0)
         with self.assertRaises(LibraryVersionError):
-            pyrana.versions.autoverify(MockHandle(bad, good, good, good))
+            pyrana.versions.autoverify(MockHandle(bad, good, good, good, good))
 
     def test_autoverify_bad_lavf(self):
         bad = (50, 0, 0)
         good = (54, 0, 0)
         with self.assertRaises(LibraryVersionError):
-            pyrana.versions.autoverify(MockHandle(good, bad, good, good))
+            pyrana.versions.autoverify(MockHandle(good, bad, good, good, good))
 
     def test_autoverify_bad_lavu(self):
         bad = (50, 0, 0)
         good = (54, 0, 0)
         with self.assertRaises(LibraryVersionError):
-            pyrana.versions.autoverify(MockHandle(good, good, bad, good))
+            pyrana.versions.autoverify(MockHandle(good, good, bad, good, good))
 
     def test_autoverify_bad_sws(self):
         bad = (1, 0, 0)
         good = (54, 0, 0)
         with self.assertRaises(LibraryVersionError):
-            pyrana.versions.autoverify(MockHandle(good, good, good, bad))
+            pyrana.versions.autoverify(MockHandle(good, good, good, bad, good))
+
+    def test_autoverify_bad_swr(self):
+        bad = (0, 0, 0)
+        good = (54, 0, 0)
+        with self.assertRaises(LibraryVersionError):
+            pyrana.versions.autoverify(MockHandle(good, good, good, good, bad))
 
     def test_autoverify_no_libs(self):
         with self.assertRaises(LibraryVersionError):

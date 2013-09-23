@@ -36,7 +36,7 @@ def autoverify(ffh=None):
         ffh = pyrana.ff.get_handle()
     try:
         lavc, lavf, lavu = ffh.versions()
-        sws, = ffh.aux_versions()
+        sws, swr = ffh.aux_versions()
     except OSError:
         raise LibraryVersionError("missing libraries")
     if lavc < av_version_pack(54, 0, 0):
@@ -48,6 +48,8 @@ def autoverify(ffh=None):
     if lavu < av_version_pack(52, 0, 0):
         raise LibraryVersionError("unsupported libavutil")
     if sws < av_version_pack(2, 0, 0):
+        raise LibraryVersionError("unsupported swscale")
+    if swr < av_version_pack(0, 1, 0):
         raise LibraryVersionError("unsupported swscale")
     return (av_version_unpack(lavc),
             av_version_unpack(lavf),

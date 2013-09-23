@@ -41,6 +41,13 @@ class MockSws:
         return -1 if self.faulty or self.bad_pix_fmt == self.dst_pix_fmt else 0
 
 
+class MockSwr:
+    def __init__(self, faulty):
+        self.faulty = faulty
+
+    # TODO
+
+
 class MockLavc:
     @staticmethod
     def av_new_packet(pkt, size):
@@ -105,6 +112,7 @@ class MockFF:
         self.lavf = MockLavf(faulty)
         self.lavu = MockLavu(faulty)
         self.sws = MockSws(faulty)
+        self.swr = MockSwr(faulty)
 
 
 class MockAVFormatContext:
@@ -131,18 +139,19 @@ class MockPlat:
 
 
 class MockHandle:
-    def __init__(self, lavc, lavf, lavu, sws):
+    def __init__(self, lavc, lavf, lavu, sws, swr):
         from pyrana.versions import av_version_pack
         self._lavc = av_version_pack(*lavc)
         self._lavf = av_version_pack(*lavf)
         self._lavu = av_version_pack(*lavu)
         self._sws = av_version_pack(*sws)
+        self._swr = av_version_pack(*swr)
 
     def versions(self):
         return (self._lavc, self._lavf, self._lavu)
 
     def aux_versions(self):
-        return (self._sws, )
+        return (self._sws, self._swr)
 
 
 class MockHandleFaulty:
