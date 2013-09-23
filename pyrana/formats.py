@@ -207,11 +207,11 @@ class Demuxer(object):
         """
         raise NotImplementedError
 
-    def seek_ts(self, stream_id, ts):
+    def seek_ts(self, stream_id, tstamp):
         """
         seek to the given timestamp (msecs) in the stream.
         """
-        pass
+        raise NotImplementedError
 
     def read_frame(self, stream_id=STREAM_ANY):
         """
