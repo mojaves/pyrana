@@ -59,11 +59,38 @@ class Samples(object):
             self._ff.lavc.avcodec_free_frame(self._ppframe)
 
     def __len__(self):
-        return self.bps * self.num_samples * self.channels
+        return sum(int(self._ppframe[0].linesize[idx])
+                   for idx in range(self.channels))
 
     def __bytes__(self):
         frm = self._ppframe[0]
         samples = bytearray(len(self))
+        idx, dst = 0, 0
+        while frm.extended_data[idx] != self._ff.ffi.NULL:
+            samples, dst = self._dump_channel(idx, samples, dst)
+            idx += 1
+        return bytes(samples)
+
+    def _dump_channel(self, idx, pixels=None, dst=0):
+        """
+        Dump (a copy of) a single channel into a (optionally given)
+        bytearray.
+        """
+        frm = self._ppframe[0]  # shortcut
+        size = frm.linesize[idx]
+        samples = bytearray(size) if samples is None else samples
+        chan = self._ff.ffi.buffer(frm.extended_data[idx], size)
+        samples[dst:dst+size] = chan[:]
+        return samples, dst+size
+
+    def channel(self, idx):
+        """
+        Read-only byte access to a single channel of the Image.
+        """
+        if idx < 0 or idx > self.channels or \
+           self._ppframe[0].extended_data[idx] == self._ff.ffi.NULL:
+            raise ProcessingError("bad channel %i" % idx)
+        samples, _ = self._dump_channel(idx)
         return bytes(samples)
 
     @property
