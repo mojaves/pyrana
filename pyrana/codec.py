@@ -12,7 +12,7 @@ from types import MappingProxyType as frozendict
 
 from pyrana.packet import raw_packet
 from pyrana.common import MediaType, to_media_type, to_str
-import pyrana.errors
+from pyrana.errors import SetupError, ProcessingError, NeedFeedError
 import pyrana.ff
 
 
@@ -28,7 +28,7 @@ def decoder_for_stream(ctx, stream_id, vdec, adec):
         """
         msg = "unsupported type %s for stream %i" \
               % (to_media_type(ctx.codec_type), stream_id)
-        raise pyrana.errors.ProcessingError(msg)
+        raise ProcessingError(msg)
 
     maker = {MediaType.AVMEDIA_TYPE_VIDEO: vdec.from_cdata,
              MediaType.AVMEDIA_TYPE_AUDIO: adec.from_cdata}
@@ -142,7 +142,7 @@ def _null_new_frame(frame):
     specific {Audio,Video,...} Decoders.
     """
     assert(frame)
-    raise pyrana.errors.ProcessingError("Generic decoders cannot run")
+    raise ProcessingError("Generic decoders cannot run")
 
 
 def _new_av_frame_pp(ffh):
@@ -186,7 +186,7 @@ class BaseDecoder(CodecMixin):
             name = input_codec.encode('utf-8')
             self._codec = ffh.lavc.avcodec_find_decoder_by_name(name)
         else:
-            raise pyrana.errors.SetupError("not yet supported")
+            raise SetupError("not yet supported")
         self._ctx = ffh.lavc.avcodec_alloc_context3(self._codec)
         self._av_decode = _null_av_decode
         self._new_frame = _null_new_frame
@@ -194,17 +194,19 @@ class BaseDecoder(CodecMixin):
         self._got_frame = None
         self._mtype = "abstract"
         if not delay_open:
-            self._open()
+            self.open()
 
-    def _open(self, ffh=None):  # ffh parameter only for testing purposes.
+    def open(self, ffh=None):  # ffh parameter only for testing purposes.
         """
         opens the codec into the codec context.
         """
-        ffh = self._ff if ffh is None else ffh
-        self._got_frame = ffh.ffi.new("int [1]")
-        err = ffh.lavc.avcodec_open2(self._ctx, self._codec, ffh.ffi.NULL)
-        if err < 0:
-            raise pyrana.errors.SetupError("avcodec open failed: %i" % err)
+        if self._got_frame is None:
+            ffh = self._ff if ffh is None else ffh
+            self._got_frame = ffh.ffi.new("int [1]")
+            err = ffh.lavc.avcodec_open2(self._ctx, self._codec,
+                                         ffh.ffi.NULL)
+            if err < 0:
+                raise SetupError("avcodec open failed: %i" % err)
         return self
 
     def __repr__(self):
@@ -230,10 +232,10 @@ class BaseDecoder(CodecMixin):
             ret = self._av_decode(self._ctx, ppframe[0], self._got_frame, pkt)
             if ret < 0:
                 msg = "Error decoding %s frame: %i" % (self._mtype, ret)
-                raise pyrana.errors.ProcessingError(msg)
+                raise ProcessingError(msg)
 
             if not self._got_frame[0]:
-                raise pyrana.errors.NeedFeedError()
+                raise NeedFeedError()
 
             return ret, self._new_frame(ppframe)
 
@@ -272,7 +274,7 @@ class BaseDecoder(CodecMixin):
         while not self._frames:
             try:
                 self._frames.extend(frm for frm in self.decode_packet(pkt))
-            except pyrana.errors.NeedFeedError:
+            except NeedFeedError:
                 pkt = next(pkt_seq)
         # FIXME: bug here; FIXME: also a crasher lurking.
         return self._frames[0]
@@ -308,4 +310,4 @@ class BaseDecoder(CodecMixin):
         dec._frames = []  # internal buffering
         dec._got_frame = None
         dec._mtype = "abstract"
-        return dec._open()
+        return dec.open()

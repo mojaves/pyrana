@@ -58,7 +58,7 @@ class TestBaseDecoder(unittest.TestCase):
         dec = BaseDecoder('mjpeg', delay_open=True)
         ffh = MockFF(faulty=True)
         with self.assertRaises(pyrana.errors.SetupError):
-            dec._open(ffh)
+            dec.open(ffh)
 
     def test_decode_fail(self):
         dec = BaseDecoder('mjpeg')
