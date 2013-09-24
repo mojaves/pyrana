@@ -17,7 +17,23 @@ OUTPUT_CODECS = frozenset()
 
 
 def _samples_from_frame(ffh, frame, smpfmt):
-    pass
+    """
+    builds an Samples from a C-frame, by converting the data
+    into the given smpfmt. Assumes the source smpfmt is
+    different from the source one; otherwise, you just
+    need a new Samples with a shared underlying Frame
+    (see Frame.samples()).
+    """
+#    swr_ctx = swr_alloc();
+#    if (!swr_ctx) {
+#        fprintf(stderr, "Could not allocate resampler context\n");
+#    av_opt_set_int(swr_ctx, "in_channel_layout",    src_ch_layout, 0);
+#    av_opt_set_int(swr_ctx, "in_sample_rate",       src_rate, 0);
+#    av_opt_set_sample_fmt(swr_ctx, "in_sample_fmt", src_sample_fmt, 0);
+#
+#    av_opt_set_int(swr_ctx, "out_channel_layout",    dst_ch_layout, 0);
+#    av_opt_set_int(swr_ctx, "out_sample_rate",       dst_rate, 0);
+#    av_opt_set_sample_fmt(swr_ctx, "out_sample_fmt", dst_sample_fmt, 0);
 
 
 class Samples(object):
@@ -71,7 +87,7 @@ class Samples(object):
             idx += 1
         return bytes(samples)
 
-    def _dump_channel(self, idx, pixels=None, dst=0):
+    def _dump_channel(self, idx, samples=None, dst=0):
         """
         Dump (a copy of) a single channel into a (optionally given)
         bytearray.
