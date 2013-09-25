@@ -47,7 +47,15 @@ def _new_cpkt(ffh, size):
     builds a new C(ffi) packet of the given size.
     """
     pkt = ffh.ffi.new('AVPacket *')
-    return _alloc_pkt(ffh, pkt, size)
+    if size == 0:
+        ffh.lavc.av_init_packet(pkt)
+        pkt.data = ffh.ffi.NULL
+        pkt.size = 0
+    else:
+        err = ffh.lavc.av_new_packet(pkt, size)
+        if err < 0:
+            raise pyrana.errors.ProcessingError("cannot allocate packet")
+    return pkt
 
 
 @contextmanager

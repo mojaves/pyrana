@@ -118,7 +118,7 @@ def _read_frame(ffh, ctx, new_pkt, stream_id):
     for easier testing. Returns the first valid packet.
     You should not use this directly; use a Demuxer instead.
     """
-    pkt = new_pkt(ffh, PKT_SIZE)
+    pkt = new_pkt(ffh, 0)
     av_read_frame = ffh.lavf.av_read_frame  # shortcut to speedup
     while True:
         err = av_read_frame(ctx, pkt)
