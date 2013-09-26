@@ -133,7 +133,6 @@ def play_file(fname, view):
         view.setup(width, height)
 
         vdec = dmx.open_decoder(0)  # FIXME
-        vframe = vdec.decode(dmx.stream(0))
 
         while True:
             frame = vdec.decode(dmx.stream(0))
