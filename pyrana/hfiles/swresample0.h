@@ -1,5 +1,3 @@
-unsigned swresample_version(void);
-
 typedef struct SwrContext SwrContext;
 
 struct SwrContext *swr_alloc(void);

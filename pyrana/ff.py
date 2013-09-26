@@ -9,25 +9,6 @@ import os.path
 import glob
 
 
-def load_h(path="hfiles"):
-    """
-    load all the pyrana pseudo-headers.
-    """
-    data = []
-    root = os.path.abspath(os.path.dirname(__file__))
-    def glob_h(hname):
-        """expand a hfile glob pattern in a list of actual paths."""
-        return glob.glob(os.path.join(root, path, hname))
-    hfiles = glob_h('avutil*.h') + \
-             glob_h('ff.h') + \
-             glob_h('swscale*.h') + \
-             glob_h('swresample*.h')
-    for hfile in hfiles:
-        with open(hfile, 'rt') as src:
-            data.append(src.read())
-    return ''.join(data)
-
-
 # The dreaded singleton. It is a necessary evil[1] and this is the reason why:
 # bitbucket.org/cffi/cffi/issue/4/typeerror-initializer-for-ctype-double
 
@@ -65,14 +46,31 @@ class FF(object):
     one and exactly one.
     Do not use directly. Use get_handle() instead.
     """
-    def __init__(self):
+    def __init__(self, path="hfiles"):
+        self._path = path
         self.ffi = cffi.FFI()
-        self.ffi.cdef(load_h())
+        self.ffi.cdef(self._gather(["_version.h"]))
+        self.ffi.cdef(self._gather(['avutil*.h',
+                                    'ff.h',
+                                    'swscale*.h',
+                                    'swresample*.h']))
         self.lavc = self.ffi.dlopen("avcodec")
         self.lavf = self.ffi.dlopen("avformat")
         self.lavu = self.ffi.dlopen("avutil")
         self.sws = self.ffi.dlopen("swscale")
         self.swr = self.ffi.dlopen("swresample")
+
+    def _gather(self, names):
+        """load all the pyrana pseudo-headers."""
+        root = os.path.abspath(os.path.dirname(__file__))
+        hfiles = []
+        for name in names:
+            hfiles.extend(glob.glob(os.path.join(root, self._path, name)))
+        data = []
+        for hfile in hfiles:
+            with open(hfile, 'rt') as src:
+                data.append(src.read())
+        return ''.join(data)
 
     def setup(self):
         """

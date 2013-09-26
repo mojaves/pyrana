@@ -1,5 +1,3 @@
-unsigned swscale_version(void);
-
 typedef struct SwsFilter SwsFilter;
 struct SwsContext;
 

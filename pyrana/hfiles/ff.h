@@ -1,6 +1,3 @@
-unsigned avcodec_version(void);
-unsigned avformat_version(void);
-
 void av_register_all(void);
 void avcodec_register_all(void);
 
