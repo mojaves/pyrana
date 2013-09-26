@@ -17,10 +17,12 @@ def extract_stream(src, ctx, sid=pyrana.formats.STREAM_ANY):
         vdec = dmx.open_decoder(sid)
 
         while True:
-            frame = vdec.decode(dmx.stream(0))
+            frame = vdec.decode(dmx.stream(sid))
             img = frame.image()
-            w = ctx.update(bytes(pkt))
+            w = ctx.update(bytes(img))
             cnt += 1
+            if cnt == 50000:
+                break
     except pyrana.errors.EOSError:
         pass
     except pyrana.errors.PyranaError as err:
@@ -35,7 +37,7 @@ def _main(fname, sid):
     with open(fname, "rb") as fin:
         num = extract_stream(fin, ctx, sid)
     elapsed = time.time() - start
-    print("%i pkts, %.3fs, %.3f pps: stream %s = %s" % (
+    print("%i frames, %.3fs, %.3f fps: stream %s = %s" % (
             num, elapsed, num/elapsed, sid, ctx.hexdigest()))
 
 
