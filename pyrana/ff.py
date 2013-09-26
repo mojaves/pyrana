@@ -16,6 +16,7 @@ def load_h(path="hfiles"):
     data = []
     root = os.path.abspath(os.path.dirname(__file__))
     def glob_h(hname):
+        """expand a hfile glob pattern in a list of actual paths."""
         return glob.glob(os.path.join(root, path, hname))
     hfiles = glob_h('avutil*.h') + \
              glob_h('ff.h') + \

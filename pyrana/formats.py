@@ -8,7 +8,7 @@ from enum import IntEnum
 from pyrana.common import MediaType, to_media_type
 from pyrana.common import find_source_format, get_field_int
 from pyrana.iobridge import IOSource
-from pyrana.packet import Packet, PKT_SIZE, _new_cpkt
+from pyrana.packet import Packet, _new_cpkt
 from pyrana.codec import decoder_for_stream
 import pyrana.audio  # see #1 below
 import pyrana.video  # see #1 below
