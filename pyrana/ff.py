@@ -51,7 +51,8 @@ class FF(object):
         self.ffi = cffi.FFI()
         self.ffi.cdef(self._gather(["_version.h"]))
         self.ffi.cdef(self._gather(['avutil*.h',
-                                    'ff.h',
+                                    'avcodec*.h',
+                                    'avformat*.h',
                                     'swscale*.h',
                                     'swresample*.h']))
         self.lavc = self.ffi.dlopen("avcodec")
