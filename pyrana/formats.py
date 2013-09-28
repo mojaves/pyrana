@@ -130,6 +130,7 @@ def _read_frame(ffh, ctx, new_pkt, stream_id):
                 raise pyrana.errors.ProcessingError(msg)
         if stream_id == STREAM_ANY or pkt.stream_index == stream_id:
             break
+        ffh.lavc.av_free_packet(pkt)
     return Packet.from_cdata(pkt)
 
 
