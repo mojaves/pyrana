@@ -86,12 +86,6 @@ class BaseFrame(object):
     def __repr__(self):
         return "%sFrame(pts=%i)" % ("Key" if self.is_key else "", self.pts)
 
-    def handle(self):
-        """
-        Returns a file-like which provides frame data access.
-        """
-        raise NotImplementedError
-
     @property
     def is_key(self):
         """
