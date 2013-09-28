@@ -112,6 +112,24 @@ class TestImage(unittest.TestCase):
             pyrana.video._image_from_frame(ffh, frame, pixfmt)
         assert(ffh.sws.scale_done == 1)
 
+    # FIXME: bulky. Also depends on decoder.
+    def test_plane_bad1(self):
+        with open(BBB_SAMPLE, 'rb') as f:
+            dmx = pyrana.formats.Demuxer(f)
+            dec = dmx.open_decoder(0)
+            img, frm = _next_image(dmx, dec)
+            with self.assertRaises(pyrana.errors.ProcessingError):
+                pln = img.plane(-1)
+
+    # FIXME: bulky. Also depends on decoder.
+    def test_plane_bad2(self):
+        with open(BBB_SAMPLE, 'rb') as f:
+            dmx = pyrana.formats.Demuxer(f)
+            dec = dmx.open_decoder(0)
+            img, frm = _next_image(dmx, dec)
+            with self.assertRaises(pyrana.errors.ProcessingError):
+                pln = img.plane(10)
+
 
 if __name__ == "__main__":
     unittest.main()
