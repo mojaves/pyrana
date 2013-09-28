@@ -276,8 +276,7 @@ class BaseDecoder(CodecMixin):
                 self._frames.extend(frm for frm in self.decode_packet(pkt))
             except NeedFeedError:
                 pkt = next(pkt_seq)
-        # FIXME: bug here; FIXME: also a crasher lurking.
-        return self._frames[0]
+        return self._frames.pop(0)
 
     def flush(self):
         """
