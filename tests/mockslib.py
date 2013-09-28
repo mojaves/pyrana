@@ -50,6 +50,10 @@ class MockSwr:
 
 class MockLavc:
     @staticmethod
+    def av_init_packet(pkt):
+        pass
+
+    @staticmethod
     def av_new_packet(pkt, size):
         return -1
 
@@ -102,7 +106,15 @@ class MockCFFI:
         self.NULL = None
 
     def new(self, what):
-        return {}
+        class Sink(object):
+            def __init__(self):
+                self.data = []
+                self.linesize = 0
+            def __setitem__(self, key, value):
+                pass
+            def __getitem__(self, key):
+                return self
+        return Sink()
 
 
 class MockFF:

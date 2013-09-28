@@ -28,20 +28,6 @@ class PacketFlags(IntEnum):
     AV_PKT_FLAG_CORRUPT = 0x0002
 
 
-def _alloc_pkt(ffh, pkt, size):
-    """
-    allocates a Packet suitable for libav* usage,
-    of the desired size. Checks for errors and raises
-    Exceptions accordingly.
-    and that's the reason why we use a separate private
-    function.
-    """
-    err = ffh.lavc.av_new_packet(pkt, size)
-    if err < 0:
-        raise pyrana.errors.ProcessingError("cannot allocate packet")
-    return pkt
-
-
 def _new_cpkt(ffh, size):
     """
     builds a new C(ffi) packet of the given size.

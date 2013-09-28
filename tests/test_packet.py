@@ -19,7 +19,12 @@ class TestPacket(unittest.TestCase):
     def test_faulty_alloc(self):
         ffh = MockFF(faulty=True)
         with self.assertRaises(pyrana.errors.ProcessingError):
-            pyrana.packet._alloc_pkt(ffh, {}, 128)  # FIXME: proper types
+            pyrana.packet._new_cpkt(ffh, 128)
+
+    def test_zero_alloc(self):
+        ffh = MockFF(faulty=True)
+        pkt = pyrana.packet._new_cpkt(ffh, 0)
+        assert(pkt.size == 0)
 
     def test_new_from_string_huge(self):
         try:
