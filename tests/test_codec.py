@@ -34,11 +34,6 @@ class TestBaseFrame(unittest.TestCase):
         assert(frame)
         assert(repr(frame))
 
-    def test_no_handle(self):
-        frame = BaseFrame()
-        with self.assertRaises(NotImplementedError):
-            hndl = frame.handle()
-
 
 def av_decode_dummy(ctx, pframe, flag, pkt):
     flag[0] = 1
