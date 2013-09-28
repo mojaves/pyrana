@@ -87,6 +87,26 @@ def _image_from_frame(ffh, frame, pixfmt):
         return Image.from_cdata(ppframe, sws)
 
 
+def _plane_copy(pixels, plane,
+                dst_linesize, src_linesize,
+                bwidth, height,
+                dst=0):
+    """
+    workhorse function. Copy data between two (optionally)
+    strided data planes.
+    Usually the destination buffer isn't padded, aka
+    has stride == width.
+    """
+    assert(src_linesize >= bwidth)  # XXX
+    assert(dst_linesize >= bwidth)  # XXX
+    src = 0
+    for line in range(height):
+        pixels[dst:dst+bwidth] = plane[src:src+bwidth]
+        dst += dst_linesize
+        src += src_linesize
+    return dst
+
+
 class Image(object):
     """
     Represents the Picture data inside a Frame.
@@ -135,10 +155,9 @@ class Image(object):
                                                       1)
 
     def __bytes__(self):
-        frm = self._ppframe[0]
         pixels = bytearray(len(self))
         idx, dst = 0, 0
-        while frm.data[idx] != self._ff.ffi.NULL:
+        while self._ppframe[0].data[idx] != self._ff.ffi.NULL:
             pixels, dst = self._dump_plane(idx, pixels, dst)
             idx += 1
         return bytes(pixels)
@@ -148,17 +167,14 @@ class Image(object):
         Dump (a copy of) a single plane into a (optionally given)
         bytearray.
         """
-        src = 0
         ffh = self._ff
         frm = self._ppframe[0]
         bwidth = ffh.lavu.av_image_get_linesize(frm.format, frm.width, idx)
-        size = frm.height * bwidth
-        pixels = bytearray(size) if pixels is None else pixels
-        plane = ffh.ffi.buffer(frm.data[idx], size)
-        for line in range(frm.height):
-            dst += line * bwidth
-            src += line * frm.linesize[idx]
-            pixels[dst:dst+bwidth] = plane[src:src+bwidth]
+        pixels = bytearray(bwidth * frm.height) if pixels is None else pixels
+        plane = ffh.ffi.buffer(frm.data[idx], frm.linesize[idx] * frm.height)
+        dst += _plane_copy(pixels, plane,
+                           bwidth, frm.linesize[idx],
+                           bwidth, frm.height, dst)
         return pixels, dst
 
     def plane(self, idx):
