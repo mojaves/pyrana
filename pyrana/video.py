@@ -122,8 +122,9 @@ class Image(object):
 
     def __del__(self):
         if not self.is_shared:
-            # FIXME: crasher bug
-#            self._ff.lavu.av_free(self._ppframe[0].data)
+            # following the libavcodec headers (and sources),
+            # data and extended_data are aliaes.
+            # extended_data is alread free()d in avcodec_free_frame().
             self._ff.lavc.avcodec_free_frame(self._ppframe)
 
     def __len__(self):
@@ -239,6 +240,8 @@ class Frame(BaseFrame):
         Picture (thus the pixel as bytes()) data.
         """
         if pixfmt is None:  # native data, no conversion
+            # FIXME: CAREFUL, gringo: what if the parent frame got GC'd
+            # while the derived Image is still alive?
             return Image.from_cdata(self._ppframe)
         return _image_from_frame(self._ff, self._ppframe[0], pixfmt)
 
