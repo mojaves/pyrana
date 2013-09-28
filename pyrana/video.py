@@ -100,10 +100,11 @@ def _plane_copy(pixels, plane,
     assert(src_linesize >= bwidth)  # XXX
     assert(dst_linesize >= bwidth)  # XXX
     src = 0
-    for line in range(height):
+    while height:
         pixels[dst:dst+bwidth] = plane[src:src+bwidth]
         dst += dst_linesize
         src += src_linesize
+        height -= 1
     return dst
 
 
