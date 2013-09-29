@@ -40,7 +40,7 @@ class SWSMode(IntEnum):
     SWS_SPLINE = 0x400
 
 
-def _image_from_frame(ffh, frame, pixfmt):
+def _image_from_frame(parent, pixfmt):
     """
     builds an Image from a C-frame, by converting the data
     into the given pixfmt. Assumes the source pixfmt is
@@ -48,6 +48,8 @@ def _image_from_frame(ffh, frame, pixfmt):
     need a new Image with a shared underlying Frame
     (see Frame.image()).
     """
+    ffh = parent._ff
+    frame = parent._ppframe[0]
     # if we got here, either we have an HUGE bug lurking or
     # srcFormat is already good.
     if not ffh.sws.sws_isSupportedOutput(pixfmt):
@@ -84,7 +86,7 @@ def _image_from_frame(ffh, frame, pixfmt):
         ppframe[0].width = width
         ppframe[0].height = height
         ppframe[0].format = pixfmt
-        return Image.from_cdata(ppframe, sws)
+        return Image.from_cdata(ppframe, sws, parent)
 
 
 def _plane_copy(pixels, plane,
@@ -120,7 +122,7 @@ class Image(object):
         raise SetupError("Cannot be created directly. Yet.")
 
     @classmethod
-    def from_cdata(cls, ppframe, sws=None):
+    def from_cdata(cls, ppframe, sws=None, parent=None):
         """
         builds a pyrana Image from a (cffi-wrapped) libav*
         Frame object. The Picture data itself will still be hold in the
@@ -133,6 +135,7 @@ class Image(object):
         image._ff = ffh
         image._sws = sws
         image._ppframe = ppframe
+        image._parent = parent
         return image
 
     def __repr__(self):
@@ -200,7 +203,7 @@ class Image(object):
         convert the Image data in a new PixelFormat.
         returns a brand new, independent Image.
         """
-        return _image_from_frame(self._ff, self._ppframe[0], pixfmt)
+        return _image_from_frame(self, pixfmt)
 
     @property
     def planes(self):
@@ -259,8 +262,8 @@ class Frame(BaseFrame):
         if pixfmt is None:  # native data, no conversion
             # FIXME: CAREFUL, gringo: what if the parent frame got GC'd
             # while the derived Image is still alive?
-            return Image.from_cdata(self._ppframe)
-        return _image_from_frame(self._ff, self._ppframe[0], pixfmt)
+            return Image.from_cdata(self._ppframe, parent=self)
+        return _image_from_frame(self, pixfmt)
 
     @property
     def pict_type(self):
