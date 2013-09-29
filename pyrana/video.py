@@ -119,6 +119,7 @@ class Image(object):
         self._ff = None
         self._sws = None
         self._ppframe = None
+        self._parent = None
         raise SetupError("Cannot be created directly. Yet.")
 
     @classmethod
@@ -135,7 +136,8 @@ class Image(object):
         image._ff = ffh
         image._sws = sws
         image._ppframe = ppframe
-        image._parent = parent
+        image._parent = parent  # for shared images, we must keep alive the
+                                # parent (pp)frame.
         return image
 
     def __repr__(self):
@@ -252,18 +254,22 @@ class Frame(BaseFrame):
                   self.is_interlaced, self.top_field_first,
                   self.coded_pict_number, self.display_pict_number)
 
-    # FIXME: access the ASR.
-
     def image(self, pixfmt=None):
         """
         Returns a new Image object which provides access to the
         Picture (thus the pixel as bytes()) data.
         """
         if pixfmt is None:  # native data, no conversion
-            # FIXME: CAREFUL, gringo: what if the parent frame got GC'd
-            # while the derived Image is still alive?
             return Image.from_cdata(self._ppframe, parent=self)
         return _image_from_frame(self, pixfmt)
+
+    @property
+    def asr(self):
+        """
+        The sample aspect ratio of the frame.
+        """
+        sar = self._frame.sample_aspect_ratio  # shortcut
+        return (sar.num, sar.den)
 
     @property
     def pict_type(self):
