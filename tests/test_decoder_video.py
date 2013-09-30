@@ -14,11 +14,6 @@ from tests.mockslib import MockFF, MockFrame, MockLavu, MockSws
 
 BBB_SAMPLE = os.path.join('tests', 'data', 'bbb_sample.ogg')
 
-class DummyFrame(object):
-    def __init__(self, ffh, frame):
-        self._ff = ffh
-        self._ppframe = [frame]
-
 
 def _next_image(dmx, dec, sid=0, pixfmt=None):
     frm = dec.decode(dmx.stream(sid))
@@ -96,7 +91,7 @@ class TestImage(unittest.TestCase):
         frame = MockFrame(pixfmt)
         ffh = MockFF(faulty=True)
         with self.assertRaises(pyrana.errors.ProcessingError):
-            pyrana.video._image_from_frame(DummyFrame(ffh, frame), pixfmt)
+            pyrana.video._image_from_frame(ffh, None, frame, pixfmt)
 
     def test_cannot_alloc_av_image(self):
         pixfmt = pyrana.video.PixelFormat.AV_PIX_FMT_RGB24
@@ -105,7 +100,7 @@ class TestImage(unittest.TestCase):
         # inject only a faulty lavu
         ffh.lavu = MockLavu(faulty=True)
         with self.assertRaises(pyrana.errors.ProcessingError):
-            pyrana.video._image_from_frame(DummyFrame(ffh, frame), pixfmt)
+            pyrana.video._image_from_frame(ffh, None, frame, pixfmt)
         assert(ffh.lavu.img_allocs == 1)
 
     def test_cannot_convert(self):
@@ -114,7 +109,7 @@ class TestImage(unittest.TestCase):
         ffh = MockFF(faulty=False)
         ffh.sws = MockSws(False, True, pixfmt)
         with self.assertRaises(pyrana.errors.ProcessingError):
-            pyrana.video._image_from_frame(DummyFrame(ffh, frame), pixfmt)
+            pyrana.video._image_from_frame(ffh, None, frame, pixfmt)
         assert(ffh.sws.scale_done == 1)
 
     # FIXME: bulky. Also depends on decoder.

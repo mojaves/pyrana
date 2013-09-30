@@ -40,7 +40,7 @@ class SWSMode(IntEnum):
     SWS_SPLINE = 0x400
 
 
-def _image_from_frame(parent, pixfmt):
+def _image_from_frame(ffh, parent, cframe, pixfmt):
     """
     builds an Image from a C-frame, by converting the data
     into the given pixfmt. Assumes the source pixfmt is
@@ -48,17 +48,15 @@ def _image_from_frame(parent, pixfmt):
     need a new Image with a shared underlying Frame
     (see Frame.image()).
     """
-    ffh = parent._ff
-    frame = parent._ppframe[0]
     # if we got here, either we have an HUGE bug lurking or
     # srcFormat is already good.
     if not ffh.sws.sws_isSupportedOutput(pixfmt):
         msg = "unsupported pixel format: %s" % pixfmt
         raise ProcessingError(msg)
     null = ffh.ffi.NULL
-    width, height = frame.width, frame.height
+    width, height = cframe.width, cframe.height
     sws = ffh.sws.sws_getCachedContext(null,
-                                       width, height, frame.format,
+                                       width, height, cframe.format,
                                        width, height, pixfmt,
                                        SWSMode.SWS_BILINEAR,
                                        null, null, null)
@@ -77,7 +75,7 @@ def _image_from_frame(parent, pixfmt):
                   % (width, height, pixfmt)
             raise ProcessingError(msg)
         ret = ffh.sws.sws_scale(sws,
-                                frame.data, frame.linesize,
+                                cframe.data, cframe.linesize,
                                 0, height,
                                 ppframe[0].data, ppframe[0].linesize)
         if ret < 0:
@@ -218,7 +216,7 @@ class Image(object):
         convert the Image data in a new PixelFormat.
         returns a brand new, independent Image.
         """
-        return _image_from_frame(self, pixfmt)
+        return _image_from_frame(self._ff, self, self._ppframe[0], pixfmt)
 
     @property
     def planes(self):
@@ -274,7 +272,7 @@ class Frame(BaseFrame):
         """
         if pixfmt is None:  # native data, no conversion
             return Image.from_cdata(self._ppframe, parent=self)
-        return _image_from_frame(self, pixfmt)
+        return _image_from_frame(self._ff, self, self._ppframe[0], pixfmt)
 
     @property
     def asr(self):
