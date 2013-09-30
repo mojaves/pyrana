@@ -5,7 +5,7 @@ Encoders, Decoders and their support code.
 
 from enum import IntEnum
 from pyrana.common import to_pixel_format, to_picture_type
-from pyrana.codec import BaseFrame, BaseDecoder, FrameBinder
+from pyrana.codec import BaseFrame, BaseDecoder, bind_frame
 from pyrana.errors import ProcessingError, SetupError
 import pyrana.ff
 # the following is just to export to the clients the Enums.
@@ -65,7 +65,7 @@ def _image_from_frame(ffh, parent, cframe, pixfmt):
     if not sws:
         msg = "cannot get a SWScale context"
         raise ProcessingError(msg)
-    with FrameBinder(ffh) as ppframe:
+    with bind_frame(ffh) as ppframe:
         # alignement does more hurt than good here.
         ret = ffh.lavu.av_image_alloc(ppframe[0].data,
                                       ppframe[0].linesize,

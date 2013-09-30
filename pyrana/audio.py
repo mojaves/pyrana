@@ -4,7 +4,7 @@ Encoders, Decoders and their support code.
 """
 
 from pyrana.common import to_sample_format
-from pyrana.codec import BaseFrame, BaseDecoder, FrameBinder
+from pyrana.codec import BaseFrame, BaseDecoder, bind_frame
 from pyrana.errors import ProcessingError, SetupError
 import pyrana.ff
 # the following is just to export to the clients the Enums.

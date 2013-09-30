@@ -10,6 +10,8 @@ from types import MappingProxyType as frozendict
 # http://me.veekun.com/blog/2013/08/05/ \
 #        frozendicthack-or-activestate-code-considered-harmful/
 
+from contextlib import contextmanager
+
 from pyrana.packet import raw_packet
 from pyrana.common import MediaType, to_media_type, to_str
 from pyrana.errors import SetupError, ProcessingError, NeedFeedError
@@ -149,24 +151,18 @@ def _new_av_frame_pp(ffh):
     return ppframe
 
 
-class FrameBinder(object):
+@contextmanager
+def bind_frame(ffh):
     """
     allocates an AVFrame and cleans it up on exception.
-    FIXME: weakrefs?
     """
-    def __init__(self, ffh):
-        self._ppframe = None  # for documentation only
-        self._ff = ffh
-
-    def __enter__(self):
-        self._ppframe = _new_av_frame_pp(self._ff)
-        return self._ppframe
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        if exc_type is not None:
-            self._ff.lavc.avcodec_free_frame(self._ppframe)
-            return False
-        return True
+    try:
+        ppframe = _new_av_frame_pp(ffh)
+        yield ppframe
+    except pyrana.errors.PyranaError:
+        ffh.lavc.avcodec_free_frame(ppframe)
+        raise
+    # otherwise the ownership *has* to be passed.
 
 
 class BaseDecoder(CodecMixin):
@@ -222,7 +218,7 @@ class BaseDecoder(CodecMixin):
         to have a relationship frames:packets close to one; and, most
         important, libavformat does some packing too.
         """
-        with FrameBinder(self._ff) as ppframe:
+        with bind_frame(self._ff) as ppframe:
             ret = self._av_decode(self._ctx, ppframe[0], self._got_frame, pkt)
             if ret < 0:
                 msg = "Error decoding %s frame: %i" % (self._mtype, ret)
