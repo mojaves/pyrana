@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 # license: LGPL2.1 (same as SDL1.2)
 
-import cffi
-import pyrana.formats
-import pyrana.errors
-import time
 import sys
+import time
+import pprint
+import cffi
+import pyrana
+import pyrana.errors
+import pyrana.formats
+from pyrana.formats import MediaType
 
 SDL_INIT_TIMER       = 0x00000001
 SDL_INIT_AUDIO       = 0x00000010
@@ -76,6 +79,10 @@ class SDLViewer(object):
         self._overlay = None
         self._rect = self._ffi.new("SDL_Rect *")
         self._frames = 0
+        self._yw = 0
+        self._yh = 0
+        self._cw = 0
+        self._ch = 0
 
     def get_error(self):
         return self._ffi.string(self._SDL.SDL_GetError())
@@ -89,12 +96,11 @@ class SDLViewer(object):
         self._rect.y = 0
         self._rect.w = w
         self._rect.h = h
-        self._Ybuf = self._ffi.new("uint8_t[]", w*h)
-        self._Ubuf = self._ffi.new("uint8_t[]", w*h)
-        self._Vbuf = self._ffi.new("uint8_t[]", w*h)
-        self._Y = self._ffi.buffer(self._Ybuf, w*h)
-        self._U = self._ffi.buffer(self._Ubuf, w*h)
-        self._V = self._ffi.buffer(self._Vbuf, w*h)
+        self._yw, self._yh = w, h
+        self._cw, self._ch = int(w/2), int(h/2)
+        self._Y = self._ffi.new("uint8_t[]", self._yw * self._yh)
+        self._U = self._ffi.new("uint8_t[]", self._cw * self._ch)
+        self._V = self._ffi.new("uint8_t[]", self._cw * self._ch)
         self._SDL.SDL_WM_SetCaption(b"pyrana SDL preview", self._ffi.NULL)
         self._surface = self._SDL.SDL_SetVideoMode(w, h, 0, SDL_HWSURFACE)
         if self._surface is self._ffi.NULL:
@@ -111,13 +117,13 @@ class SDLViewer(object):
         # released by SDL_Quit
 
     def show(self, Y, U, V):
+        self._Y[0: self._yw * self._yh] = Y
+        self._U[0: self._cw * self._ch] = U
+        self._V[0: self._cw * self._ch] = V
         self._SDL.SDL_LockYUVOverlay(self._overlay)
-        self._Y[:len(Y)] = Y
-        self._U[:len(U)] = U
-        self._V[:len(V)] = V
-        self._overlay.pixels[0] = self._Ybuf
-        self._overlay.pixels[1] = self._Ubuf
-        self._overlay.pixels[2] = self._Vbuf
+        self._overlay.pixels[0] = self._Y
+        self._overlay.pixels[1] = self._U
+        self._overlay.pixels[2] = self._V
         self._SDL.SDL_UnlockYUVOverlay(self._overlay)
         self._SDL.SDL_DisplayYUVOverlay(self._overlay, self._rect);
         self._frames += 1
@@ -126,16 +132,20 @@ class SDLViewer(object):
 def play_file(fname, view):
     with open(fname, 'rb') as src:
         dmx = pyrana.formats.Demuxer(src)
-        print(dmx.streams[0])
-        width = dmx.streams[0]['width']
-        height = dmx.streams[0]['height']
+        sid = pyrana.formats.find_stream(dmx.streams,
+                                         0,
+                                         MediaType.AVMEDIA_TYPE_VIDEO)
+        vstream = dmx.streams[sid]
+        pprint.pprint(vstream)
+        width = vstream['width']
+        height = vstream['height']
 
         view.setup(width, height)
 
-        vdec = dmx.open_decoder(0)  # FIXME
+        vdec = dmx.open_decoder(sid)
 
         while True:
-            frame = vdec.decode(dmx.stream(0))
+            frame = vdec.decode(dmx.stream(sid))
             img = frame.image()
             view.show(img.plane(0), img.plane(1), img.plane(2))
 
@@ -153,7 +163,8 @@ def _main(fname):
     start = time.time()
     try:
         play_file(fname, view)
-    except:  # FIXME
+    except Exception as exc:  # FIXME
+        print(exc)
         stop = time.time()
     finally:
         pass
