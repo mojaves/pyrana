@@ -39,7 +39,7 @@ def play_file(fname, view):
                                          MediaType.AVMEDIA_TYPE_VIDEO)
         vstream = dmx.streams[sid]
         pprint.pprint(vstream)
-        width = vstream]['width']
+        width = vstream['width']
         height = vstream['height']
 
         view.setup(width, height)
