@@ -5,6 +5,7 @@ import time
 import pprint
 import pygame
 import pyrana
+import pyrana.errors
 import pyrana.formats
 from pyrana.formats import MediaType
 
