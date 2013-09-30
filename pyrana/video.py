@@ -176,12 +176,25 @@ class Image(object):
         ffh = self._ff
         frm = self._ppframe[0]
         bwidth = ffh.lavu.av_image_get_linesize(frm.format, frm.width, idx)
-        pixels = bytearray(bwidth * frm.height) if pixels is None else pixels
-        plane = ffh.ffi.buffer(frm.data[idx], frm.linesize[idx] * frm.height)
+        height = self._plane_height(idx)
+        pixels = bytearray(bwidth * height) if pixels is None else pixels
+        plane = ffh.ffi.buffer(frm.data[idx], frm.linesize[idx] * height)
         dst += _plane_copy(pixels, plane,
                            bwidth, frm.linesize[idx],
-                           bwidth, frm.height, dst)
+                           bwidth, height, dst)
         return pixels, dst
+
+    def _plane_height(self, idx=0):
+        """
+        Computes a plane height. Due to chroma subsampling, plane dimensions
+        aren't necessarily equal to each other.
+        """
+        frm = self._ppframe[0]
+        height = frm.height
+        if idx == 1 or idx == 2:
+            desc = self._ff.lavu.av_pix_fmt_desc_get(frm.format)
+            height = frm.height >> desc.log2_chroma_h
+        return height
 
     def plane(self, idx):
         """
