@@ -99,8 +99,8 @@ def _plane_copy(pixels, plane,
     Usually the destination buffer isn't padded, aka
     has stride == width.
     """
-    assert(src_linesize >= bwidth)  # XXX
-    assert(dst_linesize >= bwidth)  # XXX
+    if src_linesize < bwidth or dst_linesize < bwidth:
+        raise ProcessingError('bytewidth too small')
     src = 0
     while height:
         pixels[dst:dst+bwidth] = plane[src:src+bwidth]
