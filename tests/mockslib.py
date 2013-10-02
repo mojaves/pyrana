@@ -4,10 +4,16 @@
 
 
 class MockFrame:
-    def __init__(self, pixfmt, width=320, height=200):
+    def __init__(self, fmt,
+                 width=320, height=200,
+                 sample_rate=44100,
+                 channel_layout=0xFF):
+        self.format = fmt
         self.width = width
         self.height = height
-        self.format = pixfmt
+        self.sample_rate = sample_rate
+        self.channel_layout = channel_layout
+        self.nb_samples = 128
         self.data = []
         self.linesize = []
 
@@ -42,10 +48,34 @@ class MockSws:
 
 
 class MockSwr:
-    def __init__(self, faulty):
+    def __init__(self, faulty, bad_smp_fmt=0):
         self.faulty = faulty
+        self.bad_smp_fmt = bad_smp_fmt
+        self.in_smp_fmt = None
+        self.out_smp_fmt = None
+        self.ctx_allocs = 0
+        self.ctx_inited = 0
+        self.conversions = 0
 
-    # TODO
+    def swr_alloc_set_opts(self, ctx,
+                           out_ch_layout, out_sample_fmt, out_sample_rate,
+                           in_ch_layout, in_sample_fmt, in_sample_rate,
+                           log_offset, log_ctx):
+        self.in_smp_fmt = in_sample_fmt
+        self.out_smp_fmt = out_sample_fmt
+        self.ctx_allocs += 1
+        return None if self.faulty else {'ctx':ctx}
+
+    def swr_init(self, ctx):
+        bad = (self.in_smp_fmt == self.bad_smp_fmt)
+        self.ctx_inited += 1
+        return -1 if self.faulty or bad else 0
+
+    def swr_convert(self, ctx,
+                    out_data, out_count,
+                    in_data , in_count):
+        self.conversions += 1
+        return -1  # if self.faulty else 0
 
 
 class MockLavc:
@@ -94,11 +124,23 @@ class MockLavu:
     def __init__(self, faulty):
         self.faulty = faulty
         self.img_allocs = 0
+        self.smp_allocs = 0
+
+    def av_rescale_rnd(self, a, b, c, AVRounding):
+        return a
 
     def av_image_alloc(self, data, linesize,
                        width, height, pixfmt, align):
         self.img_allocs += 1
         return -1 if self.faulty else 0
+
+    def av_samples_alloc(self, audio_data, linesize, nb_channels,
+                         nb_samples, sample_fmt, align):
+        self.smp_allocs += 1
+        return -1 if self.faulty else 0
+
+    def av_get_channel_layout_nb_channels(self, channel_layout):
+        return 2  # I have just two speakers :(
 
 
 class MockCFFI:

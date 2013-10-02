@@ -9,7 +9,7 @@ import pyrana.errors
 import pyrana.codec
 import pyrana.audio
 
-#from tests.mockslib import MockFF, MockFrame, MockLavu, MockSws
+from tests.mockslib import MockFF, MockFrame, MockLavu, MockSwr
 
 
 BBB_SAMPLE = os.path.join('tests', 'data', 'bbb_sample.ogg')
@@ -30,6 +30,46 @@ class TestSamples(unittest.TestCase):
         smp = pyrana.audio.Samples.from_cdata(ppframe)
         assert(smp.is_shared)
         ffh.lavc.avcodec_free_frame(ppframe)
+
+    def test_cannot_create_swr_context(self):
+        smpfmt = pyrana.audio.SampleFormat.AV_SAMPLE_FMT_FLTP
+        frame = MockFrame(smpfmt)
+        ffh = MockFF(faulty=True)
+        with self.assertRaises(pyrana.errors.ProcessingError):
+            pyrana.audio._samples_from_frame(ffh, None, frame, smpfmt)
+        assert(ffh.swr.ctx_allocs == 1)
+
+    def test_cannot_init_swr_context(self):
+        smpfmt = pyrana.audio.SampleFormat.AV_SAMPLE_FMT_FLTP
+        frame = MockFrame(smpfmt)
+        ffh = MockFF(faulty=False)
+        ffh.swr = MockSwr(faulty=False, bad_smp_fmt=smpfmt)
+        with self.assertRaises(pyrana.errors.ProcessingError):
+            pyrana.audio._samples_from_frame(ffh, None, frame, smpfmt)
+        assert(ffh.swr.ctx_allocs == 1)
+        assert(ffh.swr.ctx_inited == 1)
+
+    def test_cannot_alloc_samples(self):
+        smpfmt = pyrana.audio.SampleFormat.AV_SAMPLE_FMT_FLTP
+        frame = MockFrame(smpfmt)
+        ffh = MockFF(faulty=False)
+        ffh.lavu = MockLavu(faulty=True)
+        with self.assertRaises(pyrana.errors.ProcessingError):
+            pyrana.audio._samples_from_frame(ffh, None, frame, smpfmt)
+        assert(ffh.swr.ctx_allocs == 1)
+        assert(ffh.swr.ctx_inited == 1)
+        assert(ffh.lavu.smp_allocs == 1)
+
+    def test_cannot_convert_samples(self):
+        smpfmt = pyrana.audio.SampleFormat.AV_SAMPLE_FMT_FLTP
+        frame = MockFrame(smpfmt)
+        ffh = MockFF(faulty=False)
+        with self.assertRaises(pyrana.errors.ProcessingError):
+            pyrana.audio._samples_from_frame(ffh, None, frame, smpfmt)
+        assert(ffh.swr.ctx_allocs == 1)
+        assert(ffh.swr.ctx_inited == 1)
+        assert(ffh.lavu.smp_allocs == 1)
+        assert(ffh.swr.conversions == 1)
 
     # FIXME: bulky. Also depends on decoder.
     def test_create_from_live_frame(self):
