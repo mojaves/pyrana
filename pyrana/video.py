@@ -259,11 +259,14 @@ class Frame(BaseFrame):
     """
     def __repr__(self):
         base = super(Frame, self).__repr__()
-        return "%s, ptype=%i, ilace=%s, tff=%s, cnum=%i, dnum=%i)" \
+        num, den = self.asr
+        return "%s, ptype=%i, ilace=%s, tff=%s," \
+               " cnum=%i, dnum=%i, asr=%i/%i)" \
                % (base[:-1],
                   self.pict_type,
                   self.is_interlaced, self.top_field_first,
-                  self.coded_pict_number, self.display_pict_number)
+                  self.coded_pict_number, self.display_pict_number,
+                  num, den)
 
     def image(self, pixfmt=None):
         """
