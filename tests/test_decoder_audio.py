@@ -36,13 +36,36 @@ class TestSamples(unittest.TestCase):
         with open(BBB_SAMPLE, 'rb') as f:
             dmx = pyrana.formats.Demuxer(f)
             dec = dmx.open_decoder(1)
-            frame = dec.decode(dmx.stream(1))
-            assert(frame)
-            smp = frame.samples()
+            frm = dec.decode(dmx.stream(1))
+            assert(frm)
+            smp = frm.samples()
             assert(smp)
             assert(repr(smp))
             assert(len(smp))
             assert(smp.is_shared)
+
+    # FIXME: bulky. Also depends on decoder.
+    def test_convert_from_live_frame_indirect(self):
+        with open(BBB_SAMPLE, 'rb') as f:
+            dmx = pyrana.formats.Demuxer(f)
+            dec = dmx.open_decoder(1)
+            frm = dec.decode(dmx.stream(1))
+            assert(frm)
+            smp = frm.samples()
+            assert(smp)
+            assert(smp.is_shared)
+            smp2 = smp.convert(pyrana.audio.SampleFormat.AV_SAMPLE_FMT_S32P)
+            # assert(smp2) # FIXME
+            assert(not smp2.is_shared)
+
+    # FIXME: bulky. Also depends on decoder.
+    def test_audio_frame_has_not_image(self):
+        with open(BBB_SAMPLE, 'rb') as f:
+            dmx = pyrana.formats.Demuxer(f)
+            dec = dmx.open_decoder(1)
+            frm = dec.decode(dmx.stream(1))
+            with self.assertRaises(AttributeError):
+                img = frm.image()
 
 
 if __name__ == "__main__":
