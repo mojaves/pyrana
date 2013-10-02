@@ -18,7 +18,10 @@ OUTPUT_CODECS = frozenset()
 
 
 class AVRounding(IntEnum):
-    """rounding methods"""
+    """
+    Rounding methods.
+    Maybe should be moved into a more generic module.
+    """
     AV_ROUND_ZERO = 0
     AV_ROUND_INF = 1
     AV_ROUND_DOWN = 2
