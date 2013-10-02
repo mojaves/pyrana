@@ -3,6 +3,7 @@ this module provides the audio codec interface.
 Encoders, Decoders and their support code.
 """
 
+from enum import IntEnum
 from pyrana.common import to_sample_format
 from pyrana.codec import BaseFrame, BaseDecoder, bind_frame
 from pyrana.errors import ProcessingError, SetupError
@@ -16,6 +17,16 @@ INPUT_CODECS = frozenset()
 OUTPUT_CODECS = frozenset()
 
 
+class AVRounding(IntEnum):
+    """rounding methods"""
+    AV_ROUND_ZERO = 0
+    AV_ROUND_INF = 1
+    AV_ROUND_DOWN = 2
+    AV_ROUND_UP = 3
+    AV_ROUND_NEAR_INF = 5
+    AV_ROUND_PASS_MINMAX = 8192
+
+
 def _samples_from_frame(ffh, frame, smpfmt):
     """
     builds an Samples from a C-frame, by converting the data
@@ -24,16 +35,52 @@ def _samples_from_frame(ffh, frame, smpfmt):
     need a new Samples with a shared underlying Frame
     (see Frame.samples()).
     """
-#    swr_ctx = swr_alloc();
-#    if (!swr_ctx) {
-#        fprintf(stderr, "Could not allocate resampler context\n");
-#    av_opt_set_int(swr_ctx, "in_channel_layout",    src_ch_layout, 0);
-#    av_opt_set_int(swr_ctx, "in_sample_rate",       src_rate, 0);
-#    av_opt_set_sample_fmt(swr_ctx, "in_sample_fmt", src_sample_fmt, 0);
-#
-#    av_opt_set_int(swr_ctx, "out_channel_layout",    dst_ch_layout, 0);
-#    av_opt_set_int(swr_ctx, "out_sample_rate",       dst_rate, 0);
-#    av_opt_set_sample_fmt(swr_ctx, "out_sample_fmt", dst_sample_fmt, 0);
+    null = ffh.ffi.NULL
+    swr = ffh.swr.swr_alloc_set_opts(null,
+                                     frame.channel_layout,
+                                     smpfmt,
+                                     frame.sample_rate,
+                                     frame.channel_layout,
+                                     frame.format,
+                                     frame.sample_rate,
+                                     0,
+                                     null)
+    if not swr:
+        msg = "cannot get a SWResample context"
+        raise ProcessingError(msg)
+
+    ret = ffh.swr.swr_init(swr)
+    if ret < 0:
+        msg = "cannot initialize the resampling context"
+        raise ProcessingError(msg)
+
+    with bind_frame(ffh) as ppframe:
+        nb_samples = ffh.lavu.av_rescale_rnd(frame.nb_samples,
+                                             frame.sample_rate,
+                                             frame.sample_rate,
+                                             AVRounding.AV_ROUND_UP)
+        nb_channels = ffh.lavu.av_get_channel_layout_nb_channels(frame.channel_layout);
+
+        ret = ffh.lavu.av_samples_alloc(ppframe[0].data,
+                                        ppframe[0].linesize,
+                                        nb_channels,
+                                        nb_samples,
+                                        smpfmt,
+                                        1)
+        if ret < 0:
+            raise ProcessingError('cannot allocate the samples buffer')
+
+        ret = ffh.swr.swr_convert(swr,
+                                  ppframe[0].data,
+                                  nb_samples,
+                                  frame.data,
+                                  frame.nb_samples)
+        if ret < 0:
+            raise ProcessingError('cannot convert the audio buffer')
+        ppframe[0].channel_layout = frame.channel_layout
+        ppframe[0].sample_rate = frame.sample_rate
+        ppframe[0].format = smpfmt
+        return Samples.from_cdata(ppframe, sws, parent)
 
 
 class Samples(object):
@@ -45,10 +92,11 @@ class Samples(object):
         self._ff = None
         self._swr = None
         self._ppframe = None
+        self._parent = None
         raise SetupError("Cannot be created directly. Yet.")
 
     @classmethod
-    def from_cdata(cls, ppframe, swr=None):
+    def from_cdata(cls, ppframe, swr=None, parent=None):
         """
         builds a pyrana Image from a (cffi-wrapped) libav*
         Frame object. The Picture data itself will still be hold in the
@@ -61,6 +109,8 @@ class Samples(object):
         samples._ff = ffh
         samples._swr = swr
         samples._ppframe = ppframe
+        samples._parent = parent  # for shared samples, we must keep alive the
+                                  # parent (pp)frame.
         return samples
 
     def __repr__(self):
@@ -101,7 +151,7 @@ class Samples(object):
 
     def channel(self, idx):
         """
-        Read-only byte access to a single channel of the Image.
+        Read-only byte access to a single channel of the Samples.
         """
         if idx < 0 or idx > self.channels or \
            self._ppframe[0].extended_data[idx] == self._ff.ffi.NULL:
