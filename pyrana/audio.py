@@ -27,7 +27,7 @@ class AVRounding(IntEnum):
     AV_ROUND_PASS_MINMAX = 8192
 
 
-def _samples_from_frame(ffh, frame, smpfmt):
+def _samples_from_frame(ffh, parent, frame, smpfmt):
     """
     builds an Samples from a C-frame, by converting the data
     into the given smpfmt. Assumes the source smpfmt is
@@ -59,7 +59,8 @@ def _samples_from_frame(ffh, frame, smpfmt):
                                              frame.sample_rate,
                                              frame.sample_rate,
                                              AVRounding.AV_ROUND_UP)
-        nb_channels = ffh.lavu.av_get_channel_layout_nb_channels(frame.channel_layout);
+        count_channels = ffh.lavu.av_get_channel_layout_nb_channels
+        nb_channels = count_channels(frame.channel_layout)  # shortcut
 
         ret = ffh.lavu.av_samples_alloc(ppframe[0].data,
                                         ppframe[0].linesize,
@@ -80,7 +81,7 @@ def _samples_from_frame(ffh, frame, smpfmt):
         ppframe[0].channel_layout = frame.channel_layout
         ppframe[0].sample_rate = frame.sample_rate
         ppframe[0].format = smpfmt
-        return Samples.from_cdata(ppframe, sws, parent)
+        return Samples.from_cdata(ppframe, swr, parent)
 
 
 class Samples(object):
@@ -171,7 +172,7 @@ class Samples(object):
         convert the Image data in a new PixelFormat.
         returns a brand new, independent Image.
         """
-        return _samples_from_frame(self._ff, self._ppframe[0], smpfmt)
+        return _samples_from_frame(self._ff, self, self._ppframe[0], smpfmt)
 
     @property
     def sample_format(self):
@@ -221,9 +222,8 @@ class Frame(BaseFrame):
     """
     def __repr__(self):
         base = super(Frame, self).__repr__()
-        # FIXME
         return "%s)" \
-               % (base[:-1])  # FIXME
+               % (base[:-1])  # TODO
 
     def samples(self, smpfmt=None):
         """
@@ -232,7 +232,7 @@ class Frame(BaseFrame):
         """
         if smpfmt is None:  # native data, no conversion
             return Samples.from_cdata(self._ppframe)
-        return _samples_from_frame(self._ff, self._ppframe[0], smpfmt)
+        return _samples_from_frame(self._ff, self, self._ppframe[0], smpfmt)
 
 
 def _wire_dec(dec):
