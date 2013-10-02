@@ -181,10 +181,10 @@ class Demuxer(object):
 
     def close(self):
         """
-        close the underlying demuxer. TODO: check for leaks.
+        close the underlying demuxer.
         """
-#        if self._pctx != self._ff.ffi.NULL:
-#            self._ff.lavf.avformat_close_input(self._pctx)
+        if self._pctx[0] != self._ff.ffi.NULL:
+            self._ff.lavf.avformat_close_input(self._pctx)
 
     def open(self, name=None):
         """
