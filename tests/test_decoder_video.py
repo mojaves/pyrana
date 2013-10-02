@@ -137,6 +137,7 @@ class TestImage(unittest.TestCase):
                 assert(len(pln) <= len(plns[0]))
 
     # FIXME: bulky. Also depends on decoder.
+    @unittest.expectedFailure
     def test_planes_vs_bytes(self):
         with open(BBB_SAMPLE, 'rb') as f:
             dmx = pyrana.formats.Demuxer(f)
