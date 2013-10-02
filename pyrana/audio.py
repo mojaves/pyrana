@@ -226,7 +226,7 @@ class Frame(BaseFrame):
     def __repr__(self):
         base = super(Frame, self).__repr__()
         return "%s)" \
-               % (base[:-1])  # TODO
+               % (base[:-1])
 
     def samples(self, smpfmt=None):
         """
