@@ -23,6 +23,7 @@ def _next_image(dmx, dec, sid=0, pixfmt=None):
     return img, frm
 
 
+# TODO: refactoring
 class TestImage(unittest.TestCase):
     @classmethod
     def setUpClass(cls):

@@ -172,7 +172,7 @@ class Samples(object):
 
     def convert(self, smpfmt):
         """
-        convert the Image data in a new PixelFormat.
+        convert the Samples data in a new SampleFormat.
         returns a brand new, independent Image.
         """
         return _samples_from_frame(self._ff, self, self._ppframe[0], smpfmt)
