@@ -26,6 +26,8 @@ import pyrana.ff
 # the proper fix would probably be something like moving
 # decoder_for_stream and friends in a separate module.
 
+# meh
+# pylint: disable=R0921
 
 STREAM_ANY = -1
 
@@ -306,63 +308,3 @@ class Demuxer(object):
             if not self._streams:
                 raise pyrana.errors.ProcessingError("no streams found")
         return self._streams
-
-
-class Muxer(object):
-    """
-    Muxer object. Use a file-like for real I/O.
-    The file-like must be already open, and must support write()
-    dealing with bytes (not strings).
-    If the file format is_seekable but the file-like doesn't support
-    seek, expect weird things.
-    """
-    def __init__(self, dst, name):
-        """
-        Muxer(dst, name="")
-        Initialize a new muxer for the file type `name'
-        A Muxer needs a RawIOBase-compliant as a sink of data.
-        The RawIOBase-compliant object must be already open.
-        """
-        pass
-
-    def add_stream(self, stream_id, params=None):
-        """
-        setup the muxer to handle the given stream.
-        The stream will be bound to the logical id `stream_id'.
-        pass a `params' dict to fill the detail of
-        the new stream.
-        """
-        params = {} if params is None else params
-        raise NotImplementedError
-
-    def write_header(self):
-        """
-        write the stream header on media.
-        """
-        raise NotImplementedError
-
-    def write_trailer(self):
-        """
-        write the stream trailer on media.
-        """
-        raise NotImplementedError
-
-    def write_frame(self, packet):
-        """
-        requires an encoded frame enclosed in a Packet!
-        """
-        raise NotImplementedError
-
-    def get_pts(self, stream_id):
-        """
-        returns the last PTS written for the given stream.
-        """
-        raise NotImplementedError
-
-    def flush(self):
-        """
-        immediately writes ay buffered data on the
-        underlying file(-like).
-        Blocking.
-        """
-        raise NotImplementedError
