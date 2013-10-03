@@ -15,6 +15,7 @@ from tests.mockslib import MockFF, MockFrame, MockLavu, MockSwr
 BBB_SAMPLE = os.path.join('tests', 'data', 'bbb_sample.ogg')
 
 
+# TODO: refactoring
 class TestSamples(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -85,6 +86,19 @@ class TestSamples(unittest.TestCase):
             assert(smp.is_shared)
 
     # FIXME: bulky. Also depends on decoder.
+    def test_convert_from_live_frame(self):
+        with open(BBB_SAMPLE, 'rb') as f:
+            dmx = pyrana.formats.Demuxer(f)
+            dec = dmx.open_decoder(1)
+            frm = dec.decode(dmx.stream(1))
+            assert(frm)
+            smp = frm.samples(pyrana.audio.SampleFormat.AV_SAMPLE_FMT_FLTP)
+            # assert(smp)  # FIXME
+            assert(repr(smp))
+            #assert(len(smp))  # FIXME
+            assert(not smp.is_shared)
+
+    # FIXME: bulky. Also depends on decoder.
     def test_convert_from_live_frame_indirect(self):
         with open(BBB_SAMPLE, 'rb') as f:
             dmx = pyrana.formats.Demuxer(f)
@@ -106,6 +120,53 @@ class TestSamples(unittest.TestCase):
             frm = dec.decode(dmx.stream(1))
             with self.assertRaises(AttributeError):
                 img = frm.image()
+
+    # FIXME: bulky. Also depends on decoder.
+    def test_channel_bad1(self):
+        with open(BBB_SAMPLE, 'rb') as f:
+            dmx = pyrana.formats.Demuxer(f)
+            dec = dmx.open_decoder(1)
+            frm = dec.decode(dmx.stream(1))
+            assert(frm)
+            smp = frm.samples()
+            # assert(smp)  # FIXME
+            with self.assertRaises(pyrana.errors.ProcessingError):
+                dat = smp.channel(-1)
+
+    # FIXME: bulky. Also depends on decoder.
+    def test_channel_bad2(self):
+        with open(BBB_SAMPLE, 'rb') as f:
+            dmx = pyrana.formats.Demuxer(f)
+            dec = dmx.open_decoder(1)
+            frm = dec.decode(dmx.stream(1))
+            assert(frm)
+            smp = frm.samples()
+            # assert(smp)  # FIXME
+            with self.assertRaises(pyrana.errors.ProcessingError):
+                dat = smp.channel(10)
+
+    # FIXME: bulky. Also depends on decoder.
+    def test_channel_get0(self):
+        with open(BBB_SAMPLE, 'rb') as f:
+            dmx = pyrana.formats.Demuxer(f)
+            dec = dmx.open_decoder(1)
+            frm = dec.decode(dmx.stream(1))
+            smp = frm.samples()
+            chn = smp.channel(0)
+            assert(chn)
+            assert(isinstance(chn, bytes))
+
+    # FIXME: bulky. Also depends on decoder.
+    def test_bytes(self):
+        with open(BBB_SAMPLE, 'rb') as f:
+            dmx = pyrana.formats.Demuxer(f)
+            dec = dmx.open_decoder(1)
+            frm = dec.decode(dmx.stream(1))
+            smp = frm.samples()
+            dat = bytes(smp)
+            assert(dat)
+            assert(isinstance(dat, bytes))
+
 
 
 if __name__ == "__main__":
