@@ -82,7 +82,7 @@ class Packet(object):
             self._pkt.flags |= PacketFlags.AV_PKT_FLAG_KEY
         self._raw_data = ffi.buffer(self._pkt.data, self._pkt.size)
         if data is not None:
-            self._raw_data[:size] = data  # FIXME
+            self._raw_data[0:self._pkt.size] = data
 
     @classmethod
     def from_cdata(cls, cpkt):
