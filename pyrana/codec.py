@@ -160,10 +160,12 @@ def make_fetcher(seq):
     """
     if isinstance(seq, GeneratorType):
         def _fetch():
+            """fetch from a generator"""
             return next(seq)
         return _fetch
     elif isinstance(seq, list):
         def _fetch():
+            """fetch from a list"""
             return seq.pop(0)
         return _fetch
     else:
