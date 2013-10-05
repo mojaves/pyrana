@@ -6,6 +6,7 @@ This module is not part of the pyrana public API.
 # of course I trust the stdlib. What else must I trust?!
 # pylint: disable=E0611
 from types import MappingProxyType as frozendict
+from types import GeneratorType
 # thanks to
 # http://me.veekun.com/blog/2013/08/05/ \
 #        frozendicthack-or-activestate-code-considered-harmful/
@@ -151,6 +152,24 @@ def _new_av_frame_pp(ffh):
     return ppframe
 
 
+def make_fetcher(seq):
+    """
+    Builds a callable which extracts, deletes from
+    the originating sequence-like (either materialized
+    or generating) and returns an item.
+    """
+    if isinstance(seq, GeneratorType):
+        def _fetch():
+            return next(seq)
+        return _fetch
+    elif isinstance(seq, list):
+        def _fetch():
+            return seq.pop(0)
+        return _fetch
+    else:
+        raise ProcessingError("unsupported source type")
+
+
 @contextmanager
 def bind_frame(ffh):
     """
@@ -259,13 +278,13 @@ class BaseDecoder(CodecMixin):
         - a generator (e.g. Demuxer.stream()).
         FIXME: clean up the consumption of the sequence
         """
-        pkt_seq = iter(packets)
-        pkt = next(pkt_seq)
+        fetch = make_fetcher(packets)
+        pkt = fetch()
         while not self._frames:
             try:
                 self._frames.extend(frm for frm in self.decode_packet(pkt))
             except NeedFeedError:
-                pkt = next(pkt_seq)
+                pkt = fetch()
         return self._frames.pop(0)
 
     def flush(self):

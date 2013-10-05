@@ -85,7 +85,27 @@ class TestCodecFuncs(unittest.TestCase):
             dec = pyrana.codec.decoder_for_stream(ctx, 0,
                                                   pyrana.video.Decoder,
                                                   pyrana.audio.Decoder)
+    def test_fetcher_list(self):
+        data = list(range(16))
+        fetch = pyrana.codec.make_fetcher(data)
+        assert([fetch(), fetch(), fetch()] == [0,1,2])
+        assert(list(data) == list(range(3, 16)))
 
+    def test_fetcher_gen(self):
+        def gen(N):
+            i = 0
+            while i < N:
+                yield i
+                i += 1
+        data = gen(16)
+        fetch = pyrana.codec.make_fetcher(data)
+        assert([fetch(), fetch(), fetch()] == [0,1,2])
+        assert(list(data) == list(range(3, 16)))
+
+    def test_fetcher_tuple(self):
+        data = tuple(range(16))
+        with self.assertRaises(pyrana.errors.ProcessingError):
+            fetch = pyrana.codec.make_fetcher(data)
 
 
 if __name__ == "__main__":
