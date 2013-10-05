@@ -276,7 +276,6 @@ class BaseDecoder(CodecMixin):
         The input stream can be
         - a materialized sequence of packets (list, tuple...)
         - a generator (e.g. Demuxer.stream()).
-        FIXME: clean up the consumption of the sequence
         """
         fetch = make_fetcher(packets)
         pkt = fetch()
