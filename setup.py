@@ -18,7 +18,7 @@ libraries, but provides an independent API.
 
 
 setup(name='pymedia2-pyrana',
-      version='0.1.0',
+      version='0.1.90',
       description='Package for simple manipulation of multimedia files',
       long_description=description(),
       platforms = [ 'posix' ],
@@ -30,7 +30,7 @@ setup(name='pymedia2-pyrana',
       package_data={'pyarana': ['hfiles/*.*']},
       install_requires=dependencies(),
       classifiers = [
-        'Development Status :: 2 - Pre-Alpha',
+        'Development Status :: 3 - Alpha',
         'Environment :: Other Environment',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: zlib/libpng License',
