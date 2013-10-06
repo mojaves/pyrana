@@ -1,6 +1,6 @@
 Metadata-Version: 1.1
 Name: pymedia-pyrana
-Version: 0.1.0
+Version: 0.1.90
 Summary: Package for simple manipulation of multimedia files
 Home-page: http://bitbucket.org/mojaves/pyrana
 Author: Francesco Romani
@@ -12,7 +12,7 @@ Description:
         libraries, but provides an independent API.
         
 Platform: posix
-Classifier: Development Status :: 2 - Pre-Alpha
+Classifier: Development Status :: 3 - Alpha
 Classifier: Environment :: Other Environment
 Classifier: Intended Audience :: Developers
 Classifier: License :: OSI Approved :: zlib/libpng License
