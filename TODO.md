@@ -16,6 +16,8 @@ full functional replacement of the old C-based pyrana.
 Milestone #2 (version 0.3.x)
 ============================
 
+* compaibility with ffmpeg 2.0
 * compatibility with python 2.7
+* numpy interoperability.
 * muxing support
 * sync facilities
