@@ -7,8 +7,8 @@ import pyrana.formats
 from pyrana.formats import MediaType
 
 
-# see https://github.com/mojaves/writings/blob/master/articles/eng/2013-10-08-pyrana-player-tutorial-1.md
-# for the corresponding tutorial
+# this code is also part of the pyrana player tutorial:
+# https://github.com/mojaves/writings/blob/master/articles/eng/2013-10-08-pyrana-player-tutorial-1.md
 
 
 def ppm_write(frame, seqno):
@@ -30,10 +30,6 @@ def process_file(fname, step=1):
         sid = pyrana.formats.find_stream(dmx.streams,
                                          0,
                                          MediaType.AVMEDIA_TYPE_VIDEO)
-        vstream = dmx.streams[sid]
-        width = vstream['width']
-        height = vstream['height']
-
         num = 0
         vdec = dmx.open_decoder(sid)
         while True:
