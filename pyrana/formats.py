@@ -3,6 +3,7 @@ This module provides the transport layer interface: encoded packets,
 Muxer, Demuxers and their support code.
 """
 
+from collections import namedtuple
 from enum import IntEnum
 
 from pyrana.common import MediaType, to_media_type
@@ -50,16 +51,13 @@ def find_stream(streams, nth, media):
     Return the corresponding stream_id.
     Raise NotFoundError otherwise.
     """
-    try:
-        cnt = 0
-        for sid, stream in enumerate(streams):
-            if stream["type"] == media:
-                if cnt == nth:
-                    return sid
-                cnt += 1
-        msg = "mismatching media types for stream"
-    except KeyError:
-        msg = "malformed stream #%i" % sid
+    cnt = 0
+    for sid, stream in enumerate(streams):
+        if stream.media_type == media:
+            if cnt == nth:
+                return sid
+            cnt += 1
+    msg = "mismatching media types for stream"
     raise pyrana.errors.NotFoundError(msg)
 
 
@@ -134,6 +132,16 @@ def _read_frame(ffh, ctx, new_pkt, stream_id):
             break
         ffh.lavc.av_free_packet(pkt)
     return Packet.from_cdata(pkt)
+
+
+def to_namedtuple(name, src):
+    """
+    translate any dict to a namedtuple.
+    Used for stream infos. The are supposed to be read only;
+    moreover, a dot notation just feels more natural here.
+    """
+    dst = namedtuple(name, list(src.keys()))
+    return dst(**src)
 
 
 class Demuxer(object):
@@ -255,8 +263,7 @@ class Demuxer(object):
     def _stream_info(self, stream):
         """
         extract the stream info from an AVStream.
-        FIXME: switch to namedtuple. This will break our API,
-        but someone actually cares at this stage?
+        exports it as fake, read-only, dot-accessible objects.
         """
         ffh = self._ff  # shortcut
         ctx = stream.codec
@@ -264,15 +271,18 @@ class Demuxer(object):
         info = {
             "id": stream.id,
             "index": stream.index,
-            "type": _type,
+            "media_type": _type,
             "name": _codec_name(ffh, ctx.codec_id),
             "bit_rate": get_field_int(ctx, "b")
         }
+        name = 'StreamInfo'
         if _type == MediaType.AVMEDIA_TYPE_AUDIO:
             info.update(_audio_stream_info(ctx, ffh))
+            name = 'AudioInfo'
         if _type == MediaType.AVMEDIA_TYPE_VIDEO:
             info.update(_video_stream_info(ctx))
-        return info
+            name = 'VideoInfo'
+        return to_namedtuple(name, info)
 
     def _parse_streams(self):
         """

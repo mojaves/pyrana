@@ -10,13 +10,14 @@ import pyrana.formats
 from pyrana.formats import MediaType
 
 
+# this code is also part of the pyrana player tutorial:
+# https://github.com/mojaves/writings/blob/master/articles/eng/2013-10-14-pyrana-player-tutorial-2.md
+
+
 class PygameViewer(object):
     def __init__(self):
         self._ovl = None
         self._frames = 0
-
-    def get_error(self):
-        return ''
 
     @property
     def frames(self):
@@ -40,10 +41,8 @@ def play_file(fname, view):
                                          MediaType.AVMEDIA_TYPE_VIDEO)
         vstream = dmx.streams[sid]
         pprint.pprint(vstream)
-        width = vstream['width']
-        height = vstream['height']
 
-        view.setup(width, height)
+        view.setup(vstream.width, vstream.height)
 
         vdec = dmx.open_decoder(sid)
 

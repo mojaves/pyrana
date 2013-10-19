@@ -58,6 +58,7 @@ class CodecMixin(object):
         """
         dict, read-only
         """
+        # FIXME we need dot notation access here.
         return frozendict(self._params)
 
     @property
@@ -83,7 +84,6 @@ class BaseFrame(object):
         self._frame = None
 
     def __del__(self):
-        # FIXME: is really the data safely handled? check for memleaks.
         self._ff.lavc.avcodec_free_frame(self._ppframe)
 
     def __repr__(self):
