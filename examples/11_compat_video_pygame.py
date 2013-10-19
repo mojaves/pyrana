@@ -2,7 +2,6 @@
 
 import sys
 import time
-import pprint
 import pygame
 import pyrana
 import pyrana.errors
@@ -40,7 +39,7 @@ def play_file(fname, view):
                                          0,
                                          MediaType.AVMEDIA_TYPE_VIDEO)
         vstream = dmx.streams[sid]
-        pprint.pprint(vstream)
+        print(vstream)
 
         view.setup(vstream.width, vstream.height)
 

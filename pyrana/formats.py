@@ -3,10 +3,10 @@ This module provides the transport layer interface: encoded packets,
 Muxer, Demuxers and their support code.
 """
 
-from collections import namedtuple
+from collections import OrderedDict
 from enum import IntEnum
 
-from pyrana.common import MediaType, to_media_type
+from pyrana.common import MediaType, to_media_type, AttrDict
 from pyrana.common import find_source_format, get_field_int
 from pyrana.iobridge import IOSource
 from pyrana.packet import Packet, _new_cpkt
@@ -95,21 +95,22 @@ def _audio_stream_info(ctx, ffh):
     """
     extract the audio stream info from an AVCodecContext (ctx)
     """
-    return {
-        "sample_rate": get_field_int(ctx, "ar"),
-        "channels": get_field_int(ctx, "ac"),
-        "sample_bytes": ffh.lavu.av_get_bytes_per_sample(ctx.sample_fmt)
-    }
+    get_bps = ffh.lavu.av_get_bytes_per_sample  # shortcut
+    return OrderedDict((
+                        ("sample_rate", get_field_int(ctx, "ar")),
+                        ("channels", get_field_int(ctx, "ac")),
+                        ("sample_bytes", get_bps(ctx.sample_fmt))
+                        ))
 
 
 def _video_stream_info(ctx):
     """
     extract the video stream info from an AVCodecContext (ctx)
     """
-    return {
-        "width": ctx.width,
-        "height": ctx.height
-    }
+    return OrderedDict((
+                        ("width", ctx.width),
+                        ("height", ctx.height)
+                        ))
 
 
 def _read_frame(ffh, ctx, new_pkt, stream_id):
@@ -132,16 +133,6 @@ def _read_frame(ffh, ctx, new_pkt, stream_id):
             break
         ffh.lavc.av_free_packet(pkt)
     return Packet.from_cdata(pkt)
-
-
-def to_namedtuple(name, src):
-    """
-    translate any dict to a namedtuple.
-    Used for stream infos. The are supposed to be read only;
-    moreover, a dot notation just feels more natural here.
-    """
-    dst = namedtuple(name, list(src.keys()))
-    return dst(**src)
 
 
 class Demuxer(object):
@@ -268,13 +259,13 @@ class Demuxer(object):
         ffh = self._ff  # shortcut
         ctx = stream.codec
         _type = to_media_type(ctx.codec_type)
-        info = {
-            "id": stream.id,
-            "index": stream.index,
-            "media_type": _type,
-            "name": _codec_name(ffh, ctx.codec_id),
-            "bit_rate": get_field_int(ctx, "b")
-        }
+        info = OrderedDict((
+                           ("id", stream.id),
+                           ("index", stream.index),
+                           ("media_type", _type),
+                           ("name", _codec_name(ffh, ctx.codec_id)),
+                           ("bit_rate", get_field_int(ctx, "b"))
+                           ))
         name = 'StreamInfo'
         if _type == MediaType.AVMEDIA_TYPE_AUDIO:
             info.update(_audio_stream_info(ctx, ffh))
@@ -282,7 +273,7 @@ class Demuxer(object):
         if _type == MediaType.AVMEDIA_TYPE_VIDEO:
             info.update(_video_stream_info(ctx))
             name = 'VideoInfo'
-        return to_namedtuple(name, info)
+        return AttrDict(name, info)
 
     def _parse_streams(self):
         """

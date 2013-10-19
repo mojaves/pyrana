@@ -10,6 +10,61 @@ import pyrana.ff
 from pyrana.ffenums import PixelFormat, SampleFormat, PictureType
 
 
+class AttrDict(object):
+    """
+    Wrapper class to provide:
+    1. friendly and fast dot access to a plain dictionary, without
+       the need of braindead container classes.
+    2. prevent attribute modification, optionally.
+    """
+    def __init__(self, name, attrs):
+        self._name = name
+        self._attrs = attrs
+        self._frozen = False
+
+    def freeze(self):
+        """
+        prevents any change in the dict. Any attempt to change
+        the value of a key will fail with AttributeError.
+        Cannot be undone.
+        """
+        self._frozen = True
+
+    def __bool__(self):
+        return bool(self._attrs)
+
+    def __eq__(self, attrs):
+        return self._attrs == attrs
+
+    @property
+    def frozen(self):
+        """
+        is the current instance frozen?
+        """
+        return self._frozen
+
+    def __str__(self):
+        name = self._name if not self._frozen else 'frozen%s' % self._name
+        attrs = ', '.join('%s=%s' % (k, v) for k, v in self._attrs.items())
+        return '%s(%s)' % (name, attrs)
+
+    def __getattr__(self, key):
+        try:
+            return self._attrs[key]
+        except KeyError:
+            raise AttributeError('unknown attribute: %s' % (key))
+
+    def __setattr__(self, key, value):
+        if key in ('_name', '_attrs', '_frozen'):
+            super(AttrDict, self).__setattr__(key, value)
+            return
+        if self._frozen:
+            raise AttributeError('cannot update %s on a frozen dict' % (key))
+        if key not in self._attrs:
+            raise AttributeError('unknown attribute: %s' % (key))
+        self._attrs[key] = value
+
+
 class MediaType(IntEnum):
     """wraps the Media Types in libavutil/avutil.h"""
     AVMEDIA_TYPE_UNKNOWN = -1

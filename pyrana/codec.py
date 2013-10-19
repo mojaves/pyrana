@@ -3,18 +3,11 @@ Common code shared by audio and video codecs.
 This module is not part of the pyrana public API.
 """
 
-# of course I trust the stdlib. What else must I trust?!
-# pylint: disable=E0611
-from types import MappingProxyType as frozendict
 from types import GeneratorType
-# thanks to
-# http://me.veekun.com/blog/2013/08/05/ \
-#        frozendicthack-or-activestate-code-considered-harmful/
-
 from contextlib import contextmanager
 
 from pyrana.packet import raw_packet
-from pyrana.common import MediaType, to_media_type, to_str
+from pyrana.common import MediaType, to_media_type, to_str, AttrDict
 from pyrana.errors import SetupError, ProcessingError, NeedFeedError
 import pyrana.ff
 
@@ -56,10 +49,11 @@ class CodecMixin(object):
     @property
     def params(self):
         """
-        dict, read-only
+        the codec parameters.
         """
-        # FIXME we need dot notation access here.
-        return frozendict(self._params)
+        par = AttrDict('Params', self._params)
+        par.freeze()
+        return par
 
     @property
     def extra_data(self):
@@ -158,6 +152,7 @@ def make_fetcher(seq):
     the originating sequence-like (either materialized
     or generating) and returns an item.
     """
+    # meh, goodbye to duck typing. Do anyone has a better idea?
     if isinstance(seq, GeneratorType):
         def _fetch():
             """fetch from a generator"""
