@@ -30,6 +30,9 @@ class AttrDict(object):
         """
         self._frozen = True
 
+    def __len__(self):
+        return len(self._attrs)
+
     def __bool__(self):
         return bool(self._attrs)
 
