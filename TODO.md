@@ -1,23 +1,30 @@
-Milestone #1 (version 0.2.x)
+Milestone #1 (version 0.2.0)
 ============================
 
 full functional replacement of the old C-based pyrana.
 
 * demuxing. (DONE)
-* seek. (TODO)
-* decoding audio/video. (WIP)
-* full access to data both at demuxing and decoding stages. (DONE)
-* interoperability with PIL(LOW), pygame, pysdl2. (WIP)
+* decoding audio/video. (ALMOST DONE)
+* interoperability with PIL(LOW). (DONE)
+* interoperability with pygame. (DONE)
 * 100% coverage. (DONE?)
-* 100% docs. (WIP)
+* 100% docs. (DONE?)
 * runnable examples for every major task. (WIP)
 
 
-Milestone #2 (version 0.3.x)
+Milestone #2 (version 0.3.0)
 ============================
 
-* compaibility with ffmpeg 2.0
-* compatibility with python 2.7
-* numpy interoperability.
-* muxing support
+* seek support.
+* compatibility with python 2.7.
+* compatibility with pypy 2.0+.
+* interoperability with PySDL2.
+
+
+Milestone #3 (version 0.4.0)
+============================
+
+* compatibility with ffmpeg 2.0.
+* interoperability with numpy.
+* muxing.
 * sync facilities
