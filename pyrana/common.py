@@ -39,7 +39,7 @@ class AttrDict(object):
     @property
     def frozen(self):
         """
-        is the current instance frozen?
+        is the current instance frozen? see freeze()
         """
         return self._frozen
 
@@ -57,12 +57,12 @@ class AttrDict(object):
     def __setattr__(self, key, value):
         if key in ('_name', '_attrs', '_frozen'):
             super(AttrDict, self).__setattr__(key, value)
-            return
-        if self._frozen:
+        elif self._frozen:
             raise AttributeError('cannot update %s on a frozen dict' % (key))
-        if key not in self._attrs:
+        elif key not in self._attrs:
             raise AttributeError('unknown attribute: %s' % (key))
-        self._attrs[key] = value
+        else:
+            self._attrs[key] = value
 
 
 class MediaType(IntEnum):
