@@ -37,13 +37,6 @@ INPUT_FORMATS = frozenset()
 OUTPUT_FORMATS = frozenset()
 
 
-def is_streamable(name):
-    """
-    tells if a given format is streamable (do NOT need seek()) or not.
-    """
-    return name in INPUT_FORMATS or name in OUTPUT_FORMATS  # TODO
-
-
 def find_stream(streams, nth, media):
     """
     find the nth stream of the specified media a streams info
