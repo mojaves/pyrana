@@ -24,8 +24,8 @@ def ppm_write(frame, seqno):
         dst.write(bytes(image))
 
 
-def process_file(fname, step=1):
-    with open(fname, 'rb') as src:
+def process_file(srcname, step=1):
+    with open(srcname, 'rb') as src:
         dmx = pyrana.formats.Demuxer(src)
         sid = pyrana.formats.find_stream(dmx.streams,
                                          0,
@@ -34,7 +34,7 @@ def process_file(fname, step=1):
         vdec = dmx.open_decoder(sid)
         while True:
             # careful here: you have to decode *and* throw away (optionally)
-            # each frame in order, so enough daa is actually pulled from the
+            # each frame in order, so enough data is actually pulled from the
             # demuxer and progress can be made.
             frame = vdec.decode(dmx.stream(sid))
             if num % step == 0:
@@ -42,11 +42,11 @@ def process_file(fname, step=1):
             num += 1
 
 
-def _main(fname, step=1):
+def _main(srcname, step=1):
     pyrana.setup()
 
     try:
-        process_file(fname, step)
+        process_file(srcname, step)
     except pyrana.errors.PyranaError as err:
         print(err)
 
