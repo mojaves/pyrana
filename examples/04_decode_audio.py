@@ -2,6 +2,7 @@
 
 import sys
 import wave
+import contextlib
 import pyrana
 import pyrana.errors
 import pyrana.formats
@@ -12,8 +13,9 @@ from pyrana.formats import MediaType
 # TBD
 
 
-def process_file(fname, dst):
-    with open(fname, 'rb') as src:
+def process_file(srcname, outname='out.wav'):
+    with open(srcname, 'rb') as src, \
+         contextlib.closing(wave.open('out.wav', 'wb')) as dst:
         dmx = pyrana.formats.Demuxer(src)
         sid = pyrana.formats.find_stream(dmx.streams,
                                          0,
@@ -25,24 +27,18 @@ def process_file(fname, dst):
 
         adec = dmx.open_decoder(sid)
         while True:
-            # careful here: you have to decode *and* throw away (optionally)
-            # each frame in order, so enough daa is actually pulled from the
-            # demuxer and progress can be made.
             frame = adec.decode(dmx.stream(sid))
             samples = frame.samples()
             dst.writeframes(bytes(samples))
 
 
-def _main(fname):
+def _main(srcname):
     pyrana.setup()
 
     try:
-        dst = wave.open('out.wav', 'wb')
-        process_file(fname, dst)
+        process_file(srcname)
     except pyrana.errors.PyranaError as err:
         print(err)
-    finally:
-        dst.close()
 
 
 if __name__ == "__main__":
