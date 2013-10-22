@@ -67,12 +67,34 @@ class TestAttrDict(unittest.TestCase):
         for k in src:
             assert(src[k] == getattr(atd, k))
 
-    def test_missing_attr(self):
+    def test_get_missing_attr(self):
         src = { 'ans':42, 'foo':'bar' }
         atd = AttrDict('Test', src)
         assert(atd.ans == 42)
         with self.assertRaises(AttributeError):
             x = atd.nonexistent
+
+    def test_set_missing_attr(self):
+        src = { 'ans':42, 'foo':'bar' }
+        atd = AttrDict('Test', src)
+        with self.assertRaises(AttributeError):
+            atd.fizz = 'buzz'
+
+    def test_set_attr(self):
+        src = { 'ans':41, 'foo':'bar' }
+        atd = AttrDict('Test', src)
+        assert(atd.ans == 41)
+        atd.ans = 42
+        assert(atd.ans == 42)
+
+    def test_set_attr_fails_frozen(self):
+        src = { 'ans':41, 'foo':'bar' }
+        atd = AttrDict('Test', src)
+        assert(atd.ans == 41)
+        atd.freeze()
+        assert(atd.frozen)
+        with self.assertRaises(AttributeError):
+            atd.ans = 42
 
 
 if __name__ == "__main__":
