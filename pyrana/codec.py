@@ -8,7 +8,8 @@ from contextlib import contextmanager
 
 from pyrana.packet import raw_packet
 from pyrana.common import MediaType, to_media_type, to_str, AttrDict
-from pyrana.errors import SetupError, ProcessingError, NeedFeedError
+from pyrana.errors import SetupError, ProcessingError, \
+                          NeedFeedError, EOSError
 import pyrana.ff
 
 
@@ -275,12 +276,13 @@ class BaseDecoder(CodecMixin):
         - a generator (e.g. Demuxer.stream()).
         """
         fetch = make_fetcher(packets)
-        pkt = fetch()
         while not self._frames:
             try:
-                self._frames.extend(frm for frm in self.decode_packet(pkt))
+                self._frames.extend(frm for frm in self.decode_packet(fetch()))
             except NeedFeedError:
-                pkt = fetch()
+                continue
+            except StopIteration:
+                raise EOSError
         return self._frames.pop(0)
 
     def flush(self):
