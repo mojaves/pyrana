@@ -6,6 +6,7 @@ import pygame
 import pyrana
 import pyrana.errors
 import pyrana.formats
+from pyrana.video import PixelFormat
 from pyrana.formats import MediaType
 
 
@@ -47,7 +48,7 @@ def play_file(fname, view):
 
         while True:
             frame = vdec.decode(dmx.stream(sid))
-            img = frame.image()
+            img = frame.image(PixelFormat.AV_PIX_FMT_YUV420P)
             view.show(img.plane(0), img.plane(1), img.plane(2))
 
 

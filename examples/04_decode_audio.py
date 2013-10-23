@@ -6,6 +6,7 @@ import contextlib
 import pyrana
 import pyrana.errors
 import pyrana.formats
+from pyrana.audio import SampleFormat
 from pyrana.formats import MediaType
 
 
@@ -21,14 +22,15 @@ def process_file(srcname, outname='out.wav'):
                                          0,
                                          MediaType.AVMEDIA_TYPE_AUDIO)
         astream = dmx.streams[sid]
+        print(astream)
         dst.setnchannels(astream.channels)
         dst.setframerate(astream.sample_rate)
-        dst.setsampwidth(astream.sample_bytes)
+        dst.setsampwidth(2) # astream.sample_bytes
 
         adec = dmx.open_decoder(sid)
         while True:
             frame = adec.decode(dmx.stream(sid))
-            samples = frame.samples()
+            samples = frame.samples(SampleFormat.AV_SAMPLE_FMT_S16)
             dst.writeframes(bytes(samples))
 
 
