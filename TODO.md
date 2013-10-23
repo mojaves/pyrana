@@ -4,11 +4,11 @@ Milestone #1 (version 0.2.0)
 full functional replacement of the old C-based pyrana.
 
 * demuxing. (DONE)
-* decoding audio/video. (ALMOST DONE)
+* decoding audio/video. (DONE)
 * interoperability with PIL(LOW). (DONE)
 * interoperability with pygame. (DONE)
-* 100% coverage. (DONE?)
-* 100% docs. (DONE?)
+* 100% coverage. (DONE)
+* 100% docs. (DONE)
 * runnable examples for every major task. (WIP)
 
 
