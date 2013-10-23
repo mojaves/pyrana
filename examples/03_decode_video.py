@@ -4,6 +4,7 @@ import sys
 import pyrana
 import pyrana.errors
 import pyrana.formats
+from pyrana.video import PixelFormat
 from pyrana.formats import MediaType
 
 
@@ -17,7 +18,7 @@ def ppm_write(frame, seqno):
     the `seqno` parameter is just to avoid to overwrite them without
     getting too fancy with the filename generation.
     """
-    image = frame.image(pyrana.video.PixelFormat.AV_PIX_FMT_RGB24)
+    image = frame.image(PixelFormat.AV_PIX_FMT_RGB24)
     with open("frame%d.ppm" % (seqno), "wb") as dst:
         header = "P6\n%i %i\n255\n" % (image.width, image.height)
         dst.write(header.encode("utf-8"))
