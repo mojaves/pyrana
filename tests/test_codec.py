@@ -76,6 +76,15 @@ class TestBaseDecoder(unittest.TestCase):
         frame = dec.flush()
         assert(frame is ref)
 
+    def test_decode_stop_iteration(self):
+        def gen():
+            yield pyrana.packet.Packet(0, b"")
+            raise StopIteration
+        dec = BaseDecoder('mjpeg')
+        assert(dec)
+        with self.assertRaises(pyrana.errors.EOSError):
+            dec.decode(gen())
+
 
 class TestCodecFuncs(unittest.TestCase):
     def test_builder_unsupported(self):
