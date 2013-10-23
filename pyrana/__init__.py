@@ -15,8 +15,16 @@ def _enforce_platform(plat):
     is not going to work.
     """
     if plat.python_implementation() == 'CPython':
-        if plat.python_version_tuple() < ('3', '2'):
-            raise RuntimeError("CPython < 3.2 not supported")
+        ver = plat.python_version_tuple()
+        major, minor = int(ver[0]), int(ver[1])
+        fail = False
+        if major == 3:
+            if minor < 3:
+                fail = True
+        else:
+            fail = True
+        if fail:
+            raise RuntimeError("CPython < %i.%i not supported" % (major, minor))
 
 
 _enforce_platform(platform)
