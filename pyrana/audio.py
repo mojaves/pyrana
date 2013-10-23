@@ -129,7 +129,8 @@ class Samples(object):
             self._ff.lavc.avcodec_free_frame(self._ppframe)
 
     def __len__(self):
-        return sum(int(self._ppframe[0].linesize[idx])
+        frm = self._ppframe[0]  # shortcut
+        return sum(int(frm.linesize[idx])
                    for idx in range(self.channels))
 
     def __bytes__(self):
