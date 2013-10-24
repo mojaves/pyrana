@@ -3,10 +3,10 @@ CFFI frontend code for pyrana.
 This module is not part of the pyrana public API.
 """
 
-import cffi
 from functools import wraps
 import os.path
 import glob
+import cffi
 
 
 # The dreaded singleton. It is a necessary evil[1] and this is the reason why:
