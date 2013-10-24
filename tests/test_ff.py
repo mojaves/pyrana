@@ -9,7 +9,7 @@ from pyrana.ff import singleton
 class TestSingletonDecorator(unittest.TestCase):
     def test_singleton(self):
         @singleton
-        class Klass:
+        class Klass(object):
             pass
         c1 = Klass()
         c2 = Klass()

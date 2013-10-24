@@ -173,6 +173,9 @@ class Demuxer(object):
             pass
         raise StopIteration
 
+    def next(self):
+        return self.__next__()
+
     def close(self):
         """
         close the underlying demuxer.
