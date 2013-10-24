@@ -31,7 +31,7 @@ def singleton(cls):
         _it.__init_original__(*args, **kw)
         return _it
 
-    cls.__new__ = singleton_new
+    cls.__new__ = staticmethod(singleton_new)
     cls.__init_original__ = cls.__init__
     cls.__init__ = object.__init__
 
