@@ -13,7 +13,7 @@ class TestPacket(unittest.TestCase):
     def test_new_from_string(self):
         try:
             pkt = pyrana.packet.Packet(0, _B)
-        except pyrana.PyranaError as x:
+        except pyrana.errors.PyranaError as x:
             self.fail("failed creation from simple string: %s" % x)
 
     def test_faulty_alloc(self):
@@ -38,7 +38,7 @@ class TestPacket(unittest.TestCase):
             pkt2 = pyrana.packet.Packet(1, pkt)
             assert pkt == pkt2
             assert pkt is not pkt2
-        except pyrana.PyranaError as x:
+        except pyrana.errors.PyranaError as x:
             self.fail("failed creation from another packet")
 
     def test_repr(self):
