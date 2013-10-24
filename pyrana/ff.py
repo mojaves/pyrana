@@ -16,7 +16,7 @@ import cffi
 def singleton(cls):
     """Use class as singleton."""
 
-    cls.__new_original__ = cls.__new__
+    cls.__new_original__ = staticmethod(cls.__new__)
 
     @wraps(cls.__new__)
     def singleton_new(cls, *args, **kw):
