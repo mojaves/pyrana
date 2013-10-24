@@ -18,10 +18,9 @@ def _enforce_platform(plat):
         ver = plat.python_version_tuple()
         major, minor = int(ver[0]), int(ver[1])
         fail = False
-        if major == 3:
-            if minor < 3:
-                fail = True
-        else:
+        if major == 3 and minor < 3:
+            fail = True
+        elif major == 2 and minor < 7:
             fail = True
         if fail:
             raise RuntimeError("CPython < %i.%i not supported" % (major, minor))

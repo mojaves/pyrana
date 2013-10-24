@@ -1,8 +1,12 @@
+syntax: glob
+
 MANIFEST
 .tox
 .coverage
 dist/
 build/
+pyrana/*.pyc
 pyrana/__pycache__
+tests/*.pyc
 tests/__pycache__
 big_buck_bunny*

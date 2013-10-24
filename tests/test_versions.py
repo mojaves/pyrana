@@ -76,8 +76,12 @@ class TestCommonData(unittest.TestCase):
             pyrana._enforce_platform(MockPlat(vers=(3,1)))
 
     def test_platform_CPy2x(self):
+        pyrana._enforce_platform(MockPlat(vers=(2,7)))
+        assert(True)
+
+    def test_platform_CPy26(self):
         with self.assertRaises(RuntimeError):
-            pyrana._enforce_platform(MockPlat(vers=(2,7)))
+            pyrana._enforce_platform(MockPlat(vers=(2,6)))
 
 
 if __name__ == "__main__":
