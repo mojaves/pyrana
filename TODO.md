@@ -16,8 +16,8 @@ Milestone #2 (version 0.3.0)
 ============================
 
 * seek support.
-* compatibility with python 2.7.
-* compatibility with pypy 2.0+.
+* compatibility with python 2.7. (DONE)
+* compatibility with pypy 2.1+. (PENDING: CFFI too old)
 * interoperability with PySDL2.
 
 
