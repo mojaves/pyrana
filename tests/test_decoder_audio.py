@@ -1,8 +1,9 @@
 #!/usr/bin/python
 
+import sys
 import os.path
 import unittest
-
+import pytest
 import pyrana.ff
 import pyrana.formats
 import pyrana.errors
@@ -84,6 +85,17 @@ class TestSamples(unittest.TestCase):
             assert(repr(smp))
             assert(len(smp))
             assert(smp.is_shared)
+
+    # FIXME: bulky. Also depends on decoder.
+    @pytest.mark.skipif(sys.version_info < (3,),
+                       reason="requires python3")
+    def test_repr_str_equals(self):
+        with open(BBB_SAMPLE, 'rb') as f:
+            dmx = pyrana.formats.Demuxer(f)
+            dec = dmx.open_decoder(1)
+            frm = dec.decode(dmx.stream(1))
+            smp = frm.samples()
+            assert(repr(smp) == str(smp))
 
     # FIXME: bulky. Also depends on decoder.
     def test_convert_from_live_frame(self):

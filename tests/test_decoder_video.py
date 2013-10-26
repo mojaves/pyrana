@@ -1,8 +1,9 @@
 #!/usr/bin/python
 
+import sys
 import os.path
 import unittest
-
+import pytest
 import pyrana.ff
 import pyrana.formats
 import pyrana.errors
@@ -49,6 +50,16 @@ class TestImage(unittest.TestCase):
             assert(repr(img))
             assert(len(img) >= img.width * img.height)
             assert(img.is_shared)
+
+    # FIXME: bulky. Also depends on decoder.
+    @pytest.mark.skipif(sys.version_info < (3,),
+                       reason="requires python3")
+    def test_repr_str_equals(self):
+        with open(BBB_SAMPLE, 'rb') as f:
+            dmx = pyrana.formats.Demuxer(f)
+            dec = dmx.open_decoder(0)
+            img, frm = _next_image(dmx, dec)
+            assert(repr(img) == str(img))
 
     # FIXME: bulky. Also depends on decoder.
     def test_convert_from_live_frame(self):

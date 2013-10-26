@@ -1,8 +1,10 @@
 #!/usr/bin/python
 
+import sys
+import unittest
+import pytest
 import pyrana.packet
 import pyrana.errors
-import unittest
 from tests.mockslib import MockFF
 
 
@@ -45,6 +47,13 @@ class TestPacket(unittest.TestCase):
         pkt = pyrana.packet.Packet()
         assert pkt
         assert repr(pkt)
+
+    @pytest.mark.skipif(sys.version_info < (3,),
+                       reason="requires python3")
+    def test_repr_str_equals(self):
+        pkt = pyrana.packet.Packet()
+        assert pkt
+        assert (repr(pkt) == str(pkt))
 
     def test_data_values_matches(self):
         pkt = pyrana.packet.Packet(0, _B)
