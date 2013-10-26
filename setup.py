@@ -1,3 +1,4 @@
+import os.path
 from distutils.core import setup
 
 
@@ -10,12 +11,15 @@ def dependencies():
 
 
 def description():
-    return """
-Pyrana is a python package designed to provides simple access to
-multimedia files. Pyrana is based on the FFmpeg (http://ffmpeg.org)
-libraries, but provides an independent API.
+    try:
+        with open(os.path.join('docs', 'pyrana-intro.rst', 'rt') as desc:
+            return desc.read()
+    except IOError:
+        return """
+Pyrana is a pure-python package which provides easy, pythonic and
+powerful handling of multimedia files, using the FFmpeg libraries
+under the hood.
 """
-
 
 setup(name='pymedia2-pyrana',
       version='0.2.90',
@@ -26,6 +30,7 @@ setup(name='pymedia2-pyrana',
       author = 'Francesco Romani',
       author_email = 'fromani@gmail.com',
       url='http://bitbucket.org/mojaves/pyrana',
+      download_url='http://bitbucket.org/mojaves/pyrana',
       packages=[ 'pyrana' ],
       package_data={'pyarana': ['hfiles/*.*']},
       install_requires=dependencies(),
