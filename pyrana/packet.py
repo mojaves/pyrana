@@ -111,8 +111,15 @@ class Packet(object):
     def __len__(self):
         return self.size
 
-    def __bytes__(self):
+    def blob(self):
+        """returns the bytes() dump of the object"""
         return bytes(self.data)
+
+    def __bytes__(self):
+        return self.blob()
+
+    def __str__(self):
+        return repr(self) if pyrana.PY3 else self.blob()
 
     def __eq__(self, other):
         return self.data == other.data

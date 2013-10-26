@@ -134,6 +134,13 @@ class Samples(object):
                    for idx in range(self.channels))
 
     def __bytes__(self):
+        return self.blob()
+    
+    def __str__(self):
+        return repr(self) if pyrana.PY3 else self.blob()
+
+    def blob(self):
+        """returns the bytes() dump of the object"""
         frm = self._ppframe[0]
         samples = bytearray(len(self))
         idx, dst = 0, 0

@@ -7,6 +7,9 @@ libraries, but provides an independent API.
 import platform
 
 
+PY3 = (platform.python_version_tuple() > ('3',))
+
+
 def _enforce_platform(plat):
     """
     enforce the platform conformancy.

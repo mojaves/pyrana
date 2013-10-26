@@ -159,6 +159,13 @@ class Image(object):
                                                       1)
 
     def __bytes__(self):
+        return self.blob()
+
+    def __str__(self):
+        return repr(self) if pyrana.PY3 else self.blob()
+
+    def blob(self):
+        """returns the bytes() dump of the object"""
         pixels = bytearray(len(self))
         idx, dst = 0, 0
         while self._ppframe[0].data[idx] != self._ff.ffi.NULL:

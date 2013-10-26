@@ -1,8 +1,10 @@
 #!/usr/bin/python
 
-import random
 import io
+import sys
+import random
 import unittest
+import pytest
 import pyrana.iobridge
 
 
@@ -66,6 +68,8 @@ class TestIOSource(unittest.TestCase):
         src = pyrana.iobridge.IOSource(f, bufsize=size)
         assert src
 
+    @pytest.mark.skipif(sys.version_info < (3,3),
+                       reason="requires python3.3")
     def test_read(self):
         ffh = pyrana.ff.get_handle()
         buf = pyrana.iobridge.Buffer()
