@@ -38,6 +38,7 @@ from pyrana.errors import \
     LibraryVersionError, EOSError, NeedFeedError,\
     ProcessingError, SetupError, UnsupportedError,\
     NotFoundError
+from pyrana.common import blob
 
 
 # better explicit than implicit.

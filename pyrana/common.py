@@ -4,10 +4,18 @@ This module is not part of the pyrana public API.
 """
 
 from enum import IntEnum
-
+import pyrana
 import pyrana.errors
 import pyrana.ff
 from pyrana.ffenums import PixelFormat, SampleFormat, PictureType
+
+
+def blob(obj):
+    """converts any pyrana object in a binary blob"""
+    try:
+        return obj.__bytes__()
+    except AttributeError:
+        return bytes(obj)
 
 
 class AttrDict(object):

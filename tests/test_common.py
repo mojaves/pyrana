@@ -1,10 +1,12 @@
 #!/usr/bin/python
 
+import os.path
 from contextlib import contextmanager
 import unittest
 import pyrana.ff
 import pyrana.errors
-from pyrana.common import get_field_int, AttrDict
+import pyrana.packet
+from pyrana.common import blob, get_field_int, AttrDict
 
 
 @contextmanager
@@ -33,68 +35,92 @@ class TestFormatFuncs(unittest.TestCase):
 
 
 class TestAttrDict(unittest.TestCase):
+    def setUp(self):
+        self.src = { 'ans':42, 'foo':'bar' }
+        self.atd = AttrDict('Test', self.src)
+
     def test_creation(self):
-        src = { 'ans':42, 'foo':'bar' }
-        atd = AttrDict('Test', src)
-        assert(src == atd)
-        assert(len(src) == len(atd))
+        assert(self.src == self.atd)
+        assert(len(self.src) == len(self.atd))
+
+    def test_boolean(self):
+        assert(self.atd)
+        assert(bool(self.atd))  # explicit
+        assert(self.atd.__bool__())  # py2 test
 
     def test_str(self):
-        src = { 'ans':42, 'foo':'bar' }
-        atd = AttrDict('Test', src)
-        assert(str(atd))
+        assert(str(self.atd))
 
     def test_frozen(self):
-        src = { 'ans':42, 'foo':'bar' }
-        atd = AttrDict('Test', src)
-        assert(not atd.frozen)
-        atd.freeze()
-        assert(atd.frozen)
-        assert(src == atd)
-        assert(len(src) == len(atd))
+        assert(not self.atd.frozen)
+        self.atd.freeze()
+        assert(self.atd.frozen)
+        assert(self.src == self.atd)
+        assert(len(self.src) == len(self.atd))
 
     def test_str_freeze(self):
-        src = { 'ans':42, 'foo':'bar' }
-        atd = AttrDict('Test', src)
-        s1 = str(atd)
-        atd.freeze()
-        s2 = str(atd)
+        s1 = str(self.atd)
+        self.atd.freeze()
+        s2 = str(self.atd)
         assert(len(s2) > len(s1))
 
     def test_match_data(self):
-        src = { 'ans':42, 'foo':'bar' }
-        atd = AttrDict('Test', src)
-        for k in src:
-            assert(src[k] == getattr(atd, k))
+        for k in self.src:
+            assert(self.src[k] == getattr(self.atd, k))
 
     def test_get_missing_attr(self):
-        src = { 'ans':42, 'foo':'bar' }
-        atd = AttrDict('Test', src)
-        assert(atd.ans == 42)
+        assert(self.atd.ans == 42)
         with self.assertRaises(AttributeError):
-            x = atd.nonexistent
+            x = self.atd.nonexistent
 
     def test_set_missing_attr(self):
-        src = { 'ans':42, 'foo':'bar' }
-        atd = AttrDict('Test', src)
         with self.assertRaises(AttributeError):
-            atd.fizz = 'buzz'
+            self.atd.fizz = 'buzz'
 
     def test_set_attr(self):
-        src = { 'ans':41, 'foo':'bar' }
-        atd = AttrDict('Test', src)
-        assert(atd.ans == 41)
-        atd.ans = 42
-        assert(atd.ans == 42)
+        assert(self.atd.ans == 42)
+        self.atd.ans = 41
+        assert(self.atd.ans == 41)
 
     def test_set_attr_fails_frozen(self):
-        src = { 'ans':41, 'foo':'bar' }
-        atd = AttrDict('Test', src)
-        assert(atd.ans == 41)
-        atd.freeze()
-        assert(atd.frozen)
+        assert(self.atd.ans == 42)
+        self.atd.freeze()
+        assert(self.atd.frozen)
         with self.assertRaises(AttributeError):
-            atd.ans = 42
+            self.atd.ans = 41
+
+
+BBB_SAMPLE = os.path.join('tests', 'data', 'bbb_sample.ogg')
+
+
+class TestBlob(object):
+    def test_binary(self):
+        data = b'123'
+        # expected to NOT have __bytes__
+        assert(blob(data) == bytes(data))
+
+    def test_packet(self):
+        pkt = pyrana.packet.Packet(0, b'xxx')
+        # expected to have __bytes__
+        assert(blob(pkt) == bytes(pkt))
+
+    # FIXME: bulky. Also depends on decoder.
+    def test_samples(self):
+        with open(BBB_SAMPLE, 'rb') as f:
+            dmx = pyrana.formats.Demuxer(f)
+            dec = dmx.open_decoder(1)
+            frm = dec.decode(dmx.stream(1))
+            smp = frm.samples()
+            assert(blob(smp) == bytes(smp))
+
+    # FIXME: bulky. Also depends on decoder.
+    def test_image(self):
+        with open(BBB_SAMPLE, 'rb') as f:
+            dmx = pyrana.formats.Demuxer(f)
+            dec = dmx.open_decoder(0)
+            frm = dec.decode(dmx.stream(0))
+            img = frm.image()
+            assert(blob(img) == bytes(img))
 
 
 if __name__ == "__main__":
