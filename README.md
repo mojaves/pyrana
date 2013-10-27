@@ -45,13 +45,21 @@ Requirements
 * [ffmpeg](http://ffmpeg.org) version 1.2.x. The version 2.0.x is unsupported. May or may not work.
   [libav](http://libav.org) any version, is unsupported. May or may not work.
 
-* [cffi](http://cffi.readthedocs.org/en/release-0.7.2/)
+* [cffi](http://cffi.readthedocs.org) version 0.7.2. Previous versions, most notably the 0.6
+  shipped with pypy 2.0, are unsupported.
 
 
 Getting started
 ---------------
 
 see [here](http://docs.python.org/install/index.html) for details.
+
+
+Documentation
+-------------
+
+See the `docs/` and the `examples/` folder.
+[This category of posts](http://mojaves.github.io/category/pyrana.html) on the author's techinical blog provide even more documentation.
 
 
 See also
