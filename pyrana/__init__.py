@@ -7,6 +7,10 @@ libraries, but provides an independent API.
 import platform
 
 
+__version_tuple__ = (0, 2, 90)  # aka the 'Version:'
+__version__ = '.'.join(str(ver) for ver in __version_tuple__)
+
+
 PY3 = (platform.python_version_tuple() > ('3',))
 
 

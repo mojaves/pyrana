@@ -2,12 +2,19 @@ import os.path
 from distutils.core import setup
 
 
+def version():
+    # MUST fail if cannot open the source file
+    with open('PKG-INFO', 'rt') as info:
+        for line in info:
+            if line.startswith('Version'):
+                name, value = line.strip().split(':')
+                return value.strip()
+
+
 def dependencies():
-    try:
-        with open('requirements.txt', 'rt') as reqs:
-            return reqs.read().splitlines()
-    except IOError:
-        return []
+    # MUST fail if cannot open the source file
+    with open('requirements.txt', 'rt') as reqs:
+        return reqs.read().splitlines()
 
 
 def description():
@@ -22,7 +29,7 @@ under the hood.
 """
 
 setup(name='pymedia2-pyrana',
-      version='0.2.90',
+      version=version(),
       description='Package for simple manipulation of multimedia files',
       long_description=description(),
       platforms = [ 'posix' ],
