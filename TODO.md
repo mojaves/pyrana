@@ -1,5 +1,5 @@
-Milestone #1 (version 0.2.0)
-============================
+Milestone #1 (version 0.2.0) - DONE!
+====================================
 
 full functional replacement of the old C-based pyrana.
 
@@ -24,13 +24,22 @@ Milestone #2 (version 0.3.0)
 Milestone #3 (version 0.4.0)
 ============================
 
-* compatibility with ffmpeg 2.0.
+* compatibility with ffmpeg 2.0 (? waiting for debian packages)
 * interoperability with numpy.
 * muxing.
 * sync facilities.
 
+
 Milestone #4 (version 0.5.0)
 ============================
 
+* complete player tutorial.
 * sphinx docs.
 * readthedocs page.
+
+
+Milestone #5 (version 0.6.0)
+============================
+
+* encoding audio/video
+* compatibility with pypy (? waiting for debian packages)
