@@ -32,7 +32,7 @@ setup(name='pymedia2-pyrana',
       url='http://bitbucket.org/mojaves/pyrana',
       download_url='http://bitbucket.org/mojaves/pyrana',
       packages=[ 'pyrana' ],
-      package_data={'pyarana': ['hfiles/*.*']},
+      package_data={'pyrana': ['hfiles/*.*']},
       install_requires=dependencies(),
       classifiers = [
         'Development Status :: 3 - Alpha',

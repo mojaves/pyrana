@@ -1,8 +1,9 @@
-recursive-include docs *.txt *.py
-recursive-include examples *.txt *.py
+recursive-include docs *
+recursive-include examples *
 recursive-include tests *.py
 recursive-include tests/data *
 recursive-include tools *.py
+recursive-include pyrana/hfiles *.h
 include LICENSE
 include TODO.md
 include tox.ini
