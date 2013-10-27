@@ -12,7 +12,7 @@ def dependencies():
 
 def description():
     try:
-        with open(os.path.join('docs', 'pyrana-intro.rst', 'rt') as desc:
+        with open(os.path.join('docs', 'pyrana-intro.rst', 'rt')) as desc:
             return desc.read()
     except IOError:
         return """
