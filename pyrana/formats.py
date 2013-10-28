@@ -30,8 +30,14 @@ import pyrana.ff
 # meh
 # pylint: disable=R0921
 
-STREAM_ANY = -1
 
+STREAM_ANY = -1
+# we don't need to have values equals to C's INT64_MIN/INT64_MAX.
+# the following values are close/good enough.
+_TS_MIN = -9223372036854775807
+_TS_MAX = +9223372036854775807
+
+TIME_BASE = 1000000  # aka AV_TIME_BASE
 
 INPUT_FORMATS = frozenset()
 OUTPUT_FORMATS = frozenset()
@@ -73,6 +79,18 @@ class FormatFlags(IntEnum):
     AVFMT_FLAG_SORT_DTS = 0x10000
     AVFMT_FLAG_PRIV_OPT = 0x20000
     AVFMT_FLAG_KEEP_SIDE_DATA = 0x40000
+
+
+# see avformat for the meaning of the flags
+class SeekFlags(IntEnum):
+    """
+    wrapper for the (wannabe)enum of AVSeekFlags
+    in libavformat/avformat.h
+    """
+    AVSEEK_FLAG_BACKWARD = 1
+    AVSEEK_FLAG_BYTE = 2
+    AVSEEK_FLAG_ANY = 4
+    AVSEEK_FLAG_FRAME = 8
 
 
 def _codec_name(ffh, codec_id):
@@ -199,17 +217,29 @@ class Demuxer(object):
         # to ignore any errors here, deemed as not critical
         self._ready = True
 
-    def seek_frame(self, stream_id, frameno):
+    def seek_frame(self, frameno, stream_id=STREAM_ANY):
         """
         seek to the given frame number in the stream.
         """
+        if not self._ready:
+            raise pyrana.errors.ProcessingError("stream not yet open")
         raise NotImplementedError
 
-    def seek_ts(self, stream_id, tstamp):
+    def seek_ts(self, tstamp, stream_id=STREAM_ANY):
         """
         seek to the given timestamp (msecs) in the stream.
         """
-        raise NotImplementedError
+        # FIXME: convert tstamp in stream_id time units
+        # FIXME: STREAM_ANY is forced to make things work.
+        if not self._ready:
+            raise pyrana.errors.ProcessingError("stream not yet open")
+        ffh = self._ff
+        err = ffh.lavf.avformat_seek_file(self._pctx[0], STREAM_ANY,
+                                          _TS_MIN, tstamp, _TS_MAX,
+                                          SeekFlags.AVSEEK_FLAG_ANY)
+        if err < 0:
+            msg = "seek to time %i failed" % (tstamp)
+            raise pyrana.errors.ProcessingError(msg)
 
     def read_frame(self, stream_id=STREAM_ANY):
         """
@@ -224,7 +254,6 @@ class Demuxer(object):
         """
         if not self._ready:
             raise pyrana.errors.ProcessingError("stream not yet open")
-
         return _read_frame(self._ff, self._pctx[0], _new_cpkt, stream_id)
 
     def open_decoder(self, stream_id):
