@@ -67,3 +67,8 @@ int avformat_find_stream_info(AVFormatContext *ic, AVDictionary **options);
 
 int av_read_frame(AVFormatContext *s, AVPacket *pkt);
 
+int av_seek_frame(AVFormatContext *s, int stream_index,
+                  int64_t timestamp, int flags);
+int avformat_seek_file(AVFormatContext *s, int stream_index,
+                       int64_t min_ts, int64_t ts, int64_t max_ts, int flags);
+
