@@ -136,11 +136,9 @@ def play_file(fname, view):
                                          0,
                                          MediaType.AVMEDIA_TYPE_VIDEO)
         vstream = dmx.streams[sid]
-        pprint.pprint(vstream)
-        width = vstream['width']
-        height = vstream['height']
+        print(vstream)
 
-        view.setup(width, height)
+        view.setup(vstream.width, vstream.height)
 
         vdec = dmx.open_decoder(sid)
 
