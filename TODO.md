@@ -18,7 +18,8 @@ Milestone #2 (version 0.3.0)
 * seek support.
 * compatibility with python 2.7. (DONE)
 * compatibility with pypy 2.1+. (DELAYED: CFFI too old in pypy 2.0)
-* interoperability with PySDL2.
+* interoperability with PySDL2. (DONE)
+* more audio examples (pygame, PySDL2)
 
 
 Milestone #3 (version 0.4.0)
