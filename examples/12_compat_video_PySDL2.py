@@ -10,10 +10,6 @@ from pyrana.video import PixelFormat
 from pyrana.formats import MediaType
 
 
-# this code is also part of the pyrana player tutorial:
-# https://github.com/mojaves/writings/blob/master/articles/eng/2013-10-14-pyrana-player-tutorial-2.md
-
-
 class PySDL2Viewer(object):
     def __init__(self):
         self._window = None
@@ -30,29 +26,33 @@ class PySDL2Viewer(object):
     def setup(self, w, h):
         self._w = w
         self._h = h
-        self._window = sdl2.SDL_CreateWindow(b"Pyrana",
-            sdl2.SDL_WINDOWPOS_UNDEFINED,
-            sdl2.SDL_WINDOWPOS_UNDEFINED,
-            w,
-            h,
-            sdl2.SDL_WINDOW_SHOWN)
+        self._window = sdl2.SDL_CreateWindow('Pyrana'.encode('utf-8'),
+                                             sdl2.SDL_WINDOWPOS_UNDEFINED,
+                                             sdl2.SDL_WINDOWPOS_UNDEFINED,
+                                             w,
+                                             h,
+                                             sdl2.SDL_WINDOW_SHOWN)
         self._renderer = sdl2.SDL_CreateRenderer(self._window, -1, 0)
         self._texture = sdl2.SDL_CreateTexture(self._renderer,
-            sdl2.SDL_PIXELFORMAT_YV12,
-            sdl2.SDL_TEXTUREACCESS_STREAMING,
-            w,
-            h)
+                                               sdl2.SDL_PIXELFORMAT_YV12,
+                                               sdl2.SDL_TEXTUREACCESS_STREAMING,
+                                               w,
+                                               h)
 
-    def show(self, D):
+    def show(self, Y, U, V):
         displayrect = sdl2.SDL_Rect(0, 0, self._w, self._h)
-        sdl2.SDL_UpdateTexture(self._texture, 
-            None, 
-            D, 
-            self._w * sdl2.SDL_BYTESPERPIXEL(sdl2.SDL_PIXELFORMAT_YV12))
+        pitch = self._w * sdl2.SDL_BYTESPERPIXEL(sdl2.SDL_PIXELFORMAT_YV12)
+        sdl2.SDL_UpdateTexture(self._texture,
+                               None,
+                               # We need to swap the CB and CR planes
+                               Y + V + U,
+                               pitch)
         sdl2.SDL_RenderClear(self._renderer)
         sdl2.SDL_RenderCopy(self._renderer, self._texture, None, displayrect)
         sdl2.SDL_RenderPresent(self._renderer)
         self._frames += 1
+        # To avoid X-Video congestion
+        time.sleep(0.01)
 
 
 def play_file(fname, view):
@@ -71,10 +71,7 @@ def play_file(fname, view):
         while True:
             frame = vdec.decode(dmx.stream(sid))
             img = frame.image(PixelFormat.AV_PIX_FMT_YUV420P)
-            # We need to swap the CB and CR planes
-            view.show(img.plane(0) + img.plane(2) + img.plane(1))
-            # To avoid X-Video congestion
-            time.sleep(0.01)
+            view.show(img.plane(0), img.plane(2), img.plane(1))
 
 
 def _main(fname):
