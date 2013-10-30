@@ -31,6 +31,8 @@ class PygameViewer(object):
     def show(self, Y, U, V):
         self._ovl.display((Y, U, V))
         self._frames += 1
+        # To avoid X-Video congestion
+        time.sleep(0.01)
 
 
 def play_file(fname, view):
