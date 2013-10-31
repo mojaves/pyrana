@@ -101,7 +101,7 @@ class SDLViewer(object):
         self._Y = self._ffi.new("uint8_t[]", self._yw * self._yh)
         self._U = self._ffi.new("uint8_t[]", self._cw * self._ch)
         self._V = self._ffi.new("uint8_t[]", self._cw * self._ch)
-        self._SDL.SDL_WM_SetCaption(b"pyrana SDL preview", self._ffi.NULL)
+        self._SDL.SDL_WM_SetCaption("pyrana SDL preview".encode('utf-8'), self._ffi.NULL)
         self._surface = self._SDL.SDL_SetVideoMode(w, h, 0, SDL_HWSURFACE)
         if self._surface is self._ffi.NULL:
             sys.stderr.write("%s\n" % self.get_error())
