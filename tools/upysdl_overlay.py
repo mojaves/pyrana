@@ -113,7 +113,7 @@ class SDLViewer(object):
             sys.stderr.write("%s\n" % self.get_error())
 
     def __del__(self):
-        self._SDL.SDL_FreeYUVOverlay(self._overlay);
+        self._SDL.SDL_FreeYUVOverlay(self._overlay)
         # the surface obtained by SetVideoMode will be automagically
         # released by SDL_Quit
 
@@ -126,7 +126,7 @@ class SDLViewer(object):
         self._overlay.pixels[1] = self._U
         self._overlay.pixels[2] = self._V
         self._SDL.SDL_UnlockYUVOverlay(self._overlay)
-        self._SDL.SDL_DisplayYUVOverlay(self._overlay, self._rect);
+        self._SDL.SDL_DisplayYUVOverlay(self._overlay, self._rect)
         self._frames += 1
 
 
