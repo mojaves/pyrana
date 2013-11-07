@@ -3,12 +3,12 @@
 
 import sys
 import time
-import pprint
 import cffi
 import pyrana
 import pyrana.errors
 import pyrana.formats
 from pyrana.formats import MediaType
+
 
 SDL_INIT_TIMER       = 0x00000001
 SDL_INIT_AUDIO       = 0x00000010
@@ -37,6 +37,7 @@ SDL_OPENGL     = 0x00000002
 SDL_OPENGLBLIT = 0x0000000A
 SDL_RESIZABLE  = 0x00000010
 SDL_NOFRAME    = 0x00000020
+
 
 _SDL_DECLS = """
 typedef struct SDL_Surface SDL_Surface;
