@@ -192,6 +192,7 @@ class Demuxer(object):
         raise StopIteration
 
     def next(self):
+        """python 2.x iterator hook."""
         return self.__next__()
 
     def close(self):
