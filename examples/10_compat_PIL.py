@@ -18,13 +18,12 @@ import pyrana.video
 import pyrana.formats
 from pyrana.formats import MediaType
 import PIL
-from PIL import Image
-
-# never forget this!
-pyrana.setup()
 
 
 def _main(args):
+    # never forget this!
+    pyrana.setup()
+
     with open(args[1], 'rb') as f:
         dmx = pyrana.formats.Demuxer(f)
         # automatically finds the first video stream.
