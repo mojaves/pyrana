@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
 
+"""
+decode the first video stream of a media file and writes
+it as PPM frames.
+"""
+
 import sys
 import pyrana
 import pyrana.errors
@@ -26,6 +31,14 @@ def ppm_write(frame, seqno):
 
 
 def process_file(srcname, step=1):
+    """
+    extract the frames from the first video stream found in
+    srcname (a path name) and write them down as PPM format.
+    write one frame each `step':
+    step=1: every frame
+    step=2: write,skip,write,skip,...
+    and so on.
+    """
     with open(srcname, 'rb') as src:
         dmx = pyrana.formats.Demuxer(src)
         sid = pyrana.formats.find_stream(dmx.streams,
@@ -44,6 +57,7 @@ def process_file(srcname, step=1):
 
 
 def _main(srcname, step=1):
+    """the usual entry point."""
     pyrana.setup()
 
     try:

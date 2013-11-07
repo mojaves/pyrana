@@ -22,6 +22,14 @@ pyrana.setup()
 # for a more pythonic and definitely recommended interface,
 # look at the `extract_iter.py' example.
 def extract_stream(src, sid, out):
+    """
+    extracts only the `sid' stream from the source and write it into the
+    destination.
+    `src' is an externally managed file-like. It must be open in read only mode,
+    and must returns bytes() when read.
+    `dst' is an externally managed file-like too. It must be open in a
+    write-compatible mode, and must handle bytes() writes.
+    """
     try:
         dmx = pyrana.formats.Demuxer(src)
         while True:
@@ -39,7 +47,7 @@ def extract_stream(src, sid, out):
             pkt = dmx.read_frame(sid)
             # Once you got a Packet, you can easily convert it to bytes()
             # Packet data is immutable, so the conversion is straightforward.
-            w = out.write(bytes(pkt))
+            out.write(bytes(pkt))
     except pyrana.errors.EOSError:
         pass  # normal termination! much like StopIteration.
     except pyrana.errors.PyranaError as err:
@@ -48,6 +56,7 @@ def extract_stream(src, sid, out):
 
 
 def _main(exe, args):
+    """the usual entry point."""
     try:
         src, sid, dst = args
         with open(src, "rb") as fin, open(dst, 'wb') as fout:

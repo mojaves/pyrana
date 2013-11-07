@@ -29,13 +29,15 @@ pyrana.setup()
 
 
 class MediaInfo(object):
+    """easy access to the informations about a media stream."""
     def __init__(self, path):
         self._path = path
         self._info = []
         self.inspect(path=path)
 
     def inspect(self, path):
-        with open(path, "rb") as f:
+        """inspects the media stream at the given path."""
+        with open(path, "rb") as src:
             try:
                 # Demuxer objects need binary access to a file(-like).
                 # The file-like must be already open, and Demuxers will
@@ -48,23 +50,24 @@ class MediaInfo(object):
                 # In this example, the demuxer will just pull out data from
                 # the file-like; seek() and tell() should be supported too
                 # depending on the format being carried.
-                dmx = pyrana.formats.Demuxer(f)
+                dmx = pyrana.formats.Demuxer(src)
                 # streams: a tuple of informations about the media file
                 # streams. Of course each metadata refers to the corresponding
                 # index.
                 self._info = dmx.streams
-            except pyrana.errors.PyranaError as err:
+            except pyrana.errors.PyranaError:
                 self._info = ()
 
     def __str__(self):  
         return \
-            "Media(name=\"%s\")\n " %(self._path) + \
+            "Media(name=\"%s\")\n " % (self._path) + \
             "\n ".join(str(info) for info in self._info)
 
 
 def _main(args):
-    for mf in args:
-        print(str(MediaInfo(mf)))
+    """the usual entry point."""
+    for arg in args:
+        print(str(MediaInfo(arg)))
 
 
 if __name__ == "__main__":
