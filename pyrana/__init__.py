@@ -6,6 +6,13 @@ libraries, but provides an independent API.
 
 import platform
 
+from . import formats
+from . import packet
+from . import audio
+from . import video
+from . import versions
+from . import errors
+
 
 __version_tuple__ = (0, 2, 90)  # aka the 'Version:'
 __version__ = '.'.join(str(ver) for ver in __version_tuple__)
