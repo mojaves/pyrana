@@ -16,7 +16,7 @@ from pyrana.formats import MediaType
 
 def process_file(srcname, outname='out.wav'):
     with open(srcname, 'rb') as src, \
-         contextlib.closing(wave.open('out.wav', 'wb')) as dst:
+         contextlib.closing(wave.open(outname, 'wb')) as dst:
         dmx = pyrana.formats.Demuxer(src)
         sid = pyrana.formats.find_stream(dmx.streams,
                                          0,
