@@ -69,7 +69,7 @@ class FF(object):
             hfiles.extend(glob.glob(os.path.join(root, self._path, name)))
         data = []
         for hfile in hfiles:
-            with open(hfile, 'rt') as src:
+            with open(hfile) as src:
                 data.append(src.read())
         return ''.join(data)
 
