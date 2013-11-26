@@ -3,6 +3,7 @@ This module provides the transport layer interface: encoded packets,
 Muxer, Demuxers and their support code.
 """
 
+import warnings
 from collections import OrderedDict
 from enum import IntEnum
 
@@ -224,6 +225,10 @@ class Demuxer(object):
         """
         if not self._ready:
             raise pyrana.errors.ProcessingError("stream not yet open")
+        if stream_id != STREAM_ANY:
+            warnings.warn("seek interface is still experimental."\
+                          "Likely broken if stream_id != STREAM_ANY",
+                          RuntimeWarning)
         raise NotImplementedError
 
     def seek_ts(self, tstamp, stream_id=STREAM_ANY):
@@ -231,11 +236,14 @@ class Demuxer(object):
         seek to the given timestamp (msecs) in the stream.
         """
         # FIXME: convert tstamp in stream_id time units
-        # FIXME: STREAM_ANY is forced to make things work.
         if not self._ready:
             raise pyrana.errors.ProcessingError("stream not yet open")
+        if stream_id != STREAM_ANY:
+            warnings.warn("seek interface is still experimental."\
+                          "Likely broken if stream_id != STREAM_ANY",
+                          RuntimeWarning)
         ffh = self._ff
-        err = ffh.lavf.avformat_seek_file(self._pctx[0], STREAM_ANY,
+        err = ffh.lavf.avformat_seek_file(self._pctx[0], stream_id,
                                           _TS_MIN, tstamp, _TS_MAX,
                                           SeekFlags.AVSEEK_FLAG_ANY)
         if err < 0:

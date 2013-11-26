@@ -1,5 +1,7 @@
 #!/usr/bin/python
 
+import warnings
+
 import os.path
 from pyrana.common import MediaType
 from pyrana.formats import STREAM_ANY
@@ -18,18 +20,21 @@ class TestDemuxerSeek(unittest.TestCase):
         with open(BBB_SAMPLE, 'rb') as fin:
             dmx = pyrana.formats.Demuxer(fin, delay_open=True)
             with self.assertRaises(pyrana.errors.ProcessingError):
-                dmx.seek_frame(0, 3)
+                with warnings.catch_warnings():
+                    dmx.seek_frame(3)
 
     def test_seek_video_ts_not_ready(self):
         with open(BBB_SAMPLE, 'rb') as fin:
             dmx = pyrana.formats.Demuxer(fin, delay_open=True)
             with self.assertRaises(pyrana.errors.ProcessingError):
-                dmx.seek_ts(0, 100)
+                with warnings.catch_warnings():
+                    dmx.seek_ts(100)
 
     def read_pkt_at_ts(self, sid, ts=100):
         with open(BBB_SAMPLE, 'rb') as fin:
             dmx = pyrana.formats.Demuxer(fin)
-            dmx.seek_ts(sid, ts)
+            with warnings.catch_warnings():
+                dmx.seek_ts(ts, sid)
             pkt = dmx.read_frame(sid)
             assert(pkt)
             assert(len(pkt))
@@ -38,7 +43,8 @@ class TestDemuxerSeek(unittest.TestCase):
     def read_pkt_at_frameno(self, sid, frameno=3):
         with open(BBB_SAMPLE, 'rb') as fin:
             dmx = pyrana.formats.Demuxer(fin)
-            dmx.seek_frame(sid, frameno)
+            with warnings.catch_warnings():
+                dmx.seek_frame(frameno, sid)
             pkt = dmx.read_frame(sid)
             assert(pkt)
             assert(len(pkt))
