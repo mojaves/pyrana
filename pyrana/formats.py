@@ -157,6 +157,16 @@ def tb_to_str(tb):
 AV_TIME_BASE = 1000000
 
 
+def rescale_ts(tstamp, stream_tb):
+    """
+    rescale a given timestamp by the (given) stream timebase.
+    """
+    tb_q = ffh.ffi.new('AVRational *')
+    tb_q.num = 1
+    tb_q.den = AV_TIME_BASE
+    return av_rescale_q(tstamp, tb_q[0], stream_tb);
+
+
 class Demuxer(object):
     """
     Demuxer object. Use a file-like for real I/O.
@@ -165,6 +175,22 @@ class Demuxer(object):
     If the file format is_seekable but the file-like doesn't support
     seek, expect weird things.
     """
+    def _ensure_ready(self):
+        """
+        ensures the Demuxer is ready to roll.
+        """
+        if not self._ready:
+            raise pyrana.errors.ProcessingError("media not yet open")
+
+    def _ensure_stream_id(self, stream_id):
+        """
+        ensures the given stream_id is valid, and the demuxer is ready.
+        """
+        nstreams = len(self.streams)
+        if stream_id < 0 or stream_id > nstreams:
+            msg = "invalid stream id not in [0,%i]" % nstreams
+            raise pyrana.errors.ProcessingError(msg)
+
     def __init__(self, src, name=None, delay_open=False):
         """
         Demuxer(src, name="")
@@ -233,9 +259,9 @@ class Demuxer(object):
         """
         seek to the given frame number in the stream.
         """
-        if not self._ready:
-            raise pyrana.errors.ProcessingError("stream not yet open")
+        self._ensure_ready()
         if stream_id != STREAM_ANY:
+            self._ensure_stream_id(stream_id)
             warnings.warn("seek interface is still experimental."\
                           "Likely broken if stream_id != STREAM_ANY",
                           RuntimeWarning)
@@ -245,16 +271,19 @@ class Demuxer(object):
         """
         seek to the given timestamp (msecs) in the stream.
         """
-        # FIXME: convert tstamp in stream_id time units
-        if not self._ready:
-            raise pyrana.errors.ProcessingError("stream not yet open")
+        self._ensure_ready()
         if stream_id != STREAM_ANY:
+            self._ensure_stream_id(stream_id)
             warnings.warn("seek interface is still experimental."\
                           "Likely broken if stream_id != STREAM_ANY",
                           RuntimeWarning)
+            ts = rescale_ts(tstamp,
+                            self._pctx[0].streams[stream_id].time_base)
+        else:
+            ts = tstamp
         ffh = self._ff
         err = ffh.lavf.avformat_seek_file(self._pctx[0], stream_id,
-                                          _TS_MIN, tstamp, _TS_MAX,
+                                          _TS_MIN, ts, _TS_MAX,
                                           SeekFlags.AVSEEK_FLAG_ANY)
         if err < 0:
             msg = "seek to time %i failed" % (tstamp)
@@ -271,8 +300,9 @@ class Demuxer(object):
         - a stream id is specified, and such streams doesn't exists.
         - the streams ends.
         """
-        if not self._ready:
-            raise pyrana.errors.ProcessingError("stream not yet open")
+        self._ensure_ready()
+        if stream_id != STREAM_ANY:
+            self._ensure_stream_id(stream_id)
         return _read_frame(self._ff, self._pctx[0], _new_cpkt, stream_id)
 
     def open_decoder(self, stream_id):
@@ -282,14 +312,8 @@ class Demuxer(object):
         to decode the selected stream.
         Like doing things manually, just easily.
         """
-        if not self._ready:
-            raise pyrana.errors.ProcessingError("media not yet open")
-
-        nstreams = len(self.streams)
-        if stream_id < 0 or stream_id > nstreams:
-            msg = "invalid stream id not in [0,%i]" % nstreams
-            raise pyrana.errors.ProcessingError(msg)
-
+        self._ensure_ready()
+        self._ensure_stream_id(stream_id)  # STREAM_ANY is not valid here
         ctx = self._pctx[0].streams[stream_id].codec
         return decoder_for_stream(ctx, stream_id,
                                   pyrana.video.Decoder,
