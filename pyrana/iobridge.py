@@ -4,7 +4,7 @@ This module is not part of the pyrana public API.
 """
 
 from .packet import PKT_SIZE
-from . import ff, errors
+from . import ff
 
 
 class Buffer(object):
