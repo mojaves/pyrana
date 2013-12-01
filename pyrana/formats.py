@@ -7,15 +7,14 @@ import warnings
 from collections import OrderedDict
 from enum import IntEnum
 
-from pyrana.common import MediaType, to_media_type, AttrDict
-from pyrana.common import find_source_format, get_field_int, strerror
-from pyrana.iobridge import IOSource
-from pyrana.packet import Packet, _new_cpkt
-from pyrana.codec import decoder_for_stream
-import pyrana.audio  # see #1 below
-import pyrana.video  # see #1 below
-import pyrana.errors
-import pyrana.ff
+from .common import MediaType, to_media_type, AttrDict
+from .common import find_source_format, get_field_int, strerror
+from .iobridge import IOSource
+from .packet import Packet, _new_cpkt
+from .codec import decoder_for_stream
+from . import audio  # see #1 below
+from . import video  # see #1 below
+from . import ff, errors
 
 # #1 those are upside down dependencies which needs to be removed.
 # From a layering standpoint, Demuxer/Muxer/Packets are at a lowe
@@ -58,7 +57,7 @@ def find_stream(streams, nth, media):
                 return sid
             cnt += 1
     msg = "mismatching media types for stream"
-    raise pyrana.errors.NotFoundError(msg)
+    raise errors.NotFoundError(msg)
 
 
 # see avformat for the meaning of the flags
@@ -137,10 +136,10 @@ def _read_frame(ffh, ctx, new_pkt, stream_id):
         err = av_read_frame(ctx, pkt)
         if err < 0:
             if ffh.lavf.url_feof(ctx.pb):
-                raise pyrana.errors.EOSError()
+                raise errors.EOSError()
             else:
                 msg = "error while reading data: %i" % err
-                raise pyrana.errors.ProcessingError(msg)
+                raise errors.ProcessingError(msg)
         if stream_id == STREAM_ANY or pkt.stream_index == stream_id:
             break
         ffh.lavc.av_free_packet(pkt)
@@ -180,7 +179,7 @@ class Demuxer(object):
         ensures the Demuxer is ready to roll.
         """
         if not self._ready:
-            raise pyrana.errors.ProcessingError("media not yet open")
+            raise errors.ProcessingError("media not yet open")
 
     def _ensure_stream_id(self, stream_id):
         """
@@ -189,7 +188,7 @@ class Demuxer(object):
         nstreams = len(self.streams)
         if stream_id < 0 or stream_id > nstreams:
             msg = "invalid stream id not in [0,%i]" % nstreams
-            raise pyrana.errors.ProcessingError(msg)
+            raise errors.ProcessingError(msg)
 
     def __init__(self, src, name=None, delay_open=False):
         """
@@ -199,7 +198,7 @@ class Demuxer(object):
         A Demuxer needs a RawIOBase-compliant as a source of data.
         The RawIOBase-compliant object must be already open.
         """
-        self._ff = pyrana.ff.get_handle()
+        self._ff = ff.get_handle()
         ffh = self._ff  # shortcut
         self._streams = []
         self._pctx = ffh.ffi.new('AVFormatContext **')
@@ -225,7 +224,7 @@ class Demuxer(object):
     def __next__(self):
         try:
             return self.read_frame()
-        except pyrana.errors.EOSError:
+        except errors.EOSError:
             pass
         raise StopIteration
 
@@ -250,7 +249,7 @@ class Demuxer(object):
         err = ffh.lavf.avformat_open_input(self._pctx, filename,
                                            fmt, ffh.ffi.NULL)
         if err < 0:
-            raise pyrana.errors.SetupError("open error=%i" % err)
+            raise errors.SetupError("open error=%i" % err)
         ffh.lavf.avformat_find_stream_info(self._pctx[0], ffh.ffi.NULL)
         # as first attempt we want to be optimist and we choose
         # to ignore any errors here, deemed as not critical
@@ -290,7 +289,7 @@ class Demuxer(object):
         if err < 0:
             msg = "seek to time %i failed (error=%s)" \
                   % (tstamp, strerror(err))
-            raise pyrana.errors.ProcessingError(msg)
+            raise errors.ProcessingError(msg)
 
     def read_frame(self, stream_id=STREAM_ANY):
         """
@@ -319,8 +318,8 @@ class Demuxer(object):
         self._ensure_stream_id(stream_id)  # STREAM_ANY is not valid here
         ctx = self._pctx[0].streams[stream_id].codec
         return decoder_for_stream(ctx, stream_id,
-                                  pyrana.video.Decoder,
-                                  pyrana.audio.Decoder)
+                                  video.Decoder,
+                                  audio.Decoder)
 
     def _stream_info(self, stream):
         """
@@ -365,7 +364,7 @@ class Demuxer(object):
         while True:
             try:
                 yield self.read_frame(sid)
-            except pyrana.errors.EOSError:
+            except errors.EOSError:
                 break
         raise StopIteration
 
@@ -379,5 +378,5 @@ class Demuxer(object):
         if not self._streams:
             self._streams = self._parse_streams()
             if not self._streams:
-                raise pyrana.errors.ProcessingError("no streams found")
+                raise errors.ProcessingError("no streams found")
         return self._streams

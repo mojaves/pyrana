@@ -3,9 +3,8 @@ I/O glue code between Python and the FFMpeg libraries.
 This module is not part of the pyrana public API.
 """
 
-from pyrana.packet import PKT_SIZE
-import pyrana.errors
-import pyrana.ff
+from .packet import PKT_SIZE
+from . import ff, errors
 
 
 class Buffer(object):
@@ -14,7 +13,7 @@ class Buffer(object):
     optimal usage by ffmpeg libraries.
     """
     def __init__(self, size=PKT_SIZE):
-        self._ff = pyrana.ff.get_handle()
+        self._ff = ff.get_handle()
         self._size = size
         self._data = self._ff.lavu.av_malloc(size)
 
@@ -56,7 +55,7 @@ def _read(handle, buf, buf_size):
     """
     libavformat read callback. Actually: wrapper. Do not use directly.
     """
-    ffh = pyrana.ff.get_handle()
+    ffh = ff.get_handle()
     src = ffh.ffi.from_handle(handle)
     rbuf = ffh.ffi.buffer(buf, buf_size)
     ret = src.readinto(rbuf)
@@ -68,7 +67,7 @@ def _read(handle, buf, buf_size):
 #    """
 #    libavformat write callback. Actually: wrapper. Do not use directly.
 #    """
-#    ffh = pyrana.ff.get_handle()
+#    ffh = ff.get_handle()
 #    dst = ffh.ffi.from_handle(handle)
 #    wbuf = ffh.ffi.buffer(buf, buf_size)
 #    dst.write(wbuf)
@@ -78,7 +77,7 @@ def _seek(handle, offset, whence):
     """
     libavformat seek callback. Actually: wrapper. Do not use directly.
     """
-    ffh = pyrana.ff.get_handle()
+    ffh = ff.get_handle()
     src = ffh.ffi.from_handle(handle)
     ret = src.seek(offset, whence)
     return ret
@@ -93,7 +92,7 @@ class IOSource(object):
     which is enough (it is?) to build a class.
     """
     def __init__(self, src, seekable=True, bufsize=PKT_SIZE, delay_open=False):
-        self._ff = pyrana.ff.get_handle()
+        self._ff = ff.get_handle()
         ffi = self._ff.ffi
         self.avio = ffi.NULL
         self._buf = Buffer(bufsize)
@@ -120,7 +119,7 @@ class IOSource(object):
         So there is little sense to pack the lifetime handling
         in Buffer here.
         """
-        self._ff = pyrana.ff.get_handle()
+        self._ff = ff.get_handle()
         return self._ff.lavu.av_malloc(size)
 
     @property

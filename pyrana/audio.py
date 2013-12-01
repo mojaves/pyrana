@@ -4,13 +4,13 @@ Encoders, Decoders and their support code.
 """
 
 from enum import IntEnum
-from pyrana.common import to_sample_format
-from pyrana.codec import BaseFrame, BaseDecoder, bind_frame
-from pyrana.errors import ProcessingError, SetupError
-import pyrana.ff
+from .common import PY3, to_sample_format
+from .codec import BaseFrame, BaseDecoder, bind_frame
+from .errors import ProcessingError, SetupError
+from . import ff
 # the following is just to export to the clients the Enums.
 # pylint: disable=W0611
-from pyrana.ffenums import SampleFormat
+from .ffenums import SampleFormat
 
 
 INPUT_CODECS = frozenset()
@@ -108,7 +108,7 @@ class Samples(object):
         The libav object must be already initialized and ready to go.
         WARNING: raw access. Use with care.
         """
-        ffh = pyrana.ff.get_handle()
+        ffh = ff.get_handle()
         samples = object.__new__(cls)
         samples._ff = ffh
         samples._swr = swr
@@ -137,7 +137,7 @@ class Samples(object):
         return self.blob()
     
     def __str__(self):
-        return repr(self) if pyrana.PY3 else self.blob()
+        return repr(self) if PY3 else self.blob()
 
     def blob(self):
         """returns the bytes() dump of the object"""
@@ -250,7 +250,7 @@ def _wire_dec(dec):
     """
     Inject the audio decoding hooks in a generic decoder.
     """
-    ffh = pyrana.ff.get_handle()
+    ffh = ff.get_handle()
     dec._av_decode = ffh.lavc.avcodec_decode_audio4
     dec._new_frame = Frame.from_cdata
     dec._mtype = "audio"

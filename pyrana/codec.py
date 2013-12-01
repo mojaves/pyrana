@@ -6,11 +6,11 @@ This module is not part of the pyrana public API.
 from types import GeneratorType
 from contextlib import contextmanager
 
-from pyrana.packet import raw_packet
-from pyrana.common import MediaType, to_media_type, to_str, AttrDict
-from pyrana.errors import SetupError, ProcessingError, \
-                          NeedFeedError, EOSError
-import pyrana.ff
+from .packet import raw_packet
+from .common import MediaType, to_media_type, to_str, AttrDict
+from .errors import SetupError, ProcessingError, \
+                    NeedFeedError, EOSError, PyranaError
+from . import ff
 
 
 def decoder_for_stream(ctx, stream_id, vdec, adec):
@@ -41,7 +41,7 @@ class CodecMixin(object):
     """
     def __init__(self, params=None):
         params = {} if params is None else params
-        self._ff = pyrana.ff.get_handle()
+        self._ff = ff.get_handle()
         self._params = params
         self._codec = None
         self._ctx = None
@@ -74,7 +74,7 @@ class BaseFrame(object):
     Do not use directly.
     """
     def __init__(self):
-        self._ff = pyrana.ff.get_handle()
+        self._ff = ff.get_handle()
         self._ppframe = None
         self._frame = None
 
@@ -106,7 +106,7 @@ class BaseFrame(object):
         The libav object must be already initialized and ready to go.
         WARNING: raw access. Use with care.
         """
-        ffh = pyrana.ff.get_handle()
+        ffh = ff.get_handle()
         frame = object.__new__(cls)
         frame._ff = ffh
         frame._ppframe = ppframe
@@ -176,7 +176,7 @@ def bind_frame(ffh):
     try:
         ppframe = _new_av_frame_pp(ffh)
         yield ppframe
-    except pyrana.errors.PyranaError:
+    except PyranaError:
         ffh.lavc.avcodec_free_frame(ppframe)
         raise
     # otherwise the ownership *has* to be passed.
@@ -305,7 +305,7 @@ class BaseDecoder(CodecMixin):
         The libav object must be already initialized and ready to go.
         WARNING: raw access. Use with care.
         """
-        ffh = pyrana.ff.get_handle()
+        ffh = ff.get_handle()
         dec = object.__new__(cls)
         CodecMixin.__init__(dec, {})  # MUST be explicit
         ctx.codec = ffh.lavc.avcodec_find_decoder(ctx.codec_id)

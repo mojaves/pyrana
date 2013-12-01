@@ -5,9 +5,8 @@ For internal usage only: do not use nor import directly.
 
 from contextlib import contextmanager
 from enum import IntEnum
-
-import pyrana.errors
-import pyrana.ff
+from .common import PY3
+from . import ff, errors
 
 
 # this save us a call to ffi.cast("int64_t", TS_NULL)
@@ -40,7 +39,7 @@ def _new_cpkt(ffh, size):
     else:
         err = ffh.lavc.av_new_packet(pkt, size)
         if err < 0:
-            raise pyrana.errors.ProcessingError("cannot allocate packet")
+            raise errors.ProcessingError("cannot allocate packet")
     return pkt
 
 
@@ -49,7 +48,7 @@ def raw_packet(size):
     """
     context manager for a raw ffmpeg packet of the given size.
     """
-    ffh = pyrana.ff.get_handle()
+    ffh = ff.get_handle()
     pkt = _new_cpkt(ffh, size)
     yield pkt
     ffh.lavc.av_free_packet(pkt)
@@ -64,7 +63,7 @@ class Packet(object):
     """
     def __init__(self, stream_id=None,
                  data=None, pts=TS_NULL, dts=TS_NULL, is_key=False):
-        self._ff = pyrana.ff.get_handle()
+        self._ff = ff.get_handle()
         ffi = self._ff.ffi  # shortcut
 
         size = PKT_SIZE
@@ -92,7 +91,7 @@ class Packet(object):
         The libav object must be already initialized and ready to go.
         WARNING: raw access. Use with care.
         """
-        ffh = pyrana.ff.get_handle()
+        ffh = ff.get_handle()
         pkt = object.__new__(cls)
         pkt._ff = ffh
         pkt._pkt = cpkt
@@ -119,7 +118,7 @@ class Packet(object):
         return self.blob()
 
     def __str__(self):
-        return repr(self) if pyrana.PY3 else self.blob()
+        return repr(self) if PY3 else self.blob()
 
     def __eq__(self, other):
         return self.data == other.data

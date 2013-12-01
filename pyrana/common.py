@@ -3,11 +3,13 @@ common code which do not fits better elsewhere.
 This module is not part of the pyrana public API.
 """
 
+import platform
 from enum import IntEnum
-import pyrana
-import pyrana.errors
-import pyrana.ff
-from pyrana.ffenums import PixelFormat, SampleFormat, PictureType
+from . import ff, errors
+from .ffenums import PixelFormat, SampleFormat, PictureType
+
+
+PY3 = (platform.python_version_tuple() > ('3',))
 
 
 def blob(obj):
@@ -92,7 +94,7 @@ def to_str(cstr, ffi=None):
     convert a C(ffi) string in a proper python string.
     """
     if ffi is None:
-        ffh = pyrana.ff.get_handle()
+        ffh = ff.get_handle()
         ffi = ffh.ffi
     return ffi.string(cstr).decode('utf-8')
 
@@ -144,7 +146,7 @@ def strerror(errnum, ffh=None):
     Pythonic wrapper over av_strerror
     """
     if ffh is None:
-        ffh = pyrana.ff.get_handle()
+        ffh = ff.get_handle()
     buf = ffh.ffi.new('char [64]')  # AV_ERROR_MAX_STRING_SIZE = 64
     ret = ffh.lavu.av_strerror(errnum, buf, 64)  # XXX
     return to_str(buf, ffh.ffi) if ret == 0 else "N/A"
@@ -168,11 +170,11 @@ def _find_format_by_name(name, next_fmt):
     Requires an explicit iterator callable, and that's
     exactly the reason why you should'nt use this outside pyrana.
     """
-    ffh = pyrana.ff.get_handle()
+    ffh = ff.get_handle()
     for fname, fdesc in _iter_fmts(ffh.ffi, next_fmt):
         if name == fname:
             return fdesc
-    raise pyrana.errors.UnsupportedError
+    raise errors.UnsupportedError
 
 
 def find_source_format(name=None):
@@ -180,7 +182,7 @@ def find_source_format(name=None):
     find and return the right source libavformat format descriptor
     by name. None/ffi.NULL just means autodetect.
     """
-    ffh = pyrana.ff.get_handle()
+    ffh = ff.get_handle()
     fmt = ffh.ffi.NULL
     if name is not None:
         fmt = _find_format_by_name(name, ffh.lavf.av_iformat_next)
@@ -204,7 +206,7 @@ def all_formats():
     builds the sets of the formats supported by
     libavformat, and which, in turn, by pyrana.
     """
-    ffh = pyrana.ff.get_handle()
+    ffh = ff.get_handle()
     next_in = ffh.lavf.av_iformat_next
     next_out = ffh.lavf.av_oformat_next
     return ([x for x, _ in _iter_fmts(ffh.ffi, next_in)],
@@ -217,7 +219,7 @@ def all_codecs():
     libavcodec, and which, in turn, by pyrana.
     BUG? Do not distinguish between enc and dec.
     """
-    ffh = pyrana.ff.get_handle()
+    ffh = ff.get_handle()
     audio, video = [], []
     for name, _type, _ in _iter_codec(ffh.ffi, ffh.lavc.av_codec_next):
         if _type == MediaType.AVMEDIA_TYPE_AUDIO:
@@ -233,10 +235,10 @@ def get_field_int(ffobj, name):
     extract the integer field with value `name' from
     the C-data object `ffobj'
     """
-    ffh = pyrana.ff.get_handle()
+    ffh = ff.get_handle()
     out_val = ffh.ffi.new('int64_t[1]')
     err = ffh.lavu.av_opt_get_int(ffobj, name.encode('utf-8'), 0, out_val)
     if err < 0:
         msg = "cannot fetch the field '%s'" % name
-        raise pyrana.errors.NotFoundError(msg)
+        raise errors.NotFoundError(msg)
     return out_val[0]

@@ -7,8 +7,8 @@ the current environment.
 DO NOT USE at your own risk! :)
 """
 
-from pyrana.errors import LibraryVersionError
-import pyrana.ff
+from .errors import LibraryVersionError
+from . import ff
 
 
 def av_version_pack(major, minor, micro):
@@ -33,7 +33,7 @@ def autoverify(ffh=None):
     Otherwise raises LibraryVersionError.
     """
     if ffh is None:
-        ffh = pyrana.ff.get_handle()
+        ffh = ff.get_handle()
     try:
         lavc, lavf, lavu = ffh.versions()
         sws, swr = ffh.aux_versions()
