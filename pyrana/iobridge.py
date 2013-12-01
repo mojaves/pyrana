@@ -124,6 +124,9 @@ class IOSource(object):
 
     @property
     def seekable(self):
+        """
+        is this IOSource seek-enabled?
+        """
         return self._seek != self._ff.ffi.NULL
 
     def open(self):

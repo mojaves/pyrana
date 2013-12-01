@@ -59,7 +59,7 @@ def setup():
     And this includes constants too.
     """
     from .common import all_formats, all_codecs
-    from . import versions, ff, formats, audio, video
+    from . import ff
     ff.setup()
     versions.autoverify()
     # we know all the supported formats/codecs only *after* the

@@ -141,14 +141,17 @@ def to_picture_type(ival):
                          PictureType.AV_PICTURE_TYPE_NONE)
 
 
+AV_ERROR_MAX_STRING_SIZE = 64
+
+
 def strerror(errnum, ffh=None):
     """
     Pythonic wrapper over av_strerror
     """
     if ffh is None:
         ffh = ff.get_handle()
-    buf = ffh.ffi.new('char [64]')  # AV_ERROR_MAX_STRING_SIZE = 64
-    ret = ffh.lavu.av_strerror(errnum, buf, 64)  # XXX
+    buf = ffh.ffi.new('char [%i]' % (AV_ERROR_MAX_STRING_SIZE))
+    ret = ffh.lavu.av_strerror(errnum, buf, AV_ERROR_MAX_STRING_SIZE)
     return to_str(buf, ffh.ffi) if ret == 0 else "N/A"
 
 
