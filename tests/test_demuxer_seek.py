@@ -58,11 +58,9 @@ class TestDemuxerSeek(unittest.TestCase):
     def test_seek_audio_frameno(self):
         self.read_pkt_at_frameno(1)
 
-    @unittest.expectedFailure
     def test_seek_video_ts(self):
         self.read_pkt_at_ts(0)
 
-    @unittest.expectedFailure
     def test_seek_audio_ts(self):
         self.read_pkt_at_ts(1)
 
