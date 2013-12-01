@@ -15,7 +15,7 @@ full functional replacement of the old C-based pyrana.
 Milestone #2 (version 0.3.0)
 ============================
 
-* seek support.
+* seek support. (WIP)
 * compatibility with python 2.7. (DONE)
 * compatibility with pypy 2.1+. (DELAYED: CFFI too old in pypy 2.0)
 * interoperability with PySDL2. (DONE)
