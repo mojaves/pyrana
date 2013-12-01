@@ -146,11 +146,11 @@ def _read_frame(ffh, ctx, new_pkt, stream_id):
     return Packet.from_cdata(pkt)
 
 
-def tb_to_str(tb):
+def tb_to_str(timebase):
     """
     format a time base rational to a string, only for human consumption.
     """
-    return "%.5f" % (tb.num / float(tb.den))
+    return "%.5f" % (timebase.num / float(timebase.den))
 
 
 AV_TIME_BASE = 1000000
@@ -274,17 +274,17 @@ class Demuxer(object):
         ffh = self._ff
         self._ensure_ready()
         if stream_id == STREAM_ANY:
-            ts = int(tstamp / float(AV_TIME_BASE))
+            tstamp = int(tstamp / float(AV_TIME_BASE))
         else:
             self._ensure_stream_id(stream_id)
             warnings.warn("seek interface is still experimental."\
                           "Likely broken if stream_id != STREAM_ANY",
                           RuntimeWarning)
             stream_tb = self._pctx[0].streams[stream_id].time_base
-            ts = ffh.lavu.av_rescale_q(tstamp,
-                                       self._tb_q[0], stream_tb)
+            tstamp = ffh.lavu.av_rescale_q(tstamp,
+                                           self._tb_q[0], stream_tb)
         err = ffh.lavf.avformat_seek_file(self._pctx[0], stream_id,
-                                          _TS_MIN, ts, _TS_MAX,
+                                          _TS_MIN, tstamp, _TS_MAX,
                                           SeekFlags.AVSEEK_FLAG_ANY)
         if err < 0:
             msg = "seek to time %i failed (error=%s)" \
