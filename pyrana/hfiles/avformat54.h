@@ -1,5 +1,10 @@
 void av_register_all(void);
 
+/* frac = 'val + num / den'. must hold: 0 <= num < den. */
+typedef struct AVFrac {
+    int64_t val, num, den;
+} AVFrac;
+
 typedef struct AVInputFormat {
     const char *name;
     /* ... */
@@ -21,6 +26,21 @@ AVIOContext *avio_alloc_context(
        int (*write_packet)(void *opaque, uint8_t *buf, int buf_size),
        int64_t (*seek)(void *opaque, int64_t offset, int whence));
 int url_feof(AVIOContext *s);
+
+typedef struct AVStream {
+    int index;
+    int id;
+    AVCodecContext *codec;
+    AVRational r_frame_rate;
+    void *priv_data;
+    AVFrac pts;
+    AVRational time_base;
+    int64_t duration;
+    int64_t nb_frames;
+    int disposition;
+    enum AVDiscard discard;
+    /* ... */
+} AVStream;
 
 typedef struct AVFormatContext {
     const AVClass *av_class;

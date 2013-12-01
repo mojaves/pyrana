@@ -157,14 +157,14 @@ def tb_to_str(tb):
 AV_TIME_BASE = 1000000
 
 
-def rescale_ts(tstamp, stream_tb):
+def _time_base_q(ffh):
     """
-    rescale a given timestamp by the (given) stream timebase.
+    Builds an AV_TIME_BASE_Q equivalent
     """
     tb_q = ffh.ffi.new('AVRational *')
     tb_q.num = 1
     tb_q.den = AV_TIME_BASE
-    return av_rescale_q(tstamp, tb_q[0], stream_tb);
+    return tb_q
 
 
 class Demuxer(object):
@@ -207,6 +207,7 @@ class Demuxer(object):
         # but libavformat requires a pointer-to-pointer as context argument,
         # so we need to allocate a simple lone double pointer
         # to act as junction.
+        self._tb_q = _time_base_q(ffh)
         self._src = IOSource(src)
         self._pctx[0] = ffh.lavf.avformat_alloc_context()
         self._pctx[0].pb = self._src.avio
@@ -271,22 +272,23 @@ class Demuxer(object):
         """
         seek to the given timestamp (msecs) in the stream.
         """
+        ffh = self._ff
         self._ensure_ready()
-        if stream_id != STREAM_ANY:
+        if stream_id == STREAM_ANY:
+            ts = tstamp / float(AV_TIME_BASE)
+        else:
             self._ensure_stream_id(stream_id)
             warnings.warn("seek interface is still experimental."\
                           "Likely broken if stream_id != STREAM_ANY",
                           RuntimeWarning)
-            ts = rescale_ts(tstamp,
-                            self._pctx[0].streams[stream_id].time_base)
-        else:
-            ts = tstamp
-        ffh = self._ff
+            stream_tb = self._pctx[0].streams[stream_id].time_base
+            ts = ffh.lavu.av_rescale_q(tstamp,
+                                       self._tb_q[0], stream_tb)
         err = ffh.lavf.avformat_seek_file(self._pctx[0], stream_id,
                                           _TS_MIN, ts, _TS_MAX,
                                           SeekFlags.AVSEEK_FLAG_ANY)
         if err < 0:
-            msg = "seek to time %i failed" % (tstamp)
+            msg = "seek to time %i failed (error=%i)" % (tstamp, err)
             raise pyrana.errors.ProcessingError(msg)
 
     def read_frame(self, stream_id=STREAM_ANY):

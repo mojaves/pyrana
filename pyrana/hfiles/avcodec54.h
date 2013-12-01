@@ -150,13 +150,6 @@ typedef struct AVCodecContext {
 } AVCodecContext;
 AVCodecContext *avcodec_alloc_context3(const AVCodec *codec);
 
-typedef struct AVStream {
-   int index;
-   int id;
-   AVCodecContext *codec;
-   /* ... */
-} AVStream;
-
 typedef struct AVCodec {
     const char *name;
     const char *long_name;
