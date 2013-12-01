@@ -8,7 +8,7 @@ from collections import OrderedDict
 from enum import IntEnum
 
 from pyrana.common import MediaType, to_media_type, AttrDict
-from pyrana.common import find_source_format, get_field_int
+from pyrana.common import find_source_format, get_field_int, strerror
 from pyrana.iobridge import IOSource
 from pyrana.packet import Packet, _new_cpkt
 from pyrana.codec import decoder_for_stream
@@ -288,7 +288,8 @@ class Demuxer(object):
                                           _TS_MIN, ts, _TS_MAX,
                                           SeekFlags.AVSEEK_FLAG_ANY)
         if err < 0:
-            msg = "seek to time %i failed (error=%i)" % (tstamp, err)
+            msg = "seek to time %i failed (error=%s)" \
+                  % (tstamp, strerror(err))
             raise pyrana.errors.ProcessingError(msg)
 
     def read_frame(self, stream_id=STREAM_ANY):

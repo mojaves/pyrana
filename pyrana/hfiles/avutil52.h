@@ -2,6 +2,8 @@ void *av_malloc(size_t size);
 void *av_mallocz(size_t size);
 void av_free(void *ptr);
 
+int av_strerror(int errnum, char *errbuf, size_t errbuf_size);
+
 typedef struct AVRational {
      int num;
      int den;
