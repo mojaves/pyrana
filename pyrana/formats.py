@@ -275,7 +275,7 @@ class Demuxer(object):
         ffh = self._ff
         self._ensure_ready()
         if stream_id == STREAM_ANY:
-            ts = tstamp / float(AV_TIME_BASE)
+            ts = int(tstamp / float(AV_TIME_BASE))
         else:
             self._ensure_stream_id(stream_id)
             warnings.warn("seek interface is still experimental."\

@@ -64,6 +64,9 @@ class TestDemuxerSeek(unittest.TestCase):
     def test_seek_audio_ts(self):
         self.read_pkt_at_ts(1)
 
+    def test_seek_any_ts(self):
+        self.read_pkt_at_ts(STREAM_ANY)
+
 
 if __name__ == "__main__":
     unittest.main()
