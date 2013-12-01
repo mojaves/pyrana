@@ -6,7 +6,7 @@ import unittest
 import pyrana.ff
 import pyrana.errors
 import pyrana.packet
-from pyrana.common import blob, get_field_int, AttrDict
+from pyrana.common import blob, get_field_int, AttrDict, strerror
 
 
 @contextmanager
@@ -121,6 +121,11 @@ class TestBlob(object):
             frm = dec.decode(dmx.stream(0))
             img = frm.image()
             assert(blob(img) == bytes(img))
+
+
+class TestErrors(unittest.TestCase):
+    def test_strerror_no_error(self):
+        assert (strerror(0).lower() == 'success')
 
 
 if __name__ == "__main__":
