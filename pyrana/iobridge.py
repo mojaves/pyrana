@@ -101,7 +101,7 @@ class IOSource(object):
         self._read = ffi.callback("int(void *, uint8_t *, int)", _read)
         self._seek = ffi.NULL
         if seekable:
-            self.seek = ffi.callback("int64_t(void *, int64_t, int)", _seek)
+            self._seek = ffi.callback("int64_t(void *, int64_t, int)", _seek)
         if not delay_open:
             self.open()
 
@@ -109,8 +109,7 @@ class IOSource(object):
         self.close()
 
     def __repr__(self):
-        seekable = self._seek != self._ff.ffi.NULL
-        return "IOSource(src=None, seekable=%i)" % (seekable)
+        return "IOSource(src=None, seekable=%i)" % (self.seekable)
 
     def _alloc_buf(self, size):
         """
@@ -123,6 +122,10 @@ class IOSource(object):
         """
         self._ff = pyrana.ff.get_handle()
         return self._ff.lavu.av_malloc(size)
+
+    @property
+    def seekable(self):
+        return self._seek != self._ff.ffi.NULL
 
     def open(self):
         """

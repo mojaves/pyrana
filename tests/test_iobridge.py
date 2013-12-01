@@ -57,6 +57,16 @@ class TestIOSource(unittest.TestCase):
         assert src
         assert repr(src)
 
+    def test_new_empty_seekable(self):
+        f = io.BytesIO(_BZ)
+        src = pyrana.iobridge.IOSource(f)
+        assert src.seekable
+
+    def test_new_empty_not_seekable(self):
+        f = io.BytesIO(_BZ)
+        src = pyrana.iobridge.IOSource(f, seekable=False)
+        assert not src.seekable
+
     def test_new_empty_not_seekable(self):
         f = io.BytesIO(_BZ)
         src = pyrana.iobridge.IOSource(f, seekable=False)
