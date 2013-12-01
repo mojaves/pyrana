@@ -6,6 +6,7 @@ Encoders, Decoders and their support code.
 from enum import IntEnum
 from .common import PY3, to_sample_format
 from .codec import BaseFrame, BaseDecoder, bind_frame
+from .codec import make_payload, wire_decoder
 from .errors import ProcessingError, SetupError
 from . import ff
 # the following is just to export to the clients the Enums.
@@ -109,12 +110,8 @@ class Samples(object):
         WARNING: raw access. Use with care.
         """
         ffh = ff.get_handle()
-        samples = object.__new__(cls)
-        samples._ff = ffh
+        samples = make_payload(cls, ffh, ppframe, parent)
         samples._swr = swr
-        samples._ppframe = ppframe
-        samples._parent = parent  # for shared samples, we must keep alive the
-                                  # parent (pp)frame.
         return samples
 
     def __repr__(self):
@@ -135,7 +132,7 @@ class Samples(object):
 
     def __bytes__(self):
         return self.blob()
-    
+
     def __str__(self):
         return repr(self) if PY3 else self.blob()
 
@@ -246,26 +243,26 @@ class Frame(BaseFrame):
         return _samples_from_frame(self._ff, self, self._ppframe[0], smpfmt)
 
 
-def _wire_dec(dec):
-    """
-    Inject the audio decoding hooks in a generic decoder.
-    """
-    ffh = ff.get_handle()
-    dec._av_decode = ffh.lavc.avcodec_decode_audio4
-    dec._new_frame = Frame.from_cdata
-    dec._mtype = "audio"
-    return dec
-
-
 class Decoder(BaseDecoder):
     """
     - add the 'params' property (read-only preferred alias for getParams)
     - no conversion/scaling will be performed
     - add flush() operation
     """
+    @staticmethod
+    def wire(dec):
+        """
+        wire up the Decoder. See codec.wire_decoder
+        """
+        ffh = ff.get_handle()
+        return wire_decoder(dec,
+                            ffh.lavc.avcodec_decode_audio4,
+                            Frame.from_cdata,
+                            "audio")
+
     def __init__(self, input_codec, params=None):
         super(Decoder, self).__init__(input_codec, params)
-        _wire_dec(self)
+        self.wire(self)
 
     @classmethod
     def from_cdata(cls, ctx):
@@ -275,5 +272,4 @@ class Decoder(BaseDecoder):
         The libav object must be already initialized and ready to go.
         WARNING: raw access. Use with care.
         """
-        dec = BaseDecoder.from_cdata(ctx)
-        return _wire_dec(dec)
+        return cls.wire(BaseDecoder.from_cdata(ctx))

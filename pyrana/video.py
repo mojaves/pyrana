@@ -6,6 +6,7 @@ Encoders, Decoders and their support code.
 from enum import IntEnum
 from .common import PY3, to_pixel_format, to_picture_type
 from .codec import BaseFrame, BaseDecoder, bind_frame
+from .codec import make_payload, wire_decoder
 from .errors import ProcessingError, SetupError
 from . import ff
 # the following is just to export to the clients the Enums.
@@ -130,12 +131,8 @@ class Image(object):
         WARNING: raw access. Use with care.
         """
         ffh = ff.get_handle()
-        image = object.__new__(cls)
-        image._ff = ffh
+        image = make_payload(cls, ffh, ppframe, parent)
         image._sws = sws
-        image._ppframe = ppframe
-        image._parent = parent  # for shared images, we must keep alive the
-                                # parent (pp)frame.
         return image
 
     def __repr__(self):
@@ -328,26 +325,26 @@ class Frame(BaseFrame):
         return bool(self._frame.interlaced_frame)
 
 
-def _wire_dec(dec):
-    """
-    Inject the video decoding hooks in a generic decoder.
-    """
-    ffh = ff.get_handle()
-    dec._av_decode = ffh.lavc.avcodec_decode_video2
-    dec._new_frame = Frame.from_cdata
-    dec._mtype = "video"
-    return dec
-
-
 class Decoder(BaseDecoder):
     """
     - add the 'params' property (read-only preferred alias for getParams)
     - no conversion/scaling will be performed
     - add flush() operation
     """
+    @staticmethod
+    def wire(dec):
+        """
+        wire up the Decoder. See codec.wire_decoder
+        """
+        ffh = ff.get_handle()
+        return wire_decoder(dec,
+                            ffh.lavc.avcodec_decode_video2,
+                            Frame.from_cdata,
+                            "video")
+
     def __init__(self, input_codec, params=None):
         super(Decoder, self).__init__(input_codec, params)
-        _wire_dec(self)
+        self.wire(self)
 
     @classmethod
     def from_cdata(cls, ctx):
@@ -357,5 +354,4 @@ class Decoder(BaseDecoder):
         The libav object must be already initialized and ready to go.
         WARNING: raw access. Use with care.
         """
-        dec = BaseDecoder.from_cdata(ctx)
-        return _wire_dec(dec)
+        return cls.wire(BaseDecoder.from_cdata(ctx))

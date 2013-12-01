@@ -182,6 +182,28 @@ def bind_frame(ffh):
     # otherwise the ownership *has* to be passed.
 
 
+def make_payload(cls, ffh, ppframe, parent):
+    """
+    Setups the common fields of every multimedia payload object.
+    """
+    payload = object.__new__(cls)
+    payload._ff = ffh
+    payload._ppframe = ppframe
+    payload._parent = parent  # for shared payloads, we must keep alive the
+                              # parent (pp)frame.
+    return payload
+
+
+def wire_decoder(dec, av_decode, new_frame, mtype):
+    """
+    Injects the specific decoding hooks in a generic decoder.
+    """
+    dec._av_decode = av_decode
+    dec._new_frame = new_frame
+    dec._mtype = mtype
+    return dec
+
+
 class BaseDecoder(CodecMixin):
     """
     Decoder base class. Common both to audio and video decoders.
