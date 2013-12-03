@@ -4,9 +4,11 @@ This module is not part of the pyrana public API.
 """
 
 from functools import wraps
+import os
 import os.path
 import glob
 import cffi
+from .errors import SetupError
 
 
 # The dreaded singleton. It is a necessary evil[1] and this is the reason why:
@@ -38,6 +40,20 @@ def singleton(cls):
     return cls
 
 
+def av_version_pack(major, minor, micro):
+    """
+    return the version as packed integer
+    """
+    return (major << 16 | minor << 8 | micro)
+
+
+def av_version_unpack(version):
+    """
+    unpack a version integer into a tuple (of integers).
+    """
+    return (version >> 16) & 0xFF, (version >> 8) & 0xFF, (version) & 0xFF
+
+
 @singleton
 class FF(object):
     """
@@ -46,27 +62,59 @@ class FF(object):
     one and exactly one.
     Do not use directly. Use get_handle() instead.
     """
+
+    def _hpath(self, name):
+        """
+        builds the complete relative path for the given pseudoheader.
+        """
+        return os.path.join(self._root, self._path, name)
+
+    def _find(self):
+        """
+        find the most suitable (nearest compatible to the available
+        major version) pseudo headers and returns them as list.
+        """
+        lavc, lavf, lavu = self.versions()
+        # we need reordering. lavu must be loaded first.
+        libs = [ 'avutil', 'avcodec', 'avformat', 'swscale', 'swresample' ]
+        vers = zip(libs,
+                   [ av_version_unpack(v)[0] for v in
+                     ( lavu, lavc, lavf ) + self.aux_versions() ])
+        hnames = []
+        for name, major in vers:
+            found = False
+            hfiles = ('%s%i.h' % (name, major), '%s.h' % (name))
+            for cand in hfiles:
+                hfile = self._hpath(cand)
+                if os.access(hfile, os.R_OK):
+                    found = True
+                    break
+            if found:
+                hnames.append(hfile)
+            else:
+                raise SetupError('missing hfile for %s %i' % (name, major))
+        return hnames
+
     def __init__(self, path="hfiles"):
+        self._root = os.path.abspath(os.path.dirname(__file__))
         self._path = path
         self.ffi = cffi.FFI()
-        self.ffi.cdef(self._gather(["_version.h"]))
-        self.ffi.cdef(self._gather(['avutil*.h',
-                                    'avcodec*.h',
-                                    'avformat*.h',
-                                    'swscale*.h',
-                                    'swresample*.h']))
+        # step 1: gather the versions of the FFmpeg libraries
+        self.ffi.cdef(self._gather([self._hpath("_version.h")]))
         self.lavc = self.ffi.dlopen("avcodec")
         self.lavf = self.ffi.dlopen("avformat")
         self.lavu = self.ffi.dlopen("avutil")
         self.sws = self.ffi.dlopen("swscale")
         self.swr = self.ffi.dlopen("swresample")
+        # step 2: load the best hfiles
+        hfiles = self._find()
+        self.ffi.cdef(self._gather(hfiles))
 
     def _gather(self, names):
         """load all the pyrana pseudo-headers."""
-        root = os.path.abspath(os.path.dirname(__file__))
         hfiles = []
         for name in names:
-            hfiles.extend(glob.glob(os.path.join(root, self._path, name)))
+            hfiles.extend(glob.glob(name))
         data = []
         for hfile in hfiles:
             with open(hfile) as src:

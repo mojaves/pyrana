@@ -8,21 +8,7 @@ DO NOT USE at your own risk! :)
 """
 
 from .errors import LibraryVersionError
-from . import ff
-
-
-def av_version_pack(major, minor, micro):
-    """
-    return the version as packed integer
-    """
-    return (major << 16 | minor << 8 | micro)
-
-
-def av_version_unpack(version):
-    """
-    unpack a version integer into a tuple (of integers).
-    """
-    return (version >> 16) & 0xFF, (version >> 8) & 0xFF, (version) & 0xFF
+from .ff import get_handle, av_version_pack, av_version_unpack
 
 
 def autoverify(ffh=None):
