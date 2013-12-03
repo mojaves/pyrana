@@ -25,7 +25,7 @@ Milestone #2 (version 0.3.0)
 Milestone #3 (version 0.4.0)
 ============================
 
-* compatibility with ffmpeg 2.0 (? waiting for debian packages)
+* compatibility with ffmpeg 2.0+ (WIP)
 * interoperability with numpy.
 * muxing.
 * sync facilities.
