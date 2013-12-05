@@ -19,7 +19,7 @@ def autoverify(ffh=None):
     Otherwise raises LibraryVersionError.
     """
     if ffh is None:
-        ffh = ff.get_handle()
+        ffh = get_handle()
     try:
         lavc, lavf, lavu = ffh.versions()
         sws, swr = ffh.aux_versions()

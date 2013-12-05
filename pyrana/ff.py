@@ -54,6 +54,18 @@ def av_version_unpack(version):
     return (version >> 16) & 0xFF, (version >> 8) & 0xFF, (version) & 0xFF
 
 
+def _gather(names):
+    """load all the pyrana pseudo-headers."""
+    hfiles = []
+    for name in names:
+        hfiles.extend(glob.glob(name))
+    data = []
+    for hfile in hfiles:
+        with open(hfile) as src:
+            data.append(src.read())
+    return ''.join(data)
+
+
 @singleton
 class FF(object):
     """
@@ -100,7 +112,7 @@ class FF(object):
         self._path = path
         self.ffi = cffi.FFI()
         # step 1: gather the versions of the FFmpeg libraries
-        self.ffi.cdef(self._gather([self._hpath("_version.h")]))
+        self.ffi.cdef(_gather([self._hpath("_version.h")]))
         self.lavc = self.ffi.dlopen("avcodec")
         self.lavf = self.ffi.dlopen("avformat")
         self.lavu = self.ffi.dlopen("avutil")
@@ -108,18 +120,7 @@ class FF(object):
         self.swr = self.ffi.dlopen("swresample")
         # step 2: load the best hfiles
         hfiles = self._find()
-        self.ffi.cdef(self._gather(hfiles))
-
-    def _gather(self, names):
-        """load all the pyrana pseudo-headers."""
-        hfiles = []
-        for name in names:
-            hfiles.extend(glob.glob(name))
-        data = []
-        for hfile in hfiles:
-            with open(hfile) as src:
-                data.append(src.read())
-        return ''.join(data)
+        self.ffi.cdef(_gather(hfiles))
 
     def setup(self):
         """
