@@ -4,11 +4,14 @@ This module is not part of the pyrana public API.
 """
 
 from functools import wraps
+import ctypes
 import os
 import os.path
 import glob
 import cffi
 from .errors import SetupError
+
+# TODO: explain why we need ctypes for bootstrap
 
 
 # The dreaded singleton. It is a necessary evil[1] and this is the reason why:
@@ -61,6 +64,7 @@ def _gather(names):
         hfiles.extend(glob.glob(name))
     data = []
     for hfile in hfiles:
+        data.append('/*** HFile: %s ***/\n\n' % hfile)
         with open(hfile) as src:
             data.append(src.read())
     return ''.join(data)
@@ -81,17 +85,16 @@ class FF(object):
         """
         return os.path.join(self._root, self._path, name)
 
-    def _find(self):
+    @property
+    def hfiles(self):
         """
         find the most suitable (nearest compatible to the available
         major version) pseudo headers and returns them as list.
         """
-        lavc, lavf, lavu = self.versions()
         # we need reordering. lavu must be loaded first.
         libs = [ 'avutil', 'avcodec', 'avformat', 'swscale', 'swresample' ]
         vers = zip(libs,
-                   [ av_version_unpack(v)[0] for v in
-                     ( lavu, lavc, lavf ) + self.aux_versions() ])
+                   [ v[0] for v in self.version_tuples() ])
         hnames = []
         for name, major in vers:
             found = False
@@ -107,26 +110,26 @@ class FF(object):
                 raise SetupError('missing hfile for %s %i' % (name, major))
         return hnames
 
+    @property
+    def content(self):
+        return _gather(self.hfiles)
+
     def __init__(self, path="hfiles"):
         self._root = os.path.abspath(os.path.dirname(__file__))
         self._path = path
         self.ffi = cffi.FFI()
-        # step 1: gather the versions of the FFmpeg libraries
-        self.ffi.cdef(_gather([self._hpath("_version.h")]))
+        self.ffi.cdef(_gather(self.hfiles))
         self.lavc = self.ffi.dlopen("avcodec")
         self.lavf = self.ffi.dlopen("avformat")
         self.lavu = self.ffi.dlopen("avutil")
         self.sws = self.ffi.dlopen("swscale")
         self.swr = self.ffi.dlopen("swresample")
-        # step 2: load the best hfiles
-        hfiles = self._find()
-        self.ffi.cdef(_gather(hfiles))
 
     def setup(self):
         """
         initialize the FFMpeg libraries.
         """
-        # libav* already protects against multiple calls.
+        # note: libav* already protects against multiple calls.
         self.lavc.avcodec_register_all()
         self.lavf.av_register_all()
 
@@ -134,16 +137,23 @@ class FF(object):
         """
         fetch the version of the FFMpeg libraries.
         """
-        return (self.lavc.avcodec_version(),
-                self.lavf.avformat_version(),
-                self.lavu.avutil_version())
+        lavu = ctypes.CDLL('libavutil.so')
+        lavc = ctypes.CDLL('libavcodec.so')
+        lavf = ctypes.CDLL('libavformat.so')
+        sws = ctypes.CDLL('libswscale.so')
+        swr = ctypes.CDLL('libswresample.so')
+        return (lavu.avutil_version(),
+                lavc.avcodec_version(),
+                lavf.avformat_version(),
+                sws.swscale_version(),
+                swr.swresample_version())
 
-    def aux_versions(self):
+    def version_tuples(self):
         """
-        fetch the version of the FFMpeg auxiliary libraries.
+        fetch the version of the FFMpeg libraries,
+        as (major, minor, micro) tuples.
         """
-        return (self.sws.swscale_version(),
-                self.swr.swresample_version())
+        return [ av_version_unpack(v) for v in self.versions() ]
 
 
 def get_handle():

@@ -7,6 +7,7 @@ import pyrana.ff
 import pyrana.errors
 import pyrana.packet
 from pyrana.common import blob, get_field_int, AttrDict, strerror
+from tests.mockslib import MockPlat
 
 
 @contextmanager
@@ -126,6 +127,28 @@ class TestBlob(object):
 class TestErrors(unittest.TestCase):
     def test_strerror_no_error(self):
         assert (strerror(0).lower() == 'success')
+
+
+class TestCommonData(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        pyrana.setup()
+
+    def test_platform_CPy3x(self):
+        pyrana._enforce_platform(MockPlat())
+        assert(True)
+
+    def test_platform_CPy31(self):
+        with self.assertRaises(RuntimeError):
+            pyrana._enforce_platform(MockPlat(vers=(3,1)))
+
+    def test_platform_CPy2x(self):
+        pyrana._enforce_platform(MockPlat(vers=(2,7)))
+        assert(True)
+
+    def test_platform_CPy26(self):
+        with self.assertRaises(RuntimeError):
+            pyrana._enforce_platform(MockPlat(vers=(2,6)))
 
 
 if __name__ == "__main__":

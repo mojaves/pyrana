@@ -10,7 +10,6 @@ from . import formats
 from . import packet
 from . import audio
 from . import video
-from . import versions
 from . import errors
 
 
@@ -61,7 +60,6 @@ def setup():
     from .common import all_formats, all_codecs
     from . import ff
     ff.setup()
-    versions.autoverify()
     # we know all the supported formats/codecs only *after* the
     # registration process. So we must do this wiring here.
     if not formats.INPUT_FORMATS or \
@@ -81,4 +79,4 @@ def setup():
         video.OUTPUT_CODECS = vcods
 
 
-__all__ = ['versions', 'formats', 'audio', 'video', 'packet', 'errors']
+__all__ = ['formats', 'audio', 'video', 'packet', 'errors']
