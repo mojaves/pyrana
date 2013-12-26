@@ -11,7 +11,8 @@ import glob
 import cffi
 from .errors import SetupError
 
-# TODO: explain why we need ctypes for bootstrap
+# we leverage ctypes for the bootstrap of CFFI.
+# TODO: explain
 
 
 # The dreaded singleton. It is a necessary evil[1] and this is the reason why:
@@ -88,42 +89,53 @@ class FF(object):
     @property
     def hfiles(self):
         """
+        print the name of the hfiles required by
+        the corrisponding system FFMpeg libraries.
+        """
+        return self._find(self.version_tuples())
+
+    @property
+    def decls(self):
+        """
+        return a string containing all the decls found
+        in the gathered hfiles, in the correct order.
+        """
+        return _gather(self.hfiles)
+
+    def _find(self, vertuples):
+        """
         find the most suitable (nearest compatible to the available
         major version) pseudo headers and returns them as list.
         """
-        # we need reordering. lavu must be loaded first.
         libs = [ 'avutil', 'avcodec', 'avformat', 'swscale', 'swresample' ]
-        vers = zip(libs,
-                   [ v[0] for v in self.version_tuples() ])
         hnames = []
-        for name, major in vers:
-            found = False
-            hfiles = ('%s%i.h' % (name, major), '%s.h' % (name))
-            for cand in hfiles:
-                hfile = self._hpath(cand)
-                if os.access(hfile, os.R_OK):
-                    found = True
-                    break
-            if found:
+        for name, (major, minor, micro) in zip(libs, vertuples):
+            hfile = self._hpath('%s%i.h' % (name, major))
+            if os.access(hfile, os.R_OK):
                 hnames.append(hfile)
             else:
-                raise SetupError('missing hfile for %s %i' % (name, major))
+                msg = 'missing hfile for %s %i.%.%i' \
+                      % (name, major, minor, micro)
+                raise LibraryVersionError(msg)
         return hnames
 
     @property
     def content(self):
+        """
+        the content of all the decls gathered from the hfiles.
+        """
         return _gather(self.hfiles)
 
     def __init__(self, path="hfiles"):
         self._root = os.path.abspath(os.path.dirname(__file__))
         self._path = path
         self.ffi = cffi.FFI()
-        self.ffi.cdef(_gather(self.hfiles))
         self.lavc = self.ffi.dlopen("avcodec")
         self.lavf = self.ffi.dlopen("avformat")
         self.lavu = self.ffi.dlopen("avutil")
         self.sws = self.ffi.dlopen("swscale")
         self.swr = self.ffi.dlopen("swresample")
+        self.ffi.cdef(self.decls)
 
     def setup(self):
         """
