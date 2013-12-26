@@ -71,15 +71,7 @@ def _gather(names):
     return ''.join(data)
 
 
-@singleton
-class FF(object):
-    """
-    FFMpeg abstraction objects.
-    Needs to be a singleton because the FFI instance has to be
-    one and exactly one.
-    Do not use directly. Use get_handle() instead.
-    """
-
+class HLoader(object):
     def _hpath(self, name):
         """
         builds the complete relative path for the given pseudoheader.
@@ -92,7 +84,7 @@ class FF(object):
         print the name of the hfiles required by
         the corrisponding system FFMpeg libraries.
         """
-        return self._find(self.version_tuples())
+        return self._find(self._vers)
 
     @property
     def decls(self):
@@ -119,23 +111,49 @@ class FF(object):
                 raise LibraryVersionError(msg)
         return hnames
 
-    @property
-    def content(self):
-        """
-        the content of all the decls gathered from the hfiles.
-        """
-        return _gather(self.hfiles)
-
-    def __init__(self, path="hfiles"):
+    def __init__(self, vers, path="hfiles"):
         self._root = os.path.abspath(os.path.dirname(__file__))
         self._path = path
+        self._vers = vers
+
+
+def versions():
+    """
+    fetch the version of the FFMpeg libraries.
+    """
+    lavu = ctypes.CDLL('libavutil.so')
+    lavc = ctypes.CDLL('libavcodec.so')
+    lavf = ctypes.CDLL('libavformat.so')
+    sws = ctypes.CDLL('libswscale.so')
+    swr = ctypes.CDLL('libswresample.so')
+    return [ av_version_unpack(v)
+             for v in (lavu.avutil_version(),
+                       lavc.avcodec_version(),
+                       lavf.avformat_version(),
+                       sws.swscale_version(),
+                       swr.swresample_version()) ]
+
+
+@singleton
+class FF(object):
+    """
+    FFMpeg abstraction objects.
+    Needs to be a singleton because the FFI instance has to be
+    one and exactly one.
+    Do not use directly. Use get_handle() instead.
+    """
+
+    def __init__(self):
+        # beware of singleton before to add parameters here
+        self._vers = versions()
+        hl = HLoader(self._vers)
         self.ffi = cffi.FFI()
+        self.ffi.cdef(hl.decls)
         self.lavc = self.ffi.dlopen("avcodec")
         self.lavf = self.ffi.dlopen("avformat")
         self.lavu = self.ffi.dlopen("avutil")
         self.sws = self.ffi.dlopen("swscale")
         self.swr = self.ffi.dlopen("swresample")
-        self.ffi.cdef(self.decls)
 
     def setup(self):
         """
@@ -149,23 +167,7 @@ class FF(object):
         """
         fetch the version of the FFMpeg libraries.
         """
-        lavu = ctypes.CDLL('libavutil.so')
-        lavc = ctypes.CDLL('libavcodec.so')
-        lavf = ctypes.CDLL('libavformat.so')
-        sws = ctypes.CDLL('libswscale.so')
-        swr = ctypes.CDLL('libswresample.so')
-        return (lavu.avutil_version(),
-                lavc.avcodec_version(),
-                lavf.avformat_version(),
-                sws.swscale_version(),
-                swr.swresample_version())
-
-    def version_tuples(self):
-        """
-        fetch the version of the FFMpeg libraries,
-        as (major, minor, micro) tuples.
-        """
-        return [ av_version_unpack(v) for v in self.versions() ]
+        return self._vers
 
 
 def get_handle():
