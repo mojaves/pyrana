@@ -30,6 +30,59 @@ typedef struct AVPixFmtDescriptor {
 
 const AVPixFmtDescriptor *av_pix_fmt_desc_get(enum AVPixelFormat pix_fmt);
 
+/* frame.h */
+
+typedef struct AVFrame {
+    uint8_t *data[8];
+    int linesize[8];
+    uint8_t **extended_data;
+    int width, height;
+    int nb_samples;
+    int format;
+    int key_frame;
+    enum AVPictureType pict_type;
+    uint8_t *base[8];
+    AVRational sample_aspect_ratio;
+    int64_t pts;
+    int64_t pkt_pts;
+    int64_t pkt_dts;
+    int coded_picture_number;
+    int display_picture_number;
+    int quality;
+    int reference;
+    int8_t *qscale_table;
+    int qstride;
+    int qscale_type;
+    uint8_t *mbskip_table;
+    int16_t (*motion_val[2])[2];
+    uint32_t *mb_type;
+    short *dct_coeff;
+    int8_t *ref_index[2];
+    void *opaque;
+    uint64_t error[8];
+    int type;
+    int repeat_pict;
+    int interlaced_frame;
+    int top_field_first;
+    int palette_has_changed;
+    int buffer_hints;
+    struct AVPanScan *pan_scan;
+    int64_t reordered_opaque;
+    void *hwaccel_picture_private;
+    struct AVCodecContext *owner;
+    void *thread_opaque;
+    uint8_t motion_subsample_log2;
+    int sample_rate;
+    uint64_t channel_layout;
+    int64_t best_effort_timestamp;
+    int64_t pkt_pos;
+    int64_t pkt_duration;
+    struct AVDictionary *metadata;
+    int decode_error_flags;
+    int channels;
+    int pkt_size;
+} AVFrame;
+
 /* imgutils.h */
 int av_image_get_linesize(enum AVPixelFormat pix_fmt, int width, int plane);
 int av_image_get_buffer_size(enum AVPixelFormat pix_fmt,
