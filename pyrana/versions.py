@@ -26,9 +26,11 @@ def autoverify(ffh=None):
     except OSError:
         raise LibraryVersionError("missing libraries")
     if lavc < av_version_pack(54, 0, 0):
-        raise LibraryVersionError("unsupported libavcodec")
-    if lavc >= av_version_pack(55, 0, 0):
-        raise LibraryVersionError("unsupported libavcodec")
+        raise LibraryVersionError("unsupported libavcodec: %i.%i.%i" \
+                                  % av_version_unpack(lavc))
+    if lavc >= av_version_pack(56, 0, 0):
+        raise LibraryVersionError("unsupported libavcodec: %i.%i.%i" \
+                                  % av_version_unpack(lavc))
     if lavf < av_version_pack(54, 0, 0):
         raise LibraryVersionError("unsupported libavformat")
     if lavu < av_version_pack(52, 0, 0):
