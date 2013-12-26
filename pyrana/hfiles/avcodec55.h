@@ -47,9 +47,9 @@ typedef struct AVCodecContext {
     const AVClass *av_class;
     int log_level_offset;
     enum AVMediaType codec_type;
-    const struct AVCodec  *codec;
-    char             codec_name[32];
-    enum AVCodecID     codec_id;
+    const struct AVCodec *codec;
+    char codec_name[32];
+    enum AVCodecID codec_id;
     unsigned int codec_tag;
     unsigned int stream_codec_tag;
     void *priv_data;
@@ -72,9 +72,10 @@ typedef struct AVCodecContext {
     enum AVPixelFormat pix_fmt;
     int me_method;
     void (*draw_horiz_band)(struct AVCodecContext *s,
-                            const AVFrame *src, int offset[AV_NUM_DATA_POINTERS],
+                            const AVFrame *src, int offset[8],
                             int y, int type, int height);
-    enum AVPixelFormat (*get_format)(struct AVCodecContext *s, const enum AVPixelFormat * fmt);
+    enum AVPixelFormat (*get_format)(struct AVCodecContext *s,
+                                     const enum AVPixelFormat * fmt);
     int max_b_frames;
     float b_quant_factor;
     int rc_strategy;
