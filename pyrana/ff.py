@@ -9,7 +9,7 @@ import os
 import os.path
 import glob
 import cffi
-from .errors import SetupError
+from .errors import LibraryVersionError
 
 # we leverage ctypes for the bootstrap of CFFI.
 # TODO: explain
@@ -106,7 +106,7 @@ class HLoader(object):
             if os.access(hfile, os.R_OK):
                 hnames.append(hfile)
             else:
-                msg = 'missing hfile for %s %i.%.%i' \
+                msg = 'missing hfile for %s %i.%i.%i' \
                       % (name, major, minor, micro)
                 raise LibraryVersionError(msg)
         return hnames
