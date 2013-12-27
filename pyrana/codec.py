@@ -108,9 +108,9 @@ class BaseFrame(object):
         """
         ffh = ff.get_handle()
         frame = object.__new__(cls)
-        frame._ff = ffh
-        frame._ppframe = ppframe
-        frame._frame = ppframe[0]
+        setattr(frame, '_ff', ffh)
+        setattr(frame, '_ppframe', ppframe)
+        setattr(frame, '_frame', ppframe[0])
         return frame
 
 
@@ -187,10 +187,10 @@ def make_payload(cls, ffh, ppframe, parent):
     Setups the common fields of every multimedia payload object.
     """
     payload = object.__new__(cls)
-    payload._ff = ffh
-    payload._ppframe = ppframe
-    payload._parent = parent  # for shared payloads, we must keep alive the
-                              # parent (pp)frame.
+    setattr(payload, '_ff', ffh)
+    setattr(payload, '_ppframe', ppframe)
+    setattr(payload, '_parent', parent)
+    # for shared payloads, we must keep alive the parent (pp)frame.
     return payload
 
 
@@ -198,9 +198,9 @@ def wire_decoder(dec, av_decode, new_frame, mtype):
     """
     Injects the specific decoding hooks in a generic decoder.
     """
-    dec._av_decode = av_decode
-    dec._new_frame = new_frame
-    dec._mtype = mtype
+    setattr(dec, '_av_decode', av_decode)
+    setattr(dec, '_new_frame', new_frame)
+    setattr(dec, '_mtype', mtype)
     return dec
 
 
@@ -331,11 +331,11 @@ class BaseDecoder(CodecMixin):
         dec = object.__new__(cls)
         CodecMixin.__init__(dec, {})  # MUST be explicit
         ctx.codec = ffh.lavc.avcodec_find_decoder(ctx.codec_id)
-        dec._codec = ctx.codec
-        dec._ctx = ctx
-        dec._av_decode = _null_av_decode
-        dec._new_frame = _null_new_frame
-        dec._frames = []  # internal buffering
-        dec._got_frame = None
-        dec._mtype = "abstract"
+        setattr(dec, '_codec', ctx.codec)
+        setattr(dec, '_ctx', ctx)
+        setattr(dec, '_av_decode', _null_av_decode)
+        setattr(dec, '_new_frame', _null_new_frame)
+        setattr(dec, '_frames', [])  # internal buffering
+        setattr(dec, '_got_frame', None)
+        setattr(dec, '_mtype', "abstract")
         return dec.open()

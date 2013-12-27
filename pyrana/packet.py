@@ -93,9 +93,9 @@ class Packet(object):
         """
         ffh = ff.get_handle()
         pkt = object.__new__(cls)
-        pkt._ff = ffh
-        pkt._pkt = cpkt
-        pkt._raw_data = ffh.ffi.buffer(cpkt.data, cpkt.size)
+        setattr(pkt, '_ff', ffh)
+        setattr(pkt, '_pkt', cpkt)
+        setattr(pkt, '_raw_data', ffh.ffi.buffer(cpkt.data, cpkt.size))
         return pkt
 
     def __del__(self):
