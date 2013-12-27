@@ -23,6 +23,9 @@ class Buffer(object):
     def __len__(self):
         return self._size
 
+    def __getitem__(self, key):
+        return self.data[key]
+
     def __repr__(self):
         return "Buffer(%i)" % self._size
 

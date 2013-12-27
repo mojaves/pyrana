@@ -110,6 +110,9 @@ class Packet(object):
     def __len__(self):
         return self.size
 
+    def __getitem__(self, key):
+        return self._raw_data[key]
+
     def blob(self):
         """returns the bytes() dump of the object"""
         return bytes(self.data)

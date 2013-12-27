@@ -72,6 +72,11 @@ def _gather(names):
 
 
 class HLoader(object):
+    """
+    Finds and loads the HFiles describing the FFMpeg libraries,
+    given their versions.
+    """
+
     def _hpath(self, name):
         """
         builds the complete relative path for the given pseudoheader.
@@ -146,9 +151,9 @@ class FF(object):
     def __init__(self):
         # beware of singleton before to add parameters here
         self._vers = versions()
-        hl = HLoader(self._vers)
+        _hl = HLoader(self._vers)
         self.ffi = cffi.FFI()
-        self.ffi.cdef(hl.decls)
+        self.ffi.cdef(_hl.decls)
         self.lavc = self.ffi.dlopen("avcodec")
         self.lavf = self.ffi.dlopen("avformat")
         self.lavu = self.ffi.dlopen("avutil")

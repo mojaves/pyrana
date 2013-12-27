@@ -61,6 +61,9 @@ class AttrDict(object):
         attrs = ', '.join('%s=%s' % (k, v) for k, v in self._attrs.items())
         return '%s(%s)' % (name, attrs)
 
+    def __getitem__(self, key):
+        return self._attrs[key]
+
     def __getattr__(self, key):
         try:
             return self._attrs[key]
