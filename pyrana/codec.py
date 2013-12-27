@@ -7,7 +7,7 @@ from types import GeneratorType
 from contextlib import contextmanager
 
 from .packet import raw_packet
-from .common import MediaType, to_media_type, to_str, AttrDict
+from .common import PY3, MediaType, to_media_type, to_str, AttrDict
 from .errors import SetupError, ProcessingError, \
                     NeedFeedError, EOSError, PyranaError
 from . import ff
@@ -339,3 +339,27 @@ class BaseDecoder(CodecMixin):
         setattr(dec, '_got_frame', None)
         setattr(dec, '_mtype', "abstract")
         return dec.open()
+
+
+class Payload(object):
+    """
+    Generic media-agnostic frame payload.
+    """
+
+    def __len__(self):
+        raise NotImplementedError
+
+    def blob(self):
+        """
+        returns the bytes() dump of the object.
+        """
+        raise NotImplementedError
+
+    def __bytes__(self):
+        return self.blob()
+
+    def __getitem__(self, key):
+        return self.blob()[key]
+
+    def __str__(self):
+        return repr(self) if PY3 else self.blob()

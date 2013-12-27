@@ -4,9 +4,9 @@ Encoders, Decoders and their support code.
 """
 
 from enum import IntEnum
-from .common import PY3, to_pixel_format, to_picture_type
+from .common import to_pixel_format, to_picture_type
 from .codec import BaseFrame, BaseDecoder, bind_frame
-from .codec import make_payload, wire_decoder
+from .codec import Payload, make_payload, wire_decoder
 from .errors import ProcessingError, SetupError
 from . import ff
 # the following is just to export to the clients the Enums.
@@ -109,16 +109,16 @@ def _plane_copy(pixels, plane,
     return dst
 
 
-class Image(object):
+class Image(Payload):
     """
     Represents the Picture data inside a Frame.
     """
     def __init__(self):
         # mostly for documentation purposes, and to make pylint happy.
         self._ff = None
-        self._sws = None
         self._ppframe = None
         self._parent = None
+        self._sws = None
         raise SetupError("Cannot be created directly. Yet.")
 
     @classmethod
@@ -132,7 +132,7 @@ class Image(object):
         """
         ffh = ff.get_handle()
         image = make_payload(cls, ffh, ppframe, parent)
-        image._sws = sws
+        setattr(image, '_sws', sws)
         return image
 
     def __repr__(self):
@@ -155,14 +155,10 @@ class Image(object):
                                                       frm.height,
                                                       1)
 
-    def __bytes__(self):
-        return self.blob()
-
-    def __str__(self):
-        return repr(self) if PY3 else self.blob()
-
     def blob(self):
-        """returns the bytes() dump of the object"""
+        """
+        returns the bytes() dump of the object.
+        """
         pixels = bytearray(len(self))
         idx, dst = 0, 0
         while self._ppframe[0].data[idx] != self._ff.ffi.NULL:

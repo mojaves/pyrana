@@ -4,9 +4,9 @@ Encoders, Decoders and their support code.
 """
 
 from enum import IntEnum
-from .common import PY3, to_sample_format
+from .common import to_sample_format
 from .codec import BaseFrame, BaseDecoder, bind_frame
-from .codec import make_payload, wire_decoder
+from .codec import Payload, make_payload, wire_decoder
 from .errors import ProcessingError, SetupError
 from . import ff
 # the following is just to export to the clients the Enums.
@@ -88,16 +88,16 @@ def _samples_from_frame(ffh, parent, frame, smpfmt):
         return Samples.from_cdata(ppframe, swr, parent)
 
 
-class Samples(object):
+class Samples(Payload):
     """
     Represents the Sample data inside a Frame.
     """
     def __init__(self):
         # mostly for documentation purposes, and to make pylint happy.
         self._ff = None
-        self._swr = None
         self._ppframe = None
         self._parent = None
+        self._swr = None
         raise SetupError("Cannot be created directly. Yet.")
 
     @classmethod
@@ -111,7 +111,7 @@ class Samples(object):
         """
         ffh = ff.get_handle()
         samples = make_payload(cls, ffh, ppframe, parent)
-        samples._swr = swr
+        setattr(samples, '_swr', swr)
         return samples
 
     def __repr__(self):
@@ -129,12 +129,6 @@ class Samples(object):
         frm = self._ppframe[0]  # shortcut
         return sum(int(frm.linesize[idx])
                    for idx in range(self.channels))
-
-    def __bytes__(self):
-        return self.blob()
-
-    def __str__(self):
-        return repr(self) if PY3 else self.blob()
 
     def blob(self):
         """returns the bytes() dump of the object"""
