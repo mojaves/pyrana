@@ -52,7 +52,7 @@ class PySDL2Viewer(object):
         sdl2.SDL_RenderPresent(self._renderer)
         self._frames += 1
         # To avoid X-Video congestion
-        time.sleep(0.01)
+        time.sleep(0.04)
 
 
 def play_file(fname, view):
