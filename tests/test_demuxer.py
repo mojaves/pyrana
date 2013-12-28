@@ -15,7 +15,8 @@ import os.path
 from tests.mockslib import MockLavf, MockFF, MockAVFormatContext
 
 
-_B = b'\0' * 1024 * 64
+_uB = b'\0' * 64
+_B = _uB * 1024
 BBB_SAMPLE = os.path.join('tests', 'data', 'bbb_sample.ogg')
 
 
@@ -41,13 +42,13 @@ class TestDemuxer(unittest.TestCase):
         pyrana.setup()
 
     def test_new_empty_just_init(self):
-        with io.BytesIO(_B) as f:
+        with io.BytesIO(b'') as f:
             dmx = pyrana.formats.Demuxer(f, delay_open=True)
             assert dmx
 
-    def test_open_zero_buf(self):
+    def test_open_empty_buf(self):
         with self.assertRaises(pyrana.errors.SetupError), \
-                io.BytesIO(_B) as f:
+                io.BytesIO(b'') as f:
             dmx = pyrana.formats.Demuxer(f)
             assert dmx
 

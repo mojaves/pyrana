@@ -76,7 +76,7 @@ class TestImage(unittest.TestCase):
             dec = dmx.open_decoder(0)
             frame = dec.decode(dmx.stream(0))
             with self.assertRaises(pyrana.errors.ProcessingError):
-                img = frame.image(pyrana.video.PixelFormat.AV_PIX_FMT_NB)
+                img = frame.image(pyrana.video.PixelFormat.AV_PIX_FMT_NONE)
 
     # FIXME: bulky. Also depends on decoder.
     def test_convert_from_live_frame_indirect(self):
@@ -96,7 +96,7 @@ class TestImage(unittest.TestCase):
             dec = dmx.open_decoder(0)
             img, frm = _next_image(dmx, dec)
             with self.assertRaises(pyrana.errors.ProcessingError):
-                img2 = img.convert(pyrana.video.PixelFormat.AV_PIX_FMT_NB)
+                img2 = img.convert(pyrana.video.PixelFormat.AV_PIX_FMT_NONE)
 
     def test_cannot_create_sws_context(self):
         pixfmt = pyrana.video.PixelFormat.AV_PIX_FMT_RGB24
