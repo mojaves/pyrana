@@ -167,6 +167,7 @@ class FF(object):
         # note: libav* already protects against multiple calls.
         self.lavc.avcodec_register_all()
         self.lavf.av_register_all()
+        return self.versions()
 
     def versions(self):
         """

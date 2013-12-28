@@ -2,7 +2,7 @@
 
 import unittest
 from pyrana.common import MediaType, to_media_type
-from pyrana.codec import CodecMixin, BaseDecoder, BaseFrame
+from pyrana.codec import CodecMixin, BaseDecoder, BaseFrame, Payload
 import pyrana.audio
 import pyrana.video
 
@@ -22,6 +22,23 @@ class TestCodecMixin(unittest.TestCase):
     def test_extradata(self):
         cmx = CodecMixin()
         assert not cmx.extra_data
+
+
+class TestPayload(unittest.TestCase):
+    def setUp(self):
+        self._p = Payload()
+
+    def test_len(self):
+        with self.assertRaises(NotImplementedError):
+            x = len(self._p)
+
+    def test_blob(self):
+        with self.assertRaises(NotImplementedError):
+            x = self._p.blob()
+
+    def test_get_item(self):
+        with self.assertRaises(NotImplementedError):
+            x = self._p[0]
 
 
 class TestBaseFrame(unittest.TestCase):

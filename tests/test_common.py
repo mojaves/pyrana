@@ -90,6 +90,9 @@ class TestAttrDict(unittest.TestCase):
         with self.assertRaises(AttributeError):
             self.atd.ans = 41
 
+    def test_get_item(self):
+        assert(self.atd['ans'] == 42)
+
 
 BBB_SAMPLE = os.path.join('tests', 'data', 'bbb_sample.ogg')
 

@@ -23,14 +23,15 @@ def _randgen(L, x=None):
 
 
 class TestBuffer(unittest.TestCase):
+    def setUp(self):
+        self._buf =pyrana.iobridge.Buffer()
+        assert self._buf
+
     def test_new_empty(self):
-        buf = pyrana.iobridge.Buffer()
-        assert buf
-        assert repr(buf)
+        assert repr(self._buf)
 
     def test_empty_len(self):
-        buf = pyrana.iobridge.Buffer()
-        assert len(buf) == pyrana.iobridge.PKT_SIZE
+        assert len(self._buf) == pyrana.iobridge.PKT_SIZE
 
     def test_custom_size(self):
         size = pyrana.iobridge.PKT_SIZE * 2
@@ -38,12 +39,14 @@ class TestBuffer(unittest.TestCase):
         assert buf.size == size
 
     def test_valid_data(self):
-        buf = pyrana.iobridge.Buffer()
-        assert buf.data
+        assert self._buf.data
 
     def test_valid_cdata(self):
-        buf = pyrana.iobridge.Buffer()
-        assert buf.cdata
+        assert self._buf.cdata
+
+    def test_item_access(self):
+        self._buf[0] = b'\0'
+        assert self._buf[0] == b'\0'
 
 
 class TestIOSource(unittest.TestCase):

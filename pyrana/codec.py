@@ -359,6 +359,7 @@ class Payload(object):
         return self.blob()
 
     def __getitem__(self, key):
+        # a little ugliness for the sake of the coverage
         return self.blob()[key]
 
     def __str__(self):

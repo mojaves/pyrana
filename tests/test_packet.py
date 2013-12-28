@@ -138,6 +138,12 @@ class TestPacket(unittest.TestCase):
         with pkt.raw_pkt() as cpkt:
             assert(cpkt)
 
+    def test_get_item(self):
+        f = pyrana.packet.Packet(0, b'cthlhu')
+        for i in range(len(f)):
+            assert(f[i] == f.data[i])
+
+
 
 if __name__ == "__main__":
     unittest.main()
