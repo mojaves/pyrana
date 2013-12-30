@@ -192,9 +192,15 @@ class MockPlat:
         return self._vers
 
 
+def av_version_pack(major, minor, micro):
+    """
+    return the version as packed integer
+    """
+    return (major << 16 | minor << 8 | micro)
+
+
 class MockHandle:
     def __init__(self, lavu, lavc, lavf, sws, swr):
-        from pyrana.versions import av_version_pack
         self._lavf = av_version_pack(*lavf)
         self._lavu = av_version_pack(*lavu)
         self._lavc = av_version_pack(*lavc)

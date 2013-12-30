@@ -44,13 +44,6 @@ def singleton(cls):
     return cls
 
 
-def av_version_pack(major, minor, micro):
-    """
-    return the version as packed integer
-    """
-    return (major << 16 | minor << 8 | micro)
-
-
 def av_version_unpack(version):
     """
     unpack a version integer into a tuple (of integers).
