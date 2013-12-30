@@ -1,9 +1,18 @@
 #!/usr/bin/python
 
+import itertools
 import unittest
 import pyrana.ff
 import pyrana.errors
-from pyrana.ff import singleton
+from pyrana.ff import singleton, HLoader
+
+
+class TestHLoader(unittest.TestCase):
+    def test_bad_vers(self):
+        vers = tuple(itertools.repeat((0, 0, 0), 5))
+        _hl = HLoader(vers)
+        with self.assertRaises(pyrana.errors.LibraryVersionError):
+            x = _hl.hfiles
 
 
 class TestSingletonDecorator(unittest.TestCase):
