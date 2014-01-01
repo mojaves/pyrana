@@ -43,12 +43,13 @@ Requirements
 ------------
 
 
-* [python](http://www.python.org) version 3.3. Tested under CPython only (yet).
+* [python](http://www.python.org) version 3.3, or 2.7.
+  The version 3.x is preferred, 2.7 is supported as legacy. Tested under CPython only (yet).
 
-* [ffmpeg](http://ffmpeg.org) version 1.2.x. The version 2.0.x is unsupported. May or may not work.
+* [ffmpeg](http://ffmpeg.org) version 1.2.x or 2.1.x.
   [libav](http://libav.org) any version, is unsupported. May or may not work.
 
-* [cffi](http://cffi.readthedocs.org) version 0.7.2. Previous versions, most notably the 0.6
+* [cffi](http://cffi.readthedocs.org) version 0.7.x (x >= 2). Previous versions, most notably the 0.6
   shipped with pypy 2.0, are unsupported.
 
 
