@@ -1,12 +1,13 @@
 #!/usr/bin/python
 
-import warnings
-
+import os
 import os.path
+import warnings
 from pyrana.common import MediaType
 from pyrana.formats import STREAM_ANY
 import pyrana.errors
 import pyrana.formats
+import pyrana.iobridge
 import pyrana
 import unittest
 
@@ -66,6 +67,13 @@ class TestDemuxerSeek(unittest.TestCase):
 
     def test_seek_any_ts(self):
         self.read_pkt_at_ts(STREAM_ANY)
+
+    def test_seek_fails(self):
+        with open(BBB_SAMPLE, 'rb') as fin:
+            dmx = pyrana.formats.Demuxer(fin, streaming=True)
+            with self.assertRaises(pyrana.errors.ProcessingError):
+                with warnings.catch_warnings():
+                    dmx.seek_ts(-1e5, STREAM_ANY)
 
 
 if __name__ == "__main__":
