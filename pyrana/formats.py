@@ -190,7 +190,7 @@ class Demuxer(object):
             msg = "invalid stream id not in [0,%i]" % nstreams
             raise errors.ProcessingError(msg)
 
-    def __init__(self, src, name=None, delay_open=False):
+    def __init__(self, src, name=None, delay_open=False, streaming=False):
         """
         Demuxer(src, name="")
         Initialize a new demuxer for the file type `name';
@@ -207,7 +207,8 @@ class Demuxer(object):
         # so we need to allocate a simple lone double pointer
         # to act as junction.
         self._tb_q = _time_base_q(ffh)
-        self._src = IOSource(src)
+        seekable = False if streaming is True else True
+        self._src = IOSource(src, seekable)
         self._pctx[0] = ffh.lavf.avformat_alloc_context()
         self._pctx[0].pb = self._src.avio
         self._pctx[0].flags |= FormatFlags.AVFMT_FLAG_CUSTOM_IO
