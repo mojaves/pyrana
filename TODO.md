@@ -18,7 +18,7 @@ Version 0.4.0) <- We are here!
 * 0.3.0: compatibility with python 2.7.
 * 0.3.1: interoperability with PySDL2.
 * 0.3.2: compatibility with ffmpeg 2.1+
-* PENDING: seek support.
+* 0.3.3: seek support.
 * PENDING: more audio examples (pygame, PySDL2)
 
 
