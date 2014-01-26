@@ -8,6 +8,7 @@ import pyrana.errors
 from pyrana.common import MediaType
 
 
+FakeTimeBase = namedtuple('FakeTimeBase', ['num', 'den'])
 FakeInfo = namedtuple('FakeInfo', ['media_type' ])
 
 NullInfo = FakeInfo(media_type=MediaType.AVMEDIA_TYPE_UNKNOWN)
@@ -52,6 +53,10 @@ class TestFormatFuncs(unittest.TestCase):
     def test_raw_packet(self):
         with pyrana.packet.raw_packet(128) as cpkt:
             assert(cpkt.size == 128)
+
+    def test_tb_zero_division_error(self):
+        tb = FakeTimeBase(0, 0)
+        x = pyrana.formats._tb_to_str(tb)
 
 
 if __name__ == "__main__":

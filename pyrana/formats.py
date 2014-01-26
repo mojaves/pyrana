@@ -146,7 +146,7 @@ def _read_frame(ffh, ctx, new_pkt, stream_id):
     return Packet.from_cdata(pkt)
 
 
-def tb_to_str(timebase):
+def _tb_to_str(timebase):
     """
     format a time base rational to a string, only for human consumption.
     """
@@ -341,7 +341,7 @@ class Demuxer(object):
                            ("media_type", _type),
                            ("name", _codec_name(ffh, ctx.codec_id)),
                            ("bit_rate", get_field_int(ctx, "b")),
-                           ("time_base", tb_to_str(ctx.time_base)),
+                           ("time_base", _tb_to_str(ctx.time_base)),
                            ))
         name = 'StreamInfo'
         if _type == MediaType.AVMEDIA_TYPE_AUDIO:
