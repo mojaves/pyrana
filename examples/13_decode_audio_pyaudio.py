@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import sys
-import wave
 import pyaudio
 import pyrana
 import pyrana.errors
@@ -14,7 +13,7 @@ from pyrana.formats import MediaType
 # TBD
 
 
-def process_file(srcname, chunk=1024):
+def process_file(srcname):
     with open(srcname, 'rb') as src:
         dmx = pyrana.formats.Demuxer(src)
         sid = pyrana.formats.find_stream(dmx.streams,
