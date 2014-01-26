@@ -12,8 +12,8 @@ full functional replacement of the old C-based pyrana.
 * 0.1.90: runnable examples for every major task.
 
 
-Version 0.4.0 <- We are here!
-=============================
+Version 0.4.0
+=============
 
 * 0.3.0: compatibility with python 2.7.
 * 0.3.1: interoperability with PySDL2.
@@ -22,8 +22,8 @@ Version 0.4.0 <- We are here!
 * 0.3.4: interoperability with pyaudio.
 
 
-Version 0.6.0
-==============
+Version 0.6.0 <- We are here!
+=============================
 
 * interoperability with numpy.
 * encoding audio/video.
