@@ -150,7 +150,10 @@ def tb_to_str(timebase):
     """
     format a time base rational to a string, only for human consumption.
     """
-    return "%.5f" % (timebase.num / float(timebase.den))
+    try:
+        return "%.5f" % (timebase.num / float(timebase.den))
+    except ZeroDivisionError:
+        return "N/A"
 
 
 AV_TIME_BASE = 1000000
