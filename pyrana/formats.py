@@ -258,8 +258,6 @@ class Demuxer(object):
         # as first attempt we want to be optimist and we choose
         # to ignore any errors here, deemed as not critical
         self._ready = True
-        for s in self.streams:
-            print(s)
 
     def seek_frame(self, frameno, stream_id=STREAM_ANY):
         """
