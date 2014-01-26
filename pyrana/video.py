@@ -5,7 +5,7 @@ Encoders, Decoders and their support code.
 
 from enum import IntEnum
 from .common import to_pixel_format, to_picture_type
-from .codec import BaseFrame, BaseDecoder, bind_frame
+from .codec import BaseFrame, BaseDecoder, BaseEncoder, bind_frame
 from .codec import Payload, make_payload, wire_decoder
 from .errors import ProcessingError, SetupError
 from . import ff
@@ -324,9 +324,7 @@ class Frame(BaseFrame):
 
 class Decoder(BaseDecoder):
     """
-    - add the 'params' property (read-only preferred alias for getParams)
-    - no conversion/scaling will be performed
-    - add flush() operation
+    Decodes video Packets into video Frames.
     """
     @staticmethod
     def wire(dec):
@@ -352,3 +350,19 @@ class Decoder(BaseDecoder):
         WARNING: raw access. Use with care.
         """
         return cls.wire(BaseDecoder.from_cdata(ctx))
+
+
+class Encoder(BaseEncoder):
+    """
+    Encode video Frames into Packets.
+    """
+    def __init__(self, output_codec, params={}):
+        super(Encoder, self).__init__(params)
+
+    def encode(self, Frame):
+        """encode(Frame) -> Packet"""
+        raise NotImplementedError
+
+    def flush(self):
+        """flush() -> Packet"""
+        raise NotImplementedError

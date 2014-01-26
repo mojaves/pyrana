@@ -204,6 +204,60 @@ def wire_decoder(dec, av_decode, new_frame, mtype):
     return dec
 
 
+class BaseEncoder(CodecMixin):
+    """
+    Encoder base class. Common both to audio and video encoders.
+    """
+    def __init__(self, input_codec, params=None, delay_open=False):
+        super(BaseEncoder, self).__init__(params)
+        ffh = self._ff
+        if isinstance(input_codec, str):
+            name = input_codec.encode('utf-8')
+            self._codec = ffh.lavc.avcodec_find_encoder_by_name(name)
+        else:
+            raise SetupError("not yet supported")
+        self._ctx = ffh.lavc.avcodec_alloc_context3(self._codec)
+        self._mtype = "abstract"
+        self._ready = False
+        if not delay_open:
+            self.open()
+
+    def open(self, ffh=None):  # ffh parameter only for testing purposes.
+        """
+        opens the codec into the codec context.
+        """
+        if self._ready is False:
+            ffh = self._ff if ffh is None else ffh
+            err = ffh.lavc.avcodec_open2(self._ctx, self._codec,
+                                         ffh.ffi.NULL)
+            if err < 0:
+                raise SetupError("avcodec open failed: %i" % err)
+        return self
+
+    def __repr__(self):
+        # how funny. If we use an array of chars like a string, it crashes.
+        codec_id = self._codec.id  # if self._codec else self._ctx.codec_id
+        cname = self._ff.lavc.avcodec_get_name(codec_id)
+        return "Encoder(output_codec=%s)" % (to_str(cname))
+
+    @classmethod
+    def from_cdata(cls, ctx):
+        """
+        builds a pyrana Decoder from (around) a (cffi-wrapped) libav*
+        decoder object.
+        The libav object must be already initialized and ready to go.
+        WARNING: raw access. Use with care.
+        """
+        ffh = ff.get_handle()
+        enc = object.__new__(cls)
+        CodecMixin.__init__(enc, {})  # MUST be explicit
+        ctx.codec = ffh.lavc.avcodec_find_encoder(ctx.codec_id)
+        setattr(dec, '_codec', ctx.codec)
+        setattr(dec, '_ctx', ctx)
+        setattr(dec, '_mtype', "abstract")
+        return enc.open()
+
+
 class BaseDecoder(CodecMixin):
     """
     Decoder base class. Common both to audio and video decoders.
