@@ -17,17 +17,17 @@ SDL_INIT_CDROM       = 0x00000100
 SDL_INIT_JOYSTICK    = 0x00000200
 SDL_INIT_NOPARACHUTE = 0x00100000
 SDL_INIT_EVENTTHREAD = 0x01000000
-SDL_INIT_EVERYTHING	 = 0x0000FFFF
+SDL_INIT_EVERYTHING  = 0x0000FFFF
 
-SDL_YV12_OVERLAY = 0x32315659	# Planar mode: Y + V + U  (3 planes)
-SDL_IYUV_OVERLAY = 0x56555949	# Planar mode: Y + U + V  (3 planes)
-SDL_YUY2_OVERLAY = 0x32595559	# Packed mode: Y0+U0+Y1+V0 (1 plane)
-SDL_UYVY_OVERLAY = 0x59565955	# Packed mode: U0+Y0+V0+Y1 (1 plane)
-SDL_YVYU_OVERLAY = 0x55595659	# Packed mode: Y0+V0+Y1+U0 (1 plane)
+SDL_YV12_OVERLAY = 0x32315659   # Planar mode: Y + V + U  (3 planes)
+SDL_IYUV_OVERLAY = 0x56555949   # Planar mode: Y + U + V  (3 planes)
+SDL_YUY2_OVERLAY = 0x32595559   # Packed mode: Y0+U0+Y1+V0 (1 plane)
+SDL_UYVY_OVERLAY = 0x59565955   # Packed mode: U0+Y0+V0+Y1 (1 plane)
+SDL_YVYU_OVERLAY = 0x55595659   # Packed mode: Y0+V0+Y1+U0 (1 plane)
 
-SDL_SWSURFACE =	0x00000000
-SDL_HWSURFACE =	0x00000001
-SDL_ASYNCBLIT =	0x00000004
+SDL_SWSURFACE = 0x00000000
+SDL_HWSURFACE = 0x00000001
+SDL_ASYNCBLIT = 0x00000004
 
 SDL_ANYFORMAT  = 0x10000000
 SDL_HWPALETTE  = 0x20000000
@@ -43,17 +43,17 @@ _SDL_DECLS = """
 typedef struct SDL_Surface SDL_Surface;
 
 typedef struct SDL_Overlay {
-	uint32_t format;
-	int w, h;
-	int planes;
-	uint16_t *pitches;
-	uint8_t **pixels;
+    uint32_t format;
+    int w, h;
+    int planes;
+    uint16_t *pitches;
+    uint8_t **pixels;
     /* ... */
 } SDL_Overlay;
 
 typedef struct SDL_Rect {
-	int16_t x, y;
-	uint16_t w, h;
+    int16_t x, y;
+    uint16_t w, h;
 }SDL_Rect;
 
 int SDL_Init(uint32_t flags);
@@ -64,7 +64,7 @@ void SDL_WM_SetCaption(const char *title, const char *icon);
 SDL_Surface *SDL_SetVideoMode(int width, int height, int bpp, uint32_t flags);
 
 SDL_Overlay *SDL_CreateYUVOverlay(int width, int height,
-			                      uint32_t format, SDL_Surface *display);
+                                  uint32_t format, SDL_Surface *display);
 void SDL_FreeYUVOverlay(SDL_Overlay *overlay);
 
 int SDL_LockYUVOverlay(SDL_Overlay *overlay);
