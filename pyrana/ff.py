@@ -97,7 +97,7 @@ class HLoader(object):
         find the most suitable (nearest compatible to the available
         major version) pseudo headers and returns them as list.
         """
-        libs = [ 'avutil', 'avcodec', 'avformat', 'swscale', 'swresample' ]
+        libs = ['avutil', 'avcodec', 'avformat', 'swscale', 'swresample']
         hnames = []
         for name, (major, minor, micro) in zip(libs, vertuples):
             hfile = self._hpath('%s%i.h' % (name, major))
@@ -124,12 +124,12 @@ def versions():
     lavf = ctypes.CDLL('libavformat.so')
     sws = ctypes.CDLL('libswscale.so')
     swr = ctypes.CDLL('libswresample.so')
-    return [ av_version_unpack(v)
-             for v in (lavu.avutil_version(),
-                       lavc.avcodec_version(),
-                       lavf.avformat_version(),
-                       sws.swscale_version(),
-                       swr.swresample_version()) ]
+    return [av_version_unpack(v)
+            for v in (lavu.avutil_version(),
+                      lavc.avcodec_version(),
+                      lavf.avformat_version(),
+                      sws.swscale_version(),
+                      swr.swresample_version())]
 
 
 @singleton

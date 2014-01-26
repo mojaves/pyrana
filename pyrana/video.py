@@ -356,13 +356,13 @@ class Encoder(BaseEncoder):
     """
     Encode video Frames into Packets.
     """
-    def __init__(self, output_codec, params={}):
-        super(Encoder, self).__init__(params)
+    def __init__(self, output_codec, params=None):
+        super(Encoder, self).__init__(output_codec, params)
 
-    def encode(self, Frame):
-        """encode(Frame) -> Packet"""
+    def encode(self, frame):
+        """encode(frame) -> packet"""
         raise NotImplementedError
 
     def flush(self):
-        """flush() -> Packet"""
+        """flush() -> packet"""
         raise NotImplementedError

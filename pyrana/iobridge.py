@@ -79,7 +79,7 @@ def _read(handle, buf, buf_size):
 #    dst.write(wbuf)
 
 
-AVSEEK_SIZE  = 0x10000
+AVSEEK_SIZE = 0x10000
 AVSEEK_FORCE = 0x20000
 
 

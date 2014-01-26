@@ -120,10 +120,10 @@ def _null_av_decode(ctx, frame, flag, pkt):
     in the BaseDecoder which MUST have to be replaced in the
     specific {Audio,Video,...} Decoders.
     """
-    assert(ctx)
-    assert(frame)
-    assert(flag)
-    assert(pkt)
+    assert ctx
+    assert frame
+    assert flag
+    assert pkt
     return -1
 
 
@@ -133,7 +133,7 @@ def _null_new_frame(frame):
     in the BaseDecoder which MUST have to be replaced in the
     specific {Audio,Video,...} Decoders.
     """
-    assert(frame)
+    assert frame
     raise ProcessingError("Generic decoders cannot run")
 
 
@@ -252,9 +252,9 @@ class BaseEncoder(CodecMixin):
         enc = object.__new__(cls)
         CodecMixin.__init__(enc, {})  # MUST be explicit
         ctx.codec = ffh.lavc.avcodec_find_encoder(ctx.codec_id)
-        setattr(dec, '_codec', ctx.codec)
-        setattr(dec, '_ctx', ctx)
-        setattr(dec, '_mtype', "abstract")
+        setattr(enc, '_codec', ctx.codec)
+        setattr(enc, '_ctx', ctx)
+        setattr(enc, '_mtype', "abstract")
         return enc.open()
 
 
