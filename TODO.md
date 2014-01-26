@@ -19,7 +19,7 @@ Version 0.4.0 <- We are here!
 * 0.3.1: interoperability with PySDL2.
 * 0.3.2: compatibility with ffmpeg 2.1+
 * 0.3.3: seek support.
-* PENDING: more audio examples (PySDL2, ?)
+* 0.3.4: interoperability with pyaudio.
 
 
 Version 0.6.0
