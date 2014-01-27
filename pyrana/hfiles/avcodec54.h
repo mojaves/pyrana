@@ -161,6 +161,8 @@ typedef struct AVCodec {
 AVCodec *av_codec_next(const AVCodec *c);
 AVCodec *avcodec_find_decoder(enum AVCodecID id);
 AVCodec *avcodec_find_decoder_by_name(const char *name);
+AVCodec *avcodec_find_encoder(enum AVCodecID id);
+AVCodec *avcodec_find_encoder_by_name(const char *name);
 
 enum AVMediaType avcodec_get_type(enum AVCodecID codec_id);
 const char *avcodec_get_name(enum AVCodecID id);
