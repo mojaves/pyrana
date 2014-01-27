@@ -29,6 +29,9 @@ class Buffer(object):
     def __setitem__(self, key, value):
         self.data[key] = value
 
+    def __delitem__(self, key):
+        raise NotImplementedError
+
     def __repr__(self):
         return "Buffer(%i)" % self._size
 

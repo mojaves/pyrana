@@ -51,7 +51,7 @@ def bind_packet(ffh, size=0):
     try:
         cpkt = _new_cpkt(ffh, size)
         yield cpkt
-    except PyranaError:
+    except errors.PyranaError:
         ffh.lavc.av_free_packet(cpkt)
         raise
     # otherwise the ownership *has* to be passed.

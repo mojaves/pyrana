@@ -6,7 +6,7 @@ This module is not part of the pyrana public API.
 from types import GeneratorType
 from contextlib import contextmanager
 
-from .packet import raw_packet, bind_packet
+from .packet import Packet, raw_packet, bind_packet
 from .common import PY3, MediaType, to_media_type, to_str, AttrDict, strerror
 from .errors import PyranaError, ProcessingError, \
                     NeedFeedError, EOSError, SetupError, WrongParameterError
@@ -33,6 +33,23 @@ def decoder_for_stream(ctx, stream_id, vdec, adec):
     return xdec(ctx)
 
 
+def _setup_av_ctx(ctx, params):
+    """
+    update an AVCodecContext `ctx` with the values
+    from the given `params` object.
+    """
+    for name, value in params.items():
+        if name == 'time_base':
+            ctx.time_base.num = value[0]
+            ctx.time_base.den = value[1]
+        else:
+            try:
+                setattr(ctx, name, value)
+            except AttributeError:
+                msg = "unsupported parameter: %s" % name
+                raise WrongParameterError(msg)
+
+
 class CodecMixin(object):
     """
     Mixin. Abstracts the common codec attributes:
@@ -47,11 +64,13 @@ class CodecMixin(object):
         self._ctx = None
         self._xdata = None
         self._repr = "CodecMixin(codec=%s)"
-        self._ready = False
         self._got_data = None
 
     @property
     def ready(self):
+        """
+        is the codec readu to go?
+        """
         return self._got_data is not None
 
     def __repr__(self):
@@ -64,9 +83,9 @@ class CodecMixin(object):
         """
         opens the codec into the codec context.
         """
-        if self._ready is False:
+        if self.ready is False:
             ffh = self._ff if ffh is None else ffh
-            self._setup(self._ctx, self._params)
+            _setup_av_ctx(self._ctx, self._params)
             err = ffh.lavc.avcodec_open2(self._ctx, self._codec,
                                          ffh.ffi.NULL)
             if err < 0:
@@ -74,18 +93,6 @@ class CodecMixin(object):
                                  err, strerror(err, ffh)))
             self._got_data = ffh.ffi.new("int [1]")
         return self
-
-    def _setup(self, ctx, params):
-        for name, value in params.items():
-            if name == 'time_base':
-                ctx.time_base.num = value[0]
-                ctx.time_base.den = value[1]
-            else:
-                try:
-                    setattr(ctx, name, value)
-                except AttributeError:
-                    msg = "unsupported parameter: %s" % name
-                    raise WrongParameterError(msg)
 
     @property
     def params(self):
@@ -333,10 +340,10 @@ class BaseEncoder(CodecMixin):
         ctx.codec = ffh.lavc.avcodec_find_encoder(ctx.codec_id)
         setattr(enc, '_codec', ctx.codec)
         setattr(enc, '_ctx', ctx)
-        setattr(dec, '_av_encode', _null_av_encode)
+        setattr(enc, '_av_encode', _null_av_encode)
         setattr(enc, '_mtype', "abstract")
-        setattr(dec, '_repr', "Encoder(output_codec=%s)")
-        setattr(dec, '_got_data', None)
+        setattr(enc, '_repr', "Encoder(output_codec=%s)")
+        setattr(enc, '_got_data', None)
         return enc.open()
 
 
