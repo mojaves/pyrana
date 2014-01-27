@@ -243,6 +243,24 @@ class BaseEncoder(CodecMixin):
         if not delay_open:
             self.open()
 
+    def encode(self, frame):
+        """
+        Encode a logical frame in one or possibly more)packets, and
+        return an iterable which will yield all the packets produced.
+        """
+        raise NotImplemetedError
+
+    def flush(self):
+        """
+        emits all packets which may have been buffered by the Encoder
+        and empties such buffers. Call it last, do not intermix with
+        encode*() calls.
+        caution: more than one encoded frame (thus many packets)
+        can be buffered.
+        Raises NeedFeedError if all the internal buffers are empty.
+        """
+        raise NotImplemetedError
+
     @classmethod
     def from_cdata(cls, ctx):
         """
@@ -361,7 +379,7 @@ class BaseDecoder(CodecMixin):
         """
         emits all frames that can be recostructed by the data
         buffered into the Decoder, and empties such buffers.
-        call it last, do not intermix with decode*() calls.
+        Call it last, do not intermix with decode*() calls.
         caution: more than one frame can be buffered.
         Raises NeedFeedError if all the internal buffers are empty.
         """
