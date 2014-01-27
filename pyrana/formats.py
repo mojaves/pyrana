@@ -108,10 +108,10 @@ def _audio_stream_info(ctx, ffh):
     """
     get_bps = ffh.lavu.av_get_bytes_per_sample  # shortcut
     return OrderedDict((
-                        ("sample_rate", get_field_int(ctx, "ar")),
-                        ("channels", get_field_int(ctx, "ac")),
-                        ("sample_bytes", get_bps(ctx.sample_fmt))
-                        ))
+        ("sample_rate", get_field_int(ctx, "ar")),
+        ("channels", get_field_int(ctx, "ac")),
+        ("sample_bytes", get_bps(ctx.sample_fmt))
+    ))
 
 
 def _video_stream_info(ctx):
@@ -119,9 +119,9 @@ def _video_stream_info(ctx):
     extract the video stream info from an AVCodecContext (ctx)
     """
     return OrderedDict((
-                        ("width", ctx.width),
-                        ("height", ctx.height)
-                        ))
+        ("width", ctx.width),
+        ("height", ctx.height)
+    ))
 
 
 def _read_frame(ffh, ctx, new_pkt, stream_id):
@@ -266,7 +266,7 @@ class Demuxer(object):
         self._ensure_ready()
         if stream_id != STREAM_ANY:
             self._ensure_stream_id(stream_id)
-            warnings.warn("seek interface is still experimental."\
+            warnings.warn("seek interface is still experimental."
                           "Likely broken if stream_id != STREAM_ANY",
                           RuntimeWarning)
         raise NotImplementedError
@@ -281,7 +281,7 @@ class Demuxer(object):
             tstamp = int(tstamp / float(AV_TIME_BASE))
         else:
             self._ensure_stream_id(stream_id)
-            warnings.warn("seek interface is still experimental."\
+            warnings.warn("seek interface is still experimental."
                           "Likely broken if stream_id != STREAM_ANY",
                           RuntimeWarning)
             stream_tb = self._pctx[0].streams[stream_id].time_base

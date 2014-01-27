@@ -8,8 +8,8 @@ from contextlib import contextmanager
 
 from .packet import Packet, raw_packet, bind_packet
 from .common import PY3, MediaType, to_media_type, to_str, AttrDict, strerror
-from .errors import PyranaError, ProcessingError, \
-                    NeedFeedError, EOSError, SetupError, WrongParameterError
+from .errors import PyranaError, ProcessingError, SetupError
+from .errors import NeedFeedError, EOSError, WrongParameterError
 from . import ff
 
 

@@ -33,7 +33,8 @@ def _enforce_platform(plat):
         elif major == 2 and minor < 7:
             fail = True
         if fail:
-            raise RuntimeError("CPython < %i.%i not supported" % (major, minor))
+            msg = "CPython < %i.%i not supported" % (major, minor)
+            raise RuntimeError(msg)
 
 
 _enforce_platform(platform)

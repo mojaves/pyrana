@@ -52,7 +52,7 @@ def _image_from_frame(ffh, parent, cframe, pixfmt):
     # if we got here, either we have an HUGE bug lurking or
     # srcFormat is already good.
     if pixfmt == PixelFormat.AV_PIX_FMT_NONE or \
-      not ffh.sws.sws_isSupportedOutput(pixfmt):
+            not ffh.sws.sws_isSupportedOutput(pixfmt):
         msg = "unsupported pixel format: %s" % pixfmt
         raise ProcessingError(msg)
     null = ffh.ffi.NULL
