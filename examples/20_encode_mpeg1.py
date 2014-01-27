@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 
 """
-decode the first video stream of a media file and writes
-it as PPM frames.
+reencodes the first video stream of a media file as mpeg1 video.
 """
 
 import sys
@@ -35,7 +34,7 @@ def process_file(srcname, dstname):
             frame = vdec.decode(dmx.stream(sid))
             try:
                 pkt = venc.encode(frame)
-                dst.write(bytes(pkt)) # FIXME
+                dst.write(bytes(pkt))
                 sys.stdout.write("encoded: %05i\r" % num)
             except pyrana.errors.NeedFeedError:
                 sys.stderr.write("skipped: %05i\n" % num)
