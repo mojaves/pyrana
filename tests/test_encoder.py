@@ -17,6 +17,22 @@ class TestBaseEncoder(unittest.TestCase):
     def setUpClass(cls):
         pyrana.setup()
 
+    def setUp(self):
+        self.vparams = {
+            'bit_rate': 1000,
+            'width': 352,
+            'height': 288,
+            'time_base': (25, 1),
+            'pix_fmt': PixelFormat.AV_PIX_FMT_YUVJ420P
+        }
+        self.aparams = {
+            'bit_rate': 64000,
+            'sample_rate': 22050,
+            # channel layout
+            'channels': 2,
+            'sample_fmt': SampleFormat.AV_SAMPLE_FMT_S16
+        }
+
     def test_base_encoder_bad_input_codec(self):
         with self.assertRaises(pyrana.errors.SetupError):
             dec = pyrana.codec.BaseEncoder(0)
@@ -33,43 +49,29 @@ class TestBaseEncoder(unittest.TestCase):
             enc = pyrana.codec.BaseEncoder("mjpeg", params)
 
     def test_base_encoder_video(self):
-        params = {
-            'bit_rate': 1000,
-            'width': 352,
-            'height': 288,
-            'time_base': (25, 1),
-            'pix_fmt': PixelFormat.AV_PIX_FMT_YUVJ420P
-        }
-        enc = pyrana.codec.BaseEncoder("mjpeg", params)
+        enc = pyrana.codec.BaseEncoder("mjpeg", self.vparams)
         assert(enc)
         assert(repr(enc))
 
-#    def test_base_encoder_audio(self):
-#        enc = pyrana.codec.BaseEncoder("flac", {})
-#        assert(enc)
-#        assert(repr(enc))
+    def test_base_encoder_audio(self):
+        enc = pyrana.codec.BaseEncoder("flac", self.aparams)
+        assert(enc)
+        assert(repr(enc))
 
     def test_encoder_video(self):
-        params = {
-            'bit_rate': 1000,
-            'width': 352,
-            'height': 288,
-            'time_base': (25, 1),
-            'pix_fmt': PixelFormat.AV_PIX_FMT_YUVJ420P
-        }
-        enc = pyrana.video.Decoder("mpeg1video", params)
+        enc = pyrana.video.Decoder("mpeg1video", self.vparams)
         assert(enc)
         assert(repr(enc))
-#
-#    def test_encoder_audio_empty_flush(self):
-#        enc = pyrana.audio.Decoder("flac")
-#        with self.assertRaises(pyrana.errors.NeedFeedError):
-#            frame = dec.flush()
-#
-#    def test_encoder_video_empty_flush(self):
-#        enc = pyrana.video.Decoder("mpeg1video")
-#        with self.assertRaises(pyrana.errors.NeedFeedError):
-#            frame = dec.flush()
+
+    def test_encoder_audio_empty_flush(self):
+        enc = pyrana.audio.Decoder("flac", self.aparams)
+        with self.assertRaises(pyrana.errors.NeedFeedError):
+            frame = enc.flush()
+
+    def test_encoder_video_empty_flush(self):
+        enc = pyrana.video.Decoder("mpeg1video", self.vparams)
+        with self.assertRaises(pyrana.errors.NeedFeedError):
+            frame = enc.flush()
 
 
 if __name__ == "__main__":
