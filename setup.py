@@ -11,12 +11,6 @@ def version():
                 return value.strip()
 
 
-def dependencies():
-    # MUST fail if cannot open the source file
-    with open('requirements.txt', 'rt') as reqs:
-        return reqs.read().splitlines()
-
-
 def description():
     try:
         with open(os.path.join('docs', 'pyrana-intro.rst'), 'rt') as desc:
