@@ -12,7 +12,7 @@ import pyrana.codec
 BBB_SAMPLE = os.path.join('tests', 'data', 'bbb_sample.ogg')
 
 
-class TestBaseCodecs(unittest.TestCase):
+class TestBaseDecoder(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         pyrana.setup()
@@ -69,12 +69,6 @@ class TestBaseCodecs(unittest.TestCase):
             dmx = pyrana.formats.Demuxer(f)
             dec = dmx.open_decoder(0)
             assert(dec.extra_data)
-
-
-class TestFrameBinder(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        pyrana.setup()
 
 
 if __name__ == "__main__":
