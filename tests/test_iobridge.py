@@ -48,6 +48,10 @@ class TestBuffer(unittest.TestCase):
         self._buf[0] = b'\0'
         assert self._buf[0] == b'\0'
 
+    def test_item_cannot_del(self):
+        with self.assertRaises(NotImplementedError):
+            del self._buf[0]
+
 
 class TestIOSource(unittest.TestCase):
     @classmethod

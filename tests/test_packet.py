@@ -28,6 +28,20 @@ class TestPacket(unittest.TestCase):
         pkt = pyrana.packet._new_cpkt(ffh, 0)
         assert(pkt.size == 0)
 
+    def test_zero_alloc_bound(self):
+        ffh = MockFF(faulty=True)
+        with pyrana.packet.bind_packet(ffh, 0) as pkt:
+            assert(pkt.size == 0)
+
+    def test_zero_alloc_bound_excp(self):
+        ffh = MockFF(faulty=True)
+        try:
+            with pyrana.packet.bind_packet(ffh, 0) as pkt:
+                assert(pkt.size == 0)
+                raise pyrana.errors.PyranaError
+        except pyrana.errors.PyranaError:
+            pass
+
     def test_new_from_string_huge(self):
         try:
             pkt = pyrana.packet.Packet(0, _B * 1024 * 1024 * 32)

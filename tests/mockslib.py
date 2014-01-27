@@ -88,6 +88,10 @@ class MockLavc:
         return -1
 
     @staticmethod
+    def av_free_packet(pkt):
+        pass
+
+    @staticmethod
     def avcodec_find_decoder_by_name(name):
         return None
 
