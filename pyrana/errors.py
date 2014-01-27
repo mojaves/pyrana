@@ -45,6 +45,12 @@ class SetupError(PyranaError):
     """
 
 
+class WrongParameterError(PyranaError):
+    """
+    Unknown or invalid parameter supplied.
+    """
+
+
 class UnsupportedError(PyranaError):
     """
     Requested an unsupported feature.
