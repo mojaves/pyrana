@@ -183,3 +183,8 @@ int avcodec_decode_video2(AVCodecContext *avctx, AVFrame *picture,
 int avcodec_decode_audio4(AVCodecContext *avctx, AVFrame *frame,
                           int *got_frame_ptr,
                           const AVPacket *avpkt);
+
+int avcodec_encode_video2(AVCodecContext *avctx, AVPacket *avpkt,
+                          const AVFrame *frame, int *got_packet_ptr);
+int avcodec_encode_audio2(AVCodecContext *avctx, AVPacket *avpkt,
+                          const AVFrame *frame, int *got_packet_ptr);
