@@ -12,12 +12,12 @@ Overview
 --------
 
 Pyrana is a python package designed to provides simple access to
-multimedia files. Pyrana is based on the FFmpeg (http://ffmpeg.org)
+multimedia files. Pyrana is based on the [FFmpeg](http://ffmpeg.org)
 libraries, but provides an independent API.
 
-Pyrana sets you free from the tyranny of `subprocess`.
+Pyrana sets you free from the tyranny of [subprocess](http://docs.python.org/3/library/subprocess.html).
 Without pyrana, almost every piace of code which wanted to use the mighty
-`FFmpeg`, had to `subprocess` it. You had no choice.
+FFmpeg, had to subprocess it. You had no choice.
 pyrana provides an powerful, pythonic alternative.
 If you *want* to subprocess() FFmpeg, fine, go ahead.
 If you *do not want* it, pyrana may be what you were looking for.
