@@ -142,6 +142,9 @@ class MockLavu:
     def av_get_channel_layout_nb_channels(self, channel_layout):
         return 2  # I have just two speakers :(
 
+    def av_strerror(self, err, buf, sz):
+        return "N/A"
+
 
 class MockCFFI:
     def __init__(self):
