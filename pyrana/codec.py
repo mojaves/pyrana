@@ -313,7 +313,8 @@ class BaseEncoder(CodecMixin):
         Encode a logical frame in one or possibly more)packets, and
         return an iterable which will yield all the packets produced.
         """
-        return self._encode_frame(frame.ppframe[0])
+        _, pkt = self._encode_frame(frame._ppframe[0])
+        return pkt
 
     def flush(self):
         """
