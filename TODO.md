@@ -33,9 +33,9 @@ Version 0.6.0 <- We are here!
 Version 0.8.0
 =============
 
-* stabilization.
+* code stabilization.
 * sync facilities.
-* complete player tutorial.
+* finish the player tutorial.
 * readthedocs page.
 
 
@@ -45,3 +45,10 @@ Version 0.10.0
 * complete sphinx docs.
 * frame seek support.
 * compatibility with pypy 2.1+.
+
+
+Version 0.12.0
+==============
+
+* performance optimizations
+
