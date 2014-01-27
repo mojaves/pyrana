@@ -22,7 +22,7 @@ class TestBaseEncoder(unittest.TestCase):
             'bit_rate': 1000,
             'width': 352,
             'height': 288,
-            'time_base': (25, 1),
+            'time_base': (1, 25),
             'pix_fmt': PixelFormat.AV_PIX_FMT_YUVJ420P
         }
         self.aparams = {
@@ -59,17 +59,19 @@ class TestBaseEncoder(unittest.TestCase):
         assert(repr(enc))
 
     def test_encoder_video(self):
-        enc = pyrana.video.Decoder("mpeg1video", self.vparams)
+        self.vparams['pix_fmt'] = PixelFormat.AV_PIX_FMT_YUV420P
+        enc = pyrana.video.Encoder("mpeg1video", self.vparams)
         assert(enc)
         assert(repr(enc))
 
     def test_encoder_audio_empty_flush(self):
-        enc = pyrana.audio.Decoder("flac", self.aparams)
+        enc = pyrana.audio.Encoder("flac", self.aparams)
         with self.assertRaises(pyrana.errors.NeedFeedError):
             frame = enc.flush()
 
     def test_encoder_video_empty_flush(self):
-        enc = pyrana.video.Decoder("mpeg1video", self.vparams)
+        self.vparams['pix_fmt'] = PixelFormat.AV_PIX_FMT_YUV420P
+        enc = pyrana.video.Encoder("mpeg1video", self.vparams)
         with self.assertRaises(pyrana.errors.NeedFeedError):
             frame = enc.flush()
 
