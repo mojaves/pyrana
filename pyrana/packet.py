@@ -44,6 +44,20 @@ def _new_cpkt(ffh, size):
 
 
 @contextmanager
+def bind_packet(ffh, size=0):
+    """
+    allocates an AVPacket and cleans it up on exception.
+    """
+    try:
+        cpkt = _new_cpkt(ffh, size)
+        yield cpkt
+    except PyranaError:
+        ffh.lavc.av_free_packet(cpkt)
+        raise
+    # otherwise the ownership *has* to be passed.
+
+
+@contextmanager
 def raw_packet(size):
     """
     context manager for a raw ffmpeg packet of the given size.

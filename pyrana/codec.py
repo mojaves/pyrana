@@ -6,7 +6,7 @@ This module is not part of the pyrana public API.
 from types import GeneratorType
 from contextlib import contextmanager
 
-from .packet import raw_packet
+from .packet import raw_packet, bind_packet
 from .common import PY3, MediaType, to_media_type, to_str, AttrDict
 from .errors import SetupError, ProcessingError, \
                     NeedFeedError, EOSError, PyranaError
@@ -140,6 +140,19 @@ class BaseFrame(object):
         return frame
 
 
+def _null_av_encode(ctx, pkt, frame, flag):
+    """
+    private use only. Placeholder callable for hooks
+    in the BaseEncoder which MUST have to be replaced in the
+    specific {Audio,Video,...} Encoders.
+    """
+    assert ctx
+    assert pkt
+    assert frame
+    assert flag
+    return -1
+
+
 def _null_av_decode(ctx, frame, flag, pkt):
     """
     private use only. Placeholder callable for hooks
@@ -173,6 +186,20 @@ def _new_av_frame_pp(ffh):
     return ppframe
 
 
+@contextmanager
+def bind_frame(ffh):
+    """
+    allocates an AVFrame and cleans it up on exception.
+    """
+    try:
+        ppframe = _new_av_frame_pp(ffh)
+        yield ppframe
+    except PyranaError:
+        ffh.lavc.avcodec_free_frame(ppframe)
+        raise
+    # otherwise the ownership *has* to be passed.
+
+
 def make_fetcher(seq):
     """
     Builds a callable which extracts, deletes from
@@ -194,20 +221,6 @@ def make_fetcher(seq):
         raise ProcessingError("unsupported source type")
 
 
-@contextmanager
-def bind_frame(ffh):
-    """
-    allocates an AVFrame and cleans it up on exception.
-    """
-    try:
-        ppframe = _new_av_frame_pp(ffh)
-        yield ppframe
-    except PyranaError:
-        ffh.lavc.avcodec_free_frame(ppframe)
-        raise
-    # otherwise the ownership *has* to be passed.
-
-
 def make_payload(cls, ffh, ppframe, parent):
     """
     Setups the common fields of every multimedia payload object.
@@ -218,6 +231,15 @@ def make_payload(cls, ffh, ppframe, parent):
     setattr(payload, '_parent', parent)
     # for shared payloads, we must keep alive the parent (pp)frame.
     return payload
+
+
+def wire_encoder(dec, av_encode, mtype):
+    """
+    Injects the specific encoding hooks in a generic encoder.
+    """
+    setattr(dec, '_av_encode', av_encode)
+    setattr(dec, '_mtype', mtype)
+    return dec
 
 
 def wire_decoder(dec, av_decode, new_frame, mtype):
@@ -243,17 +265,34 @@ class BaseEncoder(CodecMixin):
         else:
             raise SetupError("not yet supported")
         self._ctx = ffh.lavc.avcodec_alloc_context3(self._codec)
+        self._av_encode = _null_av_encode
         self._repr = "Encoder(output_codec=%s)"
         self._mtype = "abstract"
         if not delay_open:
             self.open()
+
+    def _encode_frame(self, cframe):
+        """
+        Puts a frame into the encoder, and extracts the encoded packet.
+        (WRITEME)
+        """
+        with bind_packet(self._ff) as pkt:
+            ret = self._av_encode(self._ctx, pkt, cframe, self._got_data)
+            if ret < 0:
+                msg = "Error encoding %s frame: %i" % (self._mtype, ret)
+                raise ProcessingError(msg)
+
+            if not self._got_data[0]:
+                raise NeedFeedError()
+
+            return ret, Packet.from_cdata(pkt)
 
     def encode(self, frame):
         """
         Encode a logical frame in one or possibly more)packets, and
         return an iterable which will yield all the packets produced.
         """
-        raise NotImplemetedError
+        return self._encode_frame(frame.ppframe[0])
 
     def flush(self):
         """
@@ -264,13 +303,13 @@ class BaseEncoder(CodecMixin):
         can be buffered.
         Raises NeedFeedError if all the internal buffers are empty.
         """
-        raise NotImplemetedError
+        return self._encode_frame(self._ff.ffi.NULL)
 
     @classmethod
     def from_cdata(cls, ctx):
         """
-        builds a pyrana Decoder from (around) a (cffi-wrapped) libav*
-        decoder object.
+        builds a pyrana Encoder from (around) a (cffi-wrapped) libav*
+        encoder object.
         The libav object must be already initialized and ready to go.
         WARNING: raw access. Use with care.
         """
@@ -280,6 +319,7 @@ class BaseEncoder(CodecMixin):
         ctx.codec = ffh.lavc.avcodec_find_encoder(ctx.codec_id)
         setattr(enc, '_codec', ctx.codec)
         setattr(enc, '_ctx', ctx)
+        setattr(dec, '_av_encode', _null_av_encode)
         setattr(enc, '_mtype', "abstract")
         setattr(dec, '_repr', "Encoder(output_codec=%s)")
         setattr(dec, '_got_data', None)
