@@ -5,8 +5,8 @@ Encoders, Decoders and their support code.
 
 from enum import IntEnum
 from .common import to_sample_format
-from .codec import BaseFrame, BaseDecoder, bind_frame
-from .codec import Payload, make_payload, wire_decoder
+from .codec import BaseFrame, BaseDecoder, BaseEncoder, bind_frame
+from .codec import Payload, make_payload, wire_decoder, wire_encoder
 from .errors import ProcessingError, SetupError
 from . import ff
 # the following is just to export to the clients the Enums.
@@ -239,9 +239,7 @@ class Frame(BaseFrame):
 
 class Decoder(BaseDecoder):
     """
-    - add the 'params' property (read-only preferred alias for getParams)
-    - no conversion/scaling will be performed
-    - add flush() operation
+    Decodes audio Packets into audio Frames.
     """
     @staticmethod
     def wire(dec):
@@ -267,3 +265,32 @@ class Decoder(BaseDecoder):
         WARNING: raw access. Use with care.
         """
         return cls.wire(BaseDecoder.from_cdata(ctx))
+
+
+class Encoder(BaseEncoder):
+    """
+    Encode audio Frames into Packets.
+    """
+    @staticmethod
+    def wire(enc):
+        """
+        wire up the Encoder. See codec.wire_encoder
+        """
+        ffh = ff.get_handle()
+        return wire_encoder(enc,
+                            ffh.lavc.avcodec_encode_audio2,
+                            "audio")
+
+    def __init__(self, output_codec, params=None):
+        super(Encoder, self).__init__(output_codec, params)
+        self.wire(self)
+
+    @classmethod
+    def from_cdata(cls, ctx):
+        """
+        builds a pyrana Audio Encoder from (around) a (cffi-wrapped) libav*
+        (audio)encoder object.
+        The libav object must be already initialized and ready to go.
+        WARNING: raw access. Use with care.
+        """
+        return cls.wire(BaseEncoder.from_cdata(ctx))

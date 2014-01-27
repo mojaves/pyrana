@@ -6,7 +6,7 @@ Encoders, Decoders and their support code.
 from enum import IntEnum
 from .common import to_pixel_format, to_picture_type
 from .codec import BaseFrame, BaseDecoder, BaseEncoder, bind_frame
-from .codec import Payload, make_payload, wire_decoder
+from .codec import Payload, make_payload, wire_decoder, wire_encoder
 from .errors import ProcessingError, SetupError
 from . import ff
 # the following is just to export to the clients the Enums.
@@ -356,13 +356,26 @@ class Encoder(BaseEncoder):
     """
     Encode video Frames into Packets.
     """
+    @staticmethod
+    def wire(enc):
+        """
+        wire up the Encoder. See codec.wire_encoder
+        """
+        ffh = ff.get_handle()
+        return wire_encoder(enc,
+                            ffh.lavc.avcodec_encode_video2,
+                            "video")
+
     def __init__(self, output_codec, params=None):
         super(Encoder, self).__init__(output_codec, params)
+        self.wire(self)
 
-    def encode(self, frame):
-        """encode(frame) -> packet"""
-        raise NotImplementedError
-
-    def flush(self):
-        """flush() -> packet"""
-        raise NotImplementedError
+    @classmethod
+    def from_cdata(cls, ctx):
+        """
+        builds a pyrana Video Encoder from (around) a (cffi-wrapped) libav*
+        (video)encoder object.
+        The libav object must be already initialized and ready to go.
+        WARNING: raw access. Use with care.
+        """
+        return cls.wire(BaseEncoder.from_cdata(ctx))
