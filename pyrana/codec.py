@@ -48,6 +48,11 @@ class CodecMixin(object):
         self._xdata = None
         self._repr = "CodecMixin(codec=%s)"
         self._ready = False
+        self._got_data = None
+
+    @property
+    def ready(self):
+        return self._got_data is not None
 
     def __repr__(self):
         # how funny. If we use an array of chars like a string, it crashes.
@@ -65,7 +70,7 @@ class CodecMixin(object):
                                          ffh.ffi.NULL)
             if err < 0:
                 raise SetupError("avcodec open failed: %i" % err)
-            self._ready = True
+            self._got_data = ffh.ffi.new("int [1]")
         return self
 
     @property
@@ -277,6 +282,7 @@ class BaseEncoder(CodecMixin):
         setattr(enc, '_ctx', ctx)
         setattr(enc, '_mtype', "abstract")
         setattr(dec, '_repr', "Encoder(output_codec=%s)")
+        setattr(dec, '_got_data', None)
         return enc.open()
 
 
@@ -296,7 +302,6 @@ class BaseDecoder(CodecMixin):
         self._av_decode = _null_av_decode
         self._new_frame = _null_new_frame
         self._frames = []  # internal buffering
-        self._got_frame = None
         self._repr = "Decoder(input_codec=%s)"
         self._mtype = "abstract"
         if not delay_open:
@@ -306,10 +311,8 @@ class BaseDecoder(CodecMixin):
         """
         opens the codec into the codec context.
         """
-        if self._got_frame is None:
-            ffh = self._ff if ffh is None else ffh
+        if not self.ready:
             super(BaseDecoder, self).open(ffh)
-            self._got_frame = ffh.ffi.new("int [1]")
         return self
 
     def _decode_pkt(self, pkt):
@@ -326,12 +329,12 @@ class BaseDecoder(CodecMixin):
         important, libavformat does some packing too.
         """
         with bind_frame(self._ff) as ppframe:
-            ret = self._av_decode(self._ctx, ppframe[0], self._got_frame, pkt)
+            ret = self._av_decode(self._ctx, ppframe[0], self._got_data, pkt)
             if ret < 0:
                 msg = "Error decoding %s frame: %i" % (self._mtype, ret)
                 raise ProcessingError(msg)
 
-            if not self._got_frame[0]:
+            if not self._got_data[0]:
                 raise NeedFeedError()
 
             return ret, self._new_frame(ppframe)
@@ -404,7 +407,7 @@ class BaseDecoder(CodecMixin):
         setattr(dec, '_av_decode', _null_av_decode)
         setattr(dec, '_new_frame', _null_new_frame)
         setattr(dec, '_frames', [])  # internal buffering
-        setattr(dec, '_got_frame', None)
+        setattr(dec, '_got_data', None)
         setattr(dec, '_mtype', "abstract")
         setattr(dec, '_repr', "Decoder(input_codec=%s)")
         return dec.open()
