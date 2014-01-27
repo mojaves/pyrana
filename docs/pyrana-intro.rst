@@ -18,7 +18,7 @@ powerful handling of multimedia files.
    libraries <http://ffmpeg.org>`_.
 
 pyrana is a modern, pure python package which is developed for python 3
-(but python 2.7 compatibility is coming soon!) which takes great
+and compatible with python 2.7, which takes great
 advantage of `CFFI <http://cffi.readthedocs.org/en/release-0.7/>`_, so
 the compatibility with `pypy <http://pypy.org>`_ is just one step away.
 
