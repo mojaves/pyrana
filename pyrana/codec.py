@@ -46,6 +46,27 @@ class CodecMixin(object):
         self._codec = None
         self._ctx = None
         self._xdata = None
+        self._repr = "CodecMixin(codec=%s)"
+        self._ready = False
+
+    def __repr__(self):
+        # how funny. If we use an array of chars like a string, it crashes.
+        codec_id = self._codec.id  # if self._codec else self._ctx.codec_id
+        cname = self._ff.lavc.avcodec_get_name(codec_id)
+        return self._repr % (to_str(cname))
+
+    def open(self, ffh=None):  # ffh parameter only for testing purposes.
+        """
+        opens the codec into the codec context.
+        """
+        if self._ready is False:
+            ffh = self._ff if ffh is None else ffh
+            err = ffh.lavc.avcodec_open2(self._ctx, self._codec,
+                                         ffh.ffi.NULL)
+            if err < 0:
+                raise SetupError("avcodec open failed: %i" % err)
+            self._ready = True
+        return self
 
     @property
     def params(self):
@@ -217,28 +238,10 @@ class BaseEncoder(CodecMixin):
         else:
             raise SetupError("not yet supported")
         self._ctx = ffh.lavc.avcodec_alloc_context3(self._codec)
+        self._repr = "Encoder(output_codec=%s)"
         self._mtype = "abstract"
-        self._ready = False
         if not delay_open:
             self.open()
-
-    def open(self, ffh=None):  # ffh parameter only for testing purposes.
-        """
-        opens the codec into the codec context.
-        """
-        if self._ready is False:
-            ffh = self._ff if ffh is None else ffh
-            err = ffh.lavc.avcodec_open2(self._ctx, self._codec,
-                                         ffh.ffi.NULL)
-            if err < 0:
-                raise SetupError("avcodec open failed: %i" % err)
-        return self
-
-    def __repr__(self):
-        # how funny. If we use an array of chars like a string, it crashes.
-        codec_id = self._codec.id  # if self._codec else self._ctx.codec_id
-        cname = self._ff.lavc.avcodec_get_name(codec_id)
-        return "Encoder(output_codec=%s)" % (to_str(cname))
 
     @classmethod
     def from_cdata(cls, ctx):
@@ -255,6 +258,7 @@ class BaseEncoder(CodecMixin):
         setattr(enc, '_codec', ctx.codec)
         setattr(enc, '_ctx', ctx)
         setattr(enc, '_mtype', "abstract")
+        setattr(dec, '_repr', "Encoder(output_codec=%s)")
         return enc.open()
 
 
@@ -275,6 +279,7 @@ class BaseDecoder(CodecMixin):
         self._new_frame = _null_new_frame
         self._frames = []  # internal buffering
         self._got_frame = None
+        self._repr = "Decoder(input_codec=%s)"
         self._mtype = "abstract"
         if not delay_open:
             self.open()
@@ -285,18 +290,9 @@ class BaseDecoder(CodecMixin):
         """
         if self._got_frame is None:
             ffh = self._ff if ffh is None else ffh
+            super(BaseDecoder, self).open(ffh)
             self._got_frame = ffh.ffi.new("int [1]")
-            err = ffh.lavc.avcodec_open2(self._ctx, self._codec,
-                                         ffh.ffi.NULL)
-            if err < 0:
-                raise SetupError("avcodec open failed: %i" % err)
         return self
-
-    def __repr__(self):
-        # how funny. If we use an array of chars like a string, it crashes.
-        codec_id = self._codec.id  # if self._codec else self._ctx.codec_id
-        cname = self._ff.lavc.avcodec_get_name(codec_id)
-        return "Decoder(input_codec=%s)" % (to_str(cname))
 
     def _decode_pkt(self, pkt):
         """
@@ -392,6 +388,7 @@ class BaseDecoder(CodecMixin):
         setattr(dec, '_frames', [])  # internal buffering
         setattr(dec, '_got_frame', None)
         setattr(dec, '_mtype', "abstract")
+        setattr(dec, '_repr', "Decoder(input_codec=%s)")
         return dec.open()
 
 
