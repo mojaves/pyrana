@@ -7,9 +7,9 @@ from types import GeneratorType
 from contextlib import contextmanager
 
 from .packet import raw_packet, bind_packet
-from .common import PY3, MediaType, to_media_type, to_str, AttrDict
-from .errors import SetupError, ProcessingError, \
-                    NeedFeedError, EOSError, PyranaError
+from .common import PY3, MediaType, to_media_type, to_str, AttrDict, strerror
+from .errors import PyranaError, ProcessingError, \
+                    NeedFeedError, EOSError, SetupError, WrongParameterError
 from . import ff
 
 
@@ -66,12 +66,26 @@ class CodecMixin(object):
         """
         if self._ready is False:
             ffh = self._ff if ffh is None else ffh
+            self._setup(self._ctx, self._params)
             err = ffh.lavc.avcodec_open2(self._ctx, self._codec,
                                          ffh.ffi.NULL)
             if err < 0:
-                raise SetupError("avcodec open failed: %i" % err)
+                raise SetupError("avcodec open failed: %i (%s)" % (
+                                 err, strerror(err, ffh)))
             self._got_data = ffh.ffi.new("int [1]")
         return self
+
+    def _setup(self, ctx, params):
+        for name, value in params.items():
+            if name == 'time_base':
+                ctx.time_base.num = value[0]
+                ctx.time_base.den = value[1]
+            else:
+                try:
+                    setattr(ctx, name, value)
+                except AttributeError:
+                    msg = "unsupported parameter: %s" % name
+                    raise WrongParameterError(msg)
 
     @property
     def params(self):
@@ -256,11 +270,11 @@ class BaseEncoder(CodecMixin):
     """
     Encoder base class. Common both to audio and video encoders.
     """
-    def __init__(self, input_codec, params=None, delay_open=False):
+    def __init__(self, output_codec, params=None, delay_open=False):
         super(BaseEncoder, self).__init__(params)
         ffh = self._ff
-        if isinstance(input_codec, str):
-            name = input_codec.encode('utf-8')
+        if isinstance(output_codec, str):
+            name = output_codec.encode('utf-8')
             self._codec = ffh.lavc.avcodec_find_encoder_by_name(name)
         else:
             raise SetupError("not yet supported")
@@ -331,7 +345,8 @@ class BaseDecoder(CodecMixin):
     Decoder base class. Common both to audio and video decoders.
     """
     def __init__(self, input_codec, params=None, delay_open=False):
-        super(BaseDecoder, self).__init__(params)
+        super(BaseDecoder, self).__init__()
+        # XXX: intentionally skip Params for now
         ffh = self._ff
         if isinstance(input_codec, str):
             name = input_codec.encode('utf-8')
