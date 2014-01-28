@@ -12,6 +12,7 @@ from . import ff
 # the following is just to export to the clients the Enums.
 # pylint: disable=W0611
 from .ffenums import SampleFormat
+from .ffaclayout import ChannelLayout
 
 
 INPUT_CODECS = frozenset()
@@ -280,6 +281,15 @@ class Encoder(BaseEncoder):
         return wire_encoder(enc,
                             ffh.lavc.avcodec_encode_audio2,
                             "audio")
+
+    def _setup(self):
+        super(Encoder, self)._setup()
+        layout = self._params.get("channel_layout")
+        if layout is not None:
+            # this HAS to prevail on channels
+            count_channels = self._ff.lavu.av_get_channel_layout_nb_channels
+            # shortcut
+            self._params["channels"] = count_channels(layout)
 
     def __init__(self, output_codec, params=None):
         super(Encoder, self).__init__(output_codec, params)

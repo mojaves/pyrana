@@ -8,8 +8,7 @@ import pyrana.formats
 import pyrana.errors
 import pyrana.codec
 from pyrana.video import PixelFormat
-from pyrana.audio import SampleFormat
-
+from pyrana.audio import SampleFormat, ChannelLayout
 
 
 class TestBaseEncoder(unittest.TestCase):
@@ -28,8 +27,7 @@ class TestBaseEncoder(unittest.TestCase):
         self.aparams = {
             'bit_rate': 64000,
             'sample_rate': 22050,
-            # channel layout
-            'channels': 2,
+            'channel_layout': ChannelLayout.AV_CH_LAYOUT_STEREO,
             'sample_fmt': SampleFormat.AV_SAMPLE_FMT_S16
         }
 

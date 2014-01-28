@@ -4,7 +4,7 @@ import sys
 import pyrana
 import pyrana.errors
 import pyrana.formats
-from pyrana.audio import SampleFormat
+from pyrana.audio import SampleFormat, ChannelLayout
 from pyrana.formats import MediaType
 
 
@@ -24,8 +24,7 @@ def process_file(srcname, dstname):
         params = {
             'bit_rate': 128000,
             'sample_rate': 44100,
-            # channel layout
-            'channels': 2,
+            'channel layout': ChannelLayout.AV_CH_LAYOUT_STEREO,
             'sample_fmt': SampleFormat.AV_SAMPLE_FMT_S16
         }
         aenc = pyrana.audio.Encoder("mp2", params)  # FIXME

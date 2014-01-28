@@ -79,13 +79,15 @@ class CodecMixin(object):
         cname = self._ff.lavc.avcodec_get_name(codec_id)
         return self._repr % (to_str(cname))
 
+    def _setup(self):
+        _setup_av_ctx(self._ctx, self._params)
+
     def open(self, ffh=None):  # ffh parameter only for testing purposes.
         """
         opens the codec into the codec context.
         """
         if self.ready is False:
             ffh = self._ff if ffh is None else ffh
-            _setup_av_ctx(self._ctx, self._params)
             err = ffh.lavc.avcodec_open2(self._ctx, self._codec,
                                          ffh.ffi.NULL)
             if err < 0:
@@ -289,6 +291,7 @@ class BaseEncoder(CodecMixin):
         self._av_encode = _null_av_encode
         self._repr = "Encoder(output_codec=%s)"
         self._mtype = "abstract"
+        self._setup()
         if not delay_open:
             self.open()
 
