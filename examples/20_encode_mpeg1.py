@@ -22,7 +22,7 @@ def process_file(srcname, dstname):
                                          MediaType.AVMEDIA_TYPE_VIDEO)
         vdec = dmx.open_decoder(sid)
         params = {
-            'bit_rate': 1000,
+            'bit_rate': 800000,
             'width': 352,
             'height': 288,
             'time_base': (1, 25),
