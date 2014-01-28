@@ -143,6 +143,13 @@ typedef struct AVCodecContext {
     int sample_rate;
     int channels;
     enum AVSampleFormat sample_fmt;
+    int frame_size;
+    int frame_number;
+    int block_align;
+    int cutoff;
+    int request_channels;
+    uint64_t channel_layout;
+    uint64_t request_channel_layout;
     /* ... */
 } AVCodecContext;
 AVCodecContext *avcodec_alloc_context3(const AVCodec *codec);
