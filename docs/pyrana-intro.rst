@@ -10,7 +10,8 @@ powerful handling of multimedia files.
    well-established relevant python packages:
    `Pillow <https://pypi.python.org/pypi/Pillow>`_,
    `pygame <http://pygame.org>`_,
-   `PySDL2 <http://pysdl2.readthedocs.org/en/latest/>`_.
+   `PySDL2 <http://pysdl2.readthedocs.org/en/latest/>`_,
+   `PyAudio <http://people.csail.mit.edu/hubert/pyaudio/>`_,
    `numpy <http://www.numpy.org/>`_ compatibility is coming soon.
 
 -  powerful: pyrana provides an independent API, but is built on the
