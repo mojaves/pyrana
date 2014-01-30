@@ -80,6 +80,10 @@ class CodecMixin(object):
         return self._repr % (to_str(cname))
 
     def _setup(self):
+        """
+        Dispach the given parameters to the internal
+        (FFmpeg) data structures.
+        """
         _setup_av_ctx(self._ctx, self._params)
 
     def open(self, ffh=None):  # ffh parameter only for testing purposes.
@@ -146,6 +150,13 @@ class BaseFrame(object):
         The Presentation TimeStamp of this Frame.
         """
         return self._frame.pts if self._frame else 0
+
+    @property
+    def cdata(self):
+        """
+        Direct access to the internal C AVFrame object.
+        """
+        return self._ppframe[0]
 
     @classmethod
     def from_cdata(cls, ppframe):
@@ -316,7 +327,7 @@ class BaseEncoder(CodecMixin):
         Encode a logical frame in one or possibly more)packets, and
         return an iterable which will yield all the packets produced.
         """
-        _, pkt = self._encode_frame(frame._ppframe[0])
+        _, pkt = self._encode_frame(frame.cdata)
         return pkt
 
     def flush(self):

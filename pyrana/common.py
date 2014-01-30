@@ -213,12 +213,14 @@ def all_formats():
     libavformat, and which, in turn, by pyrana.
     """
     ffh = ff.get_handle()
+
     def fill_fmts(fmt_iter):
         fmts = set()
         for name, _ in _iter_fmts(ffh.ffi, fmt_iter):
             for part in name.split(','):
                 fmts.add((part, part))
         return fmts
+
     ifmts = fill_fmts(ffh.lavf.av_iformat_next)
     ofmts = fill_fmts(ffh.lavf.av_oformat_next)
     return (ifmts, ofmts)
