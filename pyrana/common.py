@@ -213,10 +213,15 @@ def all_formats():
     libavformat, and which, in turn, by pyrana.
     """
     ffh = ff.get_handle()
-    next_in = ffh.lavf.av_iformat_next
-    next_out = ffh.lavf.av_oformat_next
-    return ([x for x, _ in _iter_fmts(ffh.ffi, next_in)],
-            [x for x, _ in _iter_fmts(ffh.ffi, next_out)])
+    def fill_fmts(fmt_iter):
+        fmts = set()
+        for name, _ in _iter_fmts(ffh.ffi, fmt_iter):
+            for part in name.split(','):
+                fmts.add((part, part))
+        return fmts
+    ifmts = fill_fmts(ffh.lavf.av_iformat_next)
+    ofmts = fill_fmts(ffh.lavf.av_oformat_next)
+    return (ifmts, ofmts)
 
 
 def all_codecs():
@@ -226,13 +231,13 @@ def all_codecs():
     BUG? Do not distinguish between enc and dec.
     """
     ffh = ff.get_handle()
-    audio, video = [], []
+    audio, video = set(), set()
     for name, _type, _ in _iter_codec(ffh.ffi, ffh.lavc.av_codec_next):
         if _type == MediaType.AVMEDIA_TYPE_AUDIO:
-            audio.append(name)
+            audio.add((name, name))
         elif _type == MediaType.AVMEDIA_TYPE_VIDEO:
-            video.append(name)
-    return audio, video
+            video.add((name, name))
+    return (audio, video)
 
 
 def get_field_int(ffobj, name):

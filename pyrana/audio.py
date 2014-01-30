@@ -15,8 +15,8 @@ from .ffenums import SampleFormat
 from .ffaclayout import ChannelLayout
 
 
-INPUT_CODECS = frozenset()
-OUTPUT_CODECS = frozenset()
+InputCodec = None  # to be filled in setup()
+OutputCodec = None  # to be filled in setup()
 
 
 class AVRounding(IntEnum):

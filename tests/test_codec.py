@@ -9,6 +9,49 @@ import pyrana.video
 from tests.mockslib import MockAVCodecContext, MockFF
 
 
+class TestCommonData(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        pyrana.setup()
+
+    def _assert_valid_collection(self, col):
+        self.assertTrue(len(col) > 0)
+
+    def test_input_video_codecs(self):
+        self._assert_valid_collection(pyrana.video.InputCodec)
+
+    def test_output_video_codecs(self):
+        self._assert_valid_collection(pyrana.video.OutputCodec)
+
+    def test_pixel_formats(self):
+        self._assert_valid_collection(pyrana.video.PixelFormat)
+
+    def test_input_audio_codecs(self):
+        self._assert_valid_collection(pyrana.audio.InputCodec)
+
+    def test_output_audio_codecs(self):
+        self._assert_valid_collection(pyrana.audio.OutputCodec)
+
+    def test_sample_formats(self):
+        self._assert_valid_collection(pyrana.audio.SampleFormat)
+
+    def test_valid_input_video_codecs(self):
+        self.assertTrue(all(len(name.value) > 0
+                            for name in pyrana.video.InputCodec))
+
+    def test_valid_output_video_codecs(self):
+        self.assertTrue(all(len(name.value) > 0
+                            for name in pyrana.video.OutputCodec))
+
+    def test_valid_input_audio_codecs(self):
+        self.assertTrue(all(len(name.value) > 0
+                            for name in pyrana.audio.InputCodec))
+
+    def test_valid_output_audio_codecs(self):
+        self.assertTrue(all(len(name.value) > 0
+                            for name in pyrana.audio.OutputCodec))
+
+
 class TestCodecMixin(unittest.TestCase):
     def test_no_params(self):
         cmx = CodecMixin()

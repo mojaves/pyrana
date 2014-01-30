@@ -27,8 +27,8 @@ class UnsupportedError(PyranaError):
 
 # pyrana.format (V)
 
-input_formats  = frozenset()
-output_formats = frozenset()
+input_formats  = Enum
+output_formats = Enum
 
 
 def is_streamable(name) # (XXX!!!)
@@ -119,8 +119,8 @@ class Muxer(object): # (XXX!)
 
 #pyrana.video
 
-input_codecs       = frozenset()
-output_codecs      = frozenset()
+input_codecs       = Enum
+output_codecs      = Enum
 pixel_formats      = Enum
 
 
@@ -204,8 +204,8 @@ class Encoder(object):
 
 #pyrana.audio
 
-input_codecs        = frozenset()
-output_codecs       = frozenset()
+input_codecs        = Enum
+output_codecs       = Enum
 sample_formats      = Enum
 
 # FIXME: spawn Samples as Image for video.Frame?

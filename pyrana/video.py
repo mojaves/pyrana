@@ -14,8 +14,8 @@ from . import ff
 from .ffenums import PixelFormat, PictureType
 
 
-INPUT_CODECS = frozenset()
-OUTPUT_CODECS = frozenset()
+InputCodec = None  # to be filled in setup()
+OutputCodec = None  # to be filled in setup()
 
 
 NUM_PLANES = 8

@@ -4,6 +4,7 @@ multimedia files. Pyrana is based on the FFmpeg (http://ffmpeg.org)
 libraries, but provides an independent API.
 """
 
+from enum import Enum
 import platform
 
 from . import formats
@@ -63,21 +64,22 @@ def setup():
     ff.setup()
     # we know all the supported formats/codecs only *after* the
     # registration process. So we must do this wiring here.
-    if not formats.INPUT_FORMATS or \
-       not formats.OUTPUT_FORMATS:
+    if formats.InputFormat is None or \
+       formats.OutputFormat is None:
         ifmts, ofmts = all_formats()
-        formats.INPUT_FORMATS = frozenset(ifmts)
-        formats.OUTPUT_FORMATS = frozenset(ofmts)
-    if not audio.INPUT_CODECS or \
-       not audio.OUTPUT_CODECS or \
-       not video.INPUT_CODECS or \
-       not video.OUTPUT_CODECS:
-        acl, vcl = all_codecs()
-        acods, vcods = frozenset(acl), frozenset(vcl)
-        audio.INPUT_CODECS = acods
-        audio.OUTPUT_CODECS = acods
-        video.INPUT_CODECS = vcods
-        video.OUTPUT_CODECS = vcods
+        formats.InputFormat = Enum('InputFormat', ifmts)
+        formats.OutputFormat = Enum('OutputFormat', ofmts)
+    if not audio.InputCodec or \
+       not audio.OutputCodec or \
+       not video.InputCodec or \
+       not video.OutputCodec:
+        acods, vcods = all_codecs()
+        acodecs = Enum('AudioCodec', acods)
+        vcodecs = Enum('VideoCodec', vcods)
+        audio.InputCodec = acodecs
+        audio.OutputCodec = acodecs
+        video.InputCodec = vcodecs
+        video.OutputCodec = vcodecs
 
 
 __all__ = ['formats', 'audio', 'video', 'packet', 'errors']

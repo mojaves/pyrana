@@ -18,46 +18,18 @@ class TestCommonData(unittest.TestCase):
         self.assertTrue(len(col) > 0)
 
     def test_input_formats(self):
-        self._assert_valid_collection(pyrana.formats.INPUT_FORMATS)
+        self._assert_valid_collection(pyrana.formats.InputFormat)
 
     def test_output_formats(self):
-        self._assert_valid_collection(pyrana.formats.OUTPUT_FORMATS)
-
-    def test_input_video_codecs(self):
-        self._assert_valid_collection(pyrana.video.INPUT_CODECS)
-
-    def test_output_video_codecs(self):
-        self._assert_valid_collection(pyrana.video.OUTPUT_CODECS)
-
-    def test_pixel_formats(self):
-        self._assert_valid_collection(pyrana.video.PixelFormat)
-
-    def test_input_audio_codecs(self):
-        self._assert_valid_collection(pyrana.audio.INPUT_CODECS)
-
-    def test_output_audio_codecs(self):
-        self._assert_valid_collection(pyrana.audio.OUTPUT_CODECS)
-
-    def test_sample_formats(self):
-        self._assert_valid_collection(pyrana.audio.SampleFormat)
+        self._assert_valid_collection(pyrana.formats.OutputFormat)
 
     def test_valid_input_formats(self):
-        self.assertTrue(all(len(name) > 0 for name in pyrana.formats.INPUT_FORMATS))
+        self.assertTrue(all(len(name.value) > 0
+                            for name in pyrana.formats.InputFormat))
 
     def test_valid_input_formats(self):
-        self.assertTrue(all(len(name) > 0 for name in pyrana.formats.OUTPUT_FORMATS))
-
-    def test_valid_input_video_codecs(self):
-        self.assertTrue(all(len(name) > 0 for name in pyrana.video.INPUT_CODECS))
-
-    def test_valid_output_video_codecs(self):
-        self.assertTrue(all(len(name) > 0 for name in pyrana.video.OUTPUT_CODECS))
-
-    def test_valid_input_audio_codecs(self):
-        self.assertTrue(all(len(name) > 0 for name in pyrana.audio.INPUT_CODECS))
-
-    def test_valid_output_audio_codecs(self):
-        self.assertTrue(all(len(name) > 0 for name in pyrana.audio.OUTPUT_CODECS))
+        self.assertTrue(all(len(name.value) > 0
+                            for name in pyrana.formats.OutputFormat))
 
     def test_all_formats(self):
         x, y = pyrana.common.all_formats()

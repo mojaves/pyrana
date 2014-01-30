@@ -39,8 +39,8 @@ _TS_MAX = +9223372036854775807
 
 TIME_BASE = 1000000  # aka AV_TIME_BASE
 
-INPUT_FORMATS = frozenset()
-OUTPUT_FORMATS = frozenset()
+InputFormat = None  # to be filled in setup()
+OutputFormat = None  # to be filled in setup()
 
 
 def find_stream(streams, nth, media):
