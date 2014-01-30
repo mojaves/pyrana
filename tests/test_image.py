@@ -13,6 +13,13 @@ import pyrana.video
 from tests.mockslib import MockFF, MockFrame, MockLavu, MockSws
 
 
+def _new_frame(pixfmt):  # FIXME naming
+    ffh = pyrana.ff.get_handle()
+    frm = pyrana.video.Frame(352, 288, pixfmt)
+    img = frm.image()
+    return frm, img
+
+
 class TestImage(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -47,6 +54,25 @@ class TestImage(unittest.TestCase):
         with self.assertRaises(pyrana.errors.ProcessingError):
             pyrana.video._image_from_frame(ffh, None, frame, pixfmt)
         assert(ffh.sws.scale_done == 1)
+
+    def test_new_frame(self):
+        pixfmt = pyrana.video.PixelFormat.AV_PIX_FMT_YUV420P  # 0
+        frm, img = _new_frame(pixfmt)
+        assert(repr(img))
+        assert(len(img) >= img.width * img.height)
+        assert(img.is_shared)
+
+    def test_fill_frame(self):
+        pixfmt = pyrana.video.PixelFormat.AV_PIX_FMT_YUV420P  # 0
+        frm, img = _new_frame(pixfmt)
+        pyrana.video.fill_yuv420p(frm, 0)
+
+    def test_fill_frame_bad_pixmft(self):
+        pixfmt = pyrana.video.PixelFormat.AV_PIX_FMT_RGB24  # 0
+        frm, img = _new_frame(pixfmt)
+        with self.assertRaises(pyrana.errors.ProcessingError):
+            pyrana.video.fill_yuv420p(frm, 0)
+
 
 
 class TestPlaneCopy(unittest.TestCase):

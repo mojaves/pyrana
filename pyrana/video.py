@@ -7,6 +7,7 @@ from enum import IntEnum
 from .common import to_pixel_format, to_picture_type
 from .codec import BaseFrame, BaseDecoder, BaseEncoder, bind_frame
 from .codec import Payload, make_payload, wire_decoder, wire_encoder
+from .codec import _new_av_frame_pp
 from .errors import ProcessingError, SetupError
 from . import ff
 # the following is just to export to the clients the Enums.
@@ -41,6 +42,24 @@ class SWSMode(IntEnum):
     SWS_SPLINE = 0x400
 
 
+def _setup_av_frame_pp(ffh, ppframe, width, height, pixfmt):
+    """
+    WRITEME
+    """
+    ppframe[0].format = pixfmt
+    ppframe[0].width = width
+    ppframe[0].height = height
+
+    # alignement does more hurt than good here.
+    ret = ffh.lavu.av_image_alloc(ppframe[0].data,
+                                  ppframe[0].linesize,
+                                  width, height, pixfmt, 1)
+    if ret < 0:
+        msg = "unable to alloc a %ix%i(%s) picture" \
+              % (width, height, pixfmt)
+        raise ProcessingError(msg)
+
+
 def _image_from_frame(ffh, parent, cframe, pixfmt):
     """
     builds an Image from a C-frame, by converting the data
@@ -68,14 +87,8 @@ def _image_from_frame(ffh, parent, cframe, pixfmt):
         msg = "cannot get a SWScale context"
         raise ProcessingError(msg)
     with bind_frame(ffh) as ppframe:
-        # alignement does more hurt than good here.
-        ret = ffh.lavu.av_image_alloc(ppframe[0].data,
-                                      ppframe[0].linesize,
-                                      width, height, pixfmt, 1)
-        if ret < 0:
-            msg = "unable to alloc a %ix%i(%s) picture" \
-                  % (width, height, pixfmt)
-            raise ProcessingError(msg)
+        _setup_av_frame_pp(ffh, ppframe, width, height, pixfmt)
+
         ret = ffh.sws.sws_scale(sws,
                                 cframe.data, cframe.linesize,
                                 0, height,
@@ -258,6 +271,12 @@ class Frame(BaseFrame):
     """
     A Video frame.
     """
+    def __init__(self, width, height, pixfmt):
+        super(Frame, self).__init__()
+        self._ppframe = _new_av_frame_pp(self._ff)
+        self._frame = self._ppframe[0]
+        _setup_av_frame_pp(self._ff, self._ppframe, width, height, pixfmt)
+
     def __repr__(self):
         base = super(Frame, self).__repr__()
         num, den = self.asr
@@ -320,6 +339,26 @@ class Frame(BaseFrame):
         Is the content of the picture interlaced?
         """
         return bool(self._frame.interlaced_frame)
+
+
+def fill_yuv420p(frame, i):
+    """
+    WRITEME
+    """
+    frm = frame.cdata  # shortcut
+    if frm.format != PixelFormat.AV_PIX_FMT_YUV420P:
+        raise ProcessingError("wrong pixel format")
+
+    frm.pts = i
+    # Y
+    for y in range(frm.height):
+        for x in range(frm.width):
+            frm.data[0][y * frm.linesize[0] + x] = int(x + y + i * 3) % 256
+    # Cb and Cr
+    for y in range(int(frm.height/2)):
+        for x in range(int(frm.width/2)):
+            frm.data[1][y * frm.linesize[1] + x] = int(128 + y + i * 2) % 256
+            frm.data[2][y * frm.linesize[2] + x] = int(64 + x + i * 5) % 256
 
 
 class Decoder(BaseDecoder):
