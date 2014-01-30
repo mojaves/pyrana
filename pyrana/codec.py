@@ -267,13 +267,13 @@ def make_payload(cls, ffh, ppframe, parent):
     return payload
 
 
-def wire_encoder(dec, av_encode, mtype):
+def wire_encoder(enc, av_encode, mtype):
     """
     Injects the specific encoding hooks in a generic encoder.
     """
-    setattr(dec, '_av_encode', av_encode)
-    setattr(dec, '_mtype', mtype)
-    return dec
+    setattr(enc, '_av_encode', av_encode)
+    setattr(enc, '_mtype', mtype)
+    return enc
 
 
 def wire_decoder(dec, av_decode, new_frame, mtype):
@@ -340,26 +340,6 @@ class BaseEncoder(CodecMixin):
         Raises NeedFeedError if all the internal buffers are empty.
         """
         return self._encode_frame(self._ff.ffi.NULL)
-
-    @classmethod
-    def from_cdata(cls, ctx):
-        """
-        builds a pyrana Encoder from (around) a (cffi-wrapped) libav*
-        encoder object.
-        The libav object must be already initialized and ready to go.
-        WARNING: raw access. Use with care.
-        """
-        ffh = ff.get_handle()
-        enc = object.__new__(cls)
-        CodecMixin.__init__(enc, {})  # MUST be explicit
-        ctx.codec = ffh.lavc.avcodec_find_encoder(ctx.codec_id)
-        setattr(enc, '_codec', ctx.codec)
-        setattr(enc, '_ctx', ctx)
-        setattr(enc, '_av_encode', _null_av_encode)
-        setattr(enc, '_mtype', "abstract")
-        setattr(enc, '_repr', "Encoder(output_codec=%s)")
-        setattr(enc, '_got_data', None)
-        return enc.open()
 
 
 class BaseDecoder(CodecMixin):

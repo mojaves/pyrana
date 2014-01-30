@@ -408,13 +408,3 @@ class Encoder(BaseEncoder):
     def __init__(self, output_codec, params=None):
         super(Encoder, self).__init__(output_codec, params)
         self.wire(self)
-
-    @classmethod
-    def from_cdata(cls, ctx):
-        """
-        builds a pyrana Video Encoder from (around) a (cffi-wrapped) libav*
-        (video)encoder object.
-        The libav object must be already initialized and ready to go.
-        WARNING: raw access. Use with care.
-        """
-        return cls.wire(BaseEncoder.from_cdata(ctx))
