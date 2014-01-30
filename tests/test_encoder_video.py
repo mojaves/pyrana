@@ -33,6 +33,18 @@ class TestEncoderVideo(unittest.TestCase):
         assert(enc)
         assert(repr(enc))
 
+    def test_base_encoder_encode1(self):
+        pixfmt = pyrana.video.PixelFormat.AV_PIX_FMT_YUV420P
+        enc = pyrana.codec.BaseEncoder("mjpeg", self.params)
+        frm = pyrana.video.Frame(self.params['width'],
+                                 self.params['height'],
+                                 pixfmt)
+        pyrana.video.fill_yuv420p(frm, 0)
+        # hack, do no try this at home
+        frm.cdata.format = self.pixfmt
+        with self.assertRaises(pyrana.errors.ProcessingError):
+            pkt = enc.encode(frm)
+
     def test_encoder_encode1(self):
         pixfmt = pyrana.video.PixelFormat.AV_PIX_FMT_YUV420P
         enc = pyrana.video.Encoder("mjpeg", self.params)
