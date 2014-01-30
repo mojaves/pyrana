@@ -14,7 +14,6 @@ from tests.mockslib import MockFF, MockFrame, MockLavu, MockSws
 
 
 def _new_frame(pixfmt):  # FIXME naming
-    ffh = pyrana.ff.get_handle()
     frm = pyrana.video.Frame(352, 288, pixfmt)
     img = frm.image()
     return frm, img
