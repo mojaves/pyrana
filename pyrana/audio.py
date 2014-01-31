@@ -3,6 +3,7 @@ this module provides the audio codec interface.
 Encoders, Decoders and their support code.
 """
 
+import math
 from enum import IntEnum
 from .common import to_sample_format
 from .codec import BaseFrame, BaseDecoder, BaseEncoder, bind_frame
@@ -40,23 +41,21 @@ def _setup_av_frame_pp(ffh, ppframe, rate, layout, samplefmt, nsamples):
     ppframe[0].channel_layout = layout
     ppframe[0].sample_rate = rate
     ppframe[0].format = samplefmt
+    ppframe[0].nb_samples = ffh.lavu.av_rescale_rnd(nsamples,
+                                                    rate,
+                                                    rate,
+                                                    AVRounding.AV_ROUND_UP)
 
-    nb_samples = ffh.lavu.av_rescale_rnd(nsamples,
-                                         rate,
-                                         rate,
-                                         AVRounding.AV_ROUND_UP)
-    count_channels = ffh.lavu.av_get_channel_layout_nb_channels
-    nb_channels = count_channels(layout)  # shortcut
+    nb_channels = ffh.lavu.av_get_channel_layout_nb_channels(layout)
 
     ret = ffh.lavu.av_samples_alloc(ppframe[0].data,
                                     ppframe[0].linesize,
                                     nb_channels,
-                                    nb_samples,
+                                    ppframe[0].nb_samples,
                                     samplefmt,
                                     1)
     if ret < 0:
         raise ProcessingError('cannot allocate the samples buffer')
-    return nb_samples
 
 
 def _samples_from_frame(ffh, parent, frame, smpfmt):
@@ -87,15 +86,15 @@ def _samples_from_frame(ffh, parent, frame, smpfmt):
         raise ProcessingError(msg)
 
     with bind_frame(ffh) as ppframe:
-        nb_samples = _setup_av_frame_pp(ffh,
-                                        ppframe,
-                                        frame.sample_rate,
-                                        frame.channel_layout,
-                                        smpfmt,
-                                        frame.nb_samples)
+        _setup_av_frame_pp(ffh,
+                           ppframe,
+                           frame.sample_rate,
+                           frame.channel_layout,
+                           smpfmt,
+                           frame.nb_samples)
         ret = ffh.swr.swr_convert(swr,
                                   ppframe[0].data,
-                                  nb_samples,
+                                  ppframe[0].nb_samples,
                                   frame.data,
                                   frame.nb_samples)
         if ret < 0:
@@ -257,6 +256,15 @@ class Frame(BaseFrame):
         if smpfmt is None:  # native data, no conversion
             return Samples.from_cdata(self._ppframe)
         return _samples_from_frame(self._ff, self, self._ppframe[0], smpfmt)
+
+
+def fill_s16(frame):
+    # encode a single tone sound
+    frm = frame.cdata  # shortcut
+    if frm.format != SampleFormat.AV_SAMPLE_FMT_S16:  # 0
+        raise ProcessingError("wrong sample format")
+
+    # TODO
 
 
 class Decoder(BaseDecoder):
