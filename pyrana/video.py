@@ -96,9 +96,6 @@ def _image_from_frame(ffh, parent, cframe, pixfmt):
         if ret < 0:
             msg = "swscale failed in pixfmt conversion"
             raise ProcessingError(msg)
-        ppframe[0].width = width
-        ppframe[0].height = height
-        ppframe[0].format = pixfmt
         return Image.from_cdata(ppframe, sws, parent)
 
 
