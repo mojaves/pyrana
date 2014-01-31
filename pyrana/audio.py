@@ -3,7 +3,6 @@ this module provides the audio codec interface.
 Encoders, Decoders and their support code.
 """
 
-import math
 from enum import IntEnum
 from .common import to_sample_format
 from .codec import BaseFrame, BaseDecoder, BaseEncoder, bind_frame

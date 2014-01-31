@@ -81,7 +81,7 @@ class EnumTranslator(pycparser.c_ast.NodeVisitor):
             abstract_syntax_tree,
             enum_name='',
             output_class_name=''):
-        super(EnumTranslator, self).__init__()
+        pycparser.c_ast.NodeVisitor.__init__(self)
         self.ast = abstract_syntax_tree
         self.enum_name = enum_name
         if not output_class_name:
