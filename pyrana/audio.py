@@ -7,6 +7,7 @@ from enum import IntEnum
 from .common import to_sample_format
 from .codec import BaseFrame, BaseDecoder, BaseEncoder, bind_frame
 from .codec import Payload, make_payload, wire_decoder, wire_encoder
+from .codec import _new_av_frame_pp
 from .errors import ProcessingError, SetupError
 from . import ff
 # the following is just to export to the clients the Enums.
@@ -30,6 +31,32 @@ class AVRounding(IntEnum):
     AV_ROUND_UP = 3
     AV_ROUND_NEAR_INF = 5
     AV_ROUND_PASS_MINMAX = 8192
+
+
+def _setup_av_frame_pp(ffh, ppframe, rate, layout, samplefmt, nsamples):
+    """
+    WRITEME
+    """
+    ppframe[0].channel_layout = layout
+    ppframe[0].sample_rate = rate
+    ppframe[0].format = samplefmt
+
+    nb_samples = ffh.lavu.av_rescale_rnd(nsamples,
+                                         rate,
+                                         rate,
+                                         AVRounding.AV_ROUND_UP)
+    count_channels = ffh.lavu.av_get_channel_layout_nb_channels
+    nb_channels = count_channels(layout)  # shortcut
+
+    ret = ffh.lavu.av_samples_alloc(ppframe[0].data,
+                                    ppframe[0].linesize,
+                                    nb_channels,
+                                    nb_samples,
+                                    samplefmt,
+                                    1)
+    if ret < 0:
+        raise ProcessingError('cannot allocate the samples buffer')
+    return nb_samples
 
 
 def _samples_from_frame(ffh, parent, frame, smpfmt):
@@ -60,22 +87,12 @@ def _samples_from_frame(ffh, parent, frame, smpfmt):
         raise ProcessingError(msg)
 
     with bind_frame(ffh) as ppframe:
-        nb_samples = ffh.lavu.av_rescale_rnd(frame.nb_samples,
-                                             frame.sample_rate,
-                                             frame.sample_rate,
-                                             AVRounding.AV_ROUND_UP)
-        count_channels = ffh.lavu.av_get_channel_layout_nb_channels
-        nb_channels = count_channels(frame.channel_layout)  # shortcut
-
-        ret = ffh.lavu.av_samples_alloc(ppframe[0].data,
-                                        ppframe[0].linesize,
-                                        nb_channels,
-                                        nb_samples,
+        nb_samples = _setup_av_frame_pp(ffh,
+                                        ppframe,
+                                        frame.sample_rate,
+                                        frame.channel_layout,
                                         smpfmt,
-                                        1)
-        if ret < 0:
-            raise ProcessingError('cannot allocate the samples buffer')
-
+                                        frame.nb_samples)
         ret = ffh.swr.swr_convert(swr,
                                   ppframe[0].data,
                                   nb_samples,
@@ -83,9 +100,6 @@ def _samples_from_frame(ffh, parent, frame, smpfmt):
                                   frame.nb_samples)
         if ret < 0:
             raise ProcessingError('cannot convert the audio buffer')
-        ppframe[0].channel_layout = frame.channel_layout
-        ppframe[0].sample_rate = frame.sample_rate
-        ppframe[0].format = smpfmt
         return Samples.from_cdata(ppframe, swr, parent)
 
 
@@ -223,6 +237,13 @@ class Frame(BaseFrame):
     """
     An Audio frame.
     """
+    def __init__(self, rate, layout, samplefmt):
+        super(Frame, self).__init__()
+        self._ppframe = _new_av_frame_pp(self._ff)
+        self._frame = self._ppframe[0]
+        _setup_av_frame_pp(self._ff, self._ppframe, rate, layout, samplefmt,
+                           1024)  # FIXME
+
     def __repr__(self):
         base = super(Frame, self).__repr__()
         return "%s)" \
