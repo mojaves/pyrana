@@ -9,7 +9,7 @@ from enum import IntEnum
 
 from .common import MediaType, to_media_type, AttrDict
 from .common import find_source_format, get_field_int, strerror
-from .iobridge import IOSource
+from .iobridge import IOBridge
 from .packet import Packet, _new_cpkt
 from .codec import decoder_for_stream
 from . import audio  # see #1 below
@@ -211,7 +211,7 @@ class Demuxer(object):
         # to act as junction.
         self._tb_q = _time_base_q(ffh)
         seekable = False if streaming is True else True
-        self._src = IOSource(src, seekable)
+        self._src = IOBridge(src, seekable)
         self._pctx[0] = ffh.lavf.avformat_alloc_context()
         self._pctx[0].pb = self._src.avio
         self._pctx[0].flags |= FormatFlags.AVFMT_FLAG_CUSTOM_IO
@@ -384,3 +384,55 @@ class Demuxer(object):
             if not self._streams:
                 raise errors.ProcessingError("no streams found")
         return self._streams
+
+
+class Muxer(object):
+    """
+    Muxer object. Use a file-like for real I/O.
+    The file-like must be already open, and must support write()
+    returning bytes (not strings).
+    If the file format is_seekable but the file-like doesn't support
+    seek, expect weird things.
+    """
+    def __init__(self, sink, name=None, streaming=False):
+        """
+        Muxer(sink, name="")
+        Initialize a new muxer for the file type `name';
+        Use "" (empty) for detect it from the `sink` name attribute
+        A Muxer needs a RawIOBase-compliant as a sink of data.
+        The RawIOBase-compliant object must be already open.
+        """
+        self._ff = ff.get_handle()
+        ffh = self._ff  # shortcut
+        self._streams = []
+        self._pctx = ffh.ffi.new('AVFormatContext **')
+        # cffi purposefully doesn't have an address-of (C's &) operator.
+        # but libavformat requires a pointer-to-pointer as context argument,
+        # so we need to allocate a simple lone double pointer
+        # to act as junction.
+        self._tb_q = _time_base_q(ffh)
+        seekable = False if streaming is True else True
+        self._sink = IOSink(sink, seekable)
+        err = ffh.lavf.avformat_alloc_output_context2(self._pctx,
+                                                      ffh.ffi.NULL,
+                                                      ffh.ffi.NULL,
+                                                      sink.name)
+        if self._pctx[0] == ffh.ffi.NULL:
+            err = ffh.lavf.avformat_alloc_output_context2(self._pctx,
+                                                          ffh.ffi.NULL,
+                                                          name,
+                                                          sink.name)
+        if self._pctx[0] == ffh.ffi.NULL:
+            raise errors.SetupError("open error=%i" % err)
+
+        self._pctx[0].pb = self._src.avio
+        self._pctx[0].flags |= FormatFlags.AVFMT_FLAG_CUSTOM_IO
+
+    def __del__(self):
+        self.close()
+
+    def close(self):
+        """
+        close the underlying muxer.
+        """
+        # TODO
