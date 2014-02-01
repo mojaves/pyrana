@@ -10,8 +10,9 @@ from enum import IntEnum
 from .common import MediaType, to_media_type, AttrDict
 from .common import find_source_format, get_field_int, strerror
 from .iobridge import IOBridge
-from .packet import Packet, _new_cpkt, TS_NULL
-from .codec import decoder_for_stream
+from .packet import Packet, _new_cpkt
+from .codec import decoder_for_stream, make_encoder, find_encoder
+from .codec import CodecFlag
 from . import audio  # see #1 below
 from . import video  # see #1 below
 from . import ff, errors
@@ -79,6 +80,31 @@ class FormatFlags(IntEnum):
     AVFMT_FLAG_SORT_DTS = 0x10000
     AVFMT_FLAG_PRIV_OPT = 0x20000
     AVFMT_FLAG_KEEP_SIDE_DATA = 0x40000
+
+
+class AVFmtFlags(IntEnum):
+    """
+    wrapper for the (wannabe)enum
+    in libavformat/avformat.h
+    """
+    NOFILE = 0x0001
+    NEEDNUMBER = 0x0002  # '%d' in filename
+    SHOW_IDS = 0x0008
+    RAWPICTURE = 0x0020
+    GLOBALHEADER = 0x0040
+    NOTIMESTAMPS = 0x0080
+    GENERIC_INDEX = 0x0100
+    TS_DISCONT = 0x0200  # allow timestamp discontinuities
+    VARIABLE_FPS = 0x0400
+    NODIMENSIONS = 0x0800
+    NOSTREAMS = 0x1000  # not require any streams
+    NOBINSEARCH = 0x2000
+    NOGENSEARCH = 0x4000
+    NO_BYTE_SEEK = 0x8000
+    ALLOW_FLUSH = 0x10000
+    TS_NONSTRICT = 0x20000  # monotonic not strictly increasoing
+    TS_NEGATIVE = 0x40000
+    SEEK_TO_PTS = 0x4000000  # seeking is based on PTS
 
 
 # see avformat for the meaning of the flags
@@ -410,6 +436,7 @@ class Muxer(object):
         # so we need to allocate a simple lone double pointer
         # to act as junction.
         self._tb_q = _time_base_q(ffh)
+        self._streams = []
         seekable = False if streaming is True else True
         self._sink = IOBridge(sink, seekable)
         err = ffh.lavf.avformat_alloc_output_context2(self._pctx,
@@ -428,10 +455,19 @@ class Muxer(object):
         self._pctx[0].flags |= FormatFlags.AVFMT_FLAG_CUSTOM_IO
 
     def __del__(self):
-        self.flush()
+        # TODO: free stream
+        pass
 
-    def add_stream(self, stream_id, params=None):
-        pass  # TODO
+    def open_encoder(self, output_codec, params):
+        codec = find_encoder(output_codec, self._ff)
+        st = self._register_stream(codec)
+        self._adjust_flags(st)
+        return make_encoder(st.codec, codec, params, venc, aenc)
+
+    def add_stream(self, encoder):
+        st = self._register_stream(encoder._codec)
+        self._swap_ctx(st, encoder)  # XXX hack
+        self._adjust_flags(st)
 
     def write_header(self):
         ffh = self._ff  # shortcut
@@ -451,9 +487,20 @@ class Muxer(object):
         err = ffh.lavf.av_interleaved_write_frame(self._pctx[0], packet)
         _check_write(err, "frame")
 
-    def flush(self):
-        """flush() -> None"""
-        # TODO
+    def _adjust_flags(self, st):
+        # XXX some formats needs this. May be too late
+        if self._pctx[0].oformat.flags & AVFmtFlags.GLOBALHEADER:
+            st.codec.flags |= CodecFlag.GLOBAL_HEADER
+
+    def _register_stream(self, codec):
+        st = self._ff.lavf.avformat_new_stream(self._pctx[0], codec)
+        st.id = self._pctx[0].nb_streams - 1
+        self._streams.append(st)
+        return st
+
+    def _swap_ctx(self, st, encoder):
+        self._ff.lavf.avformat_free_context(st.codec)
+        st.codec = encoder._ctx
 
 
 def _check_write(err, what):
