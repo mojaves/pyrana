@@ -10,7 +10,7 @@ from enum import IntEnum
 from .common import MediaType, to_media_type, AttrDict
 from .common import find_source_format, get_field_int, strerror
 from .iobridge import IOBridge
-from .packet import Packet, _new_cpkt
+from .packet import Packet, _new_cpkt, TS_NULL
 from .codec import decoder_for_stream
 from . import audio  # see #1 below
 from . import video  # see #1 below
@@ -404,7 +404,6 @@ class Muxer(object):
         """
         self._ff = ff.get_handle()
         ffh = self._ff  # shortcut
-        self._streams = []
         self._pctx = ffh.ffi.new('AVFormatContext **')
         # cffi purposefully doesn't have an address-of (C's &) operator.
         # but libavformat requires a pointer-to-pointer as context argument,
@@ -412,7 +411,7 @@ class Muxer(object):
         # to act as junction.
         self._tb_q = _time_base_q(ffh)
         seekable = False if streaming is True else True
-        self._sink = IOSink(sink, seekable)
+        self._sink = IOBridge(sink, seekable)
         err = ffh.lavf.avformat_alloc_output_context2(self._pctx,
                                                       ffh.ffi.NULL,
                                                       ffh.ffi.NULL,
@@ -425,14 +424,42 @@ class Muxer(object):
         if self._pctx[0] == ffh.ffi.NULL:
             raise errors.SetupError("open error=%i" % err)
 
-        self._pctx[0].pb = self._src.avio
+        self._pctx[0].pb = self._sink.avio
         self._pctx[0].flags |= FormatFlags.AVFMT_FLAG_CUSTOM_IO
 
     def __del__(self):
-        self.close()
+        self.flush()
 
-    def close(self):
-        """
-        close the underlying muxer.
-        """
+    def add_stream(self, stream_id, params=None):
+        pass  # TODO
+
+    def write_header(self):
+        ffh = self._ff  # shortcut
+        err = ffh.lavf.avformat_write_header(self._pctx[0],
+                                             ffh.ffi.NULL)
+        _check_write(err, "header")
+
+    def write_trailer(self):
+        ffh = self._ff  # shortcut
+        err = ffh.lavf.avformat_write_trailer(self._pctx[0],
+                                              ffh.ffi.NULL)
+        _check_write(err, "trailer")
+
+    def write_frame(self, packet):
+        """requires an encoded frame enclosed in a Packet!"""
+        ffh = self._ff  # shortcut
+        err = ffh.lavf.av_interleaved_write_frame(self._pctx[0], packet)
+        _check_write(err, "frame")
+
+    def get_pts(self, stream_id):
+        return TS_NULL  # TODO
+
+    def flush(self):
+        """flush() -> None"""
         # TODO
+
+
+def _check_write(err, what):
+    if err < 0:
+        msg = "cannot write %s: err=%i" % (what, err)
+        raise errors.ProcessingError(msg)
