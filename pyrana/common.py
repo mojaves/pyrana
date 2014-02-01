@@ -215,6 +215,10 @@ def all_formats():
     ffh = ff.get_handle()
 
     def fill_fmts(fmt_iter):
+        """
+        fill the format set, by ungrouping the names
+        if necessary.
+        """
         fmts = set()
         for name, _ in _iter_fmts(ffh.ffi, fmt_iter):
             for part in name.split(','):

@@ -339,8 +339,9 @@ class Frame(BaseFrame):
 
 
 def fill_yuv420p(frame, i):
+
     """
-    WRITEME
+    fill a video frame with a test pattern.
     """
     frm = frame.cdata  # shortcut
     if frm.format != PixelFormat.AV_PIX_FMT_YUV420P:

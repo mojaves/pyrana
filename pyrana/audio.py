@@ -258,7 +258,9 @@ class Frame(BaseFrame):
 
 
 def fill_s16(frame):
-    # encode a single tone sound
+    """
+    fill a audio frame with a single tone sound
+    """
     frm = frame.cdata  # shortcut
     if frm.format != SampleFormat.AV_SAMPLE_FMT_S16:  # 0
         raise ProcessingError("wrong sample format")
