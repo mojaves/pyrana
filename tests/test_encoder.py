@@ -33,7 +33,7 @@ class TestBaseEncoder(unittest.TestCase):
 
     def test_base_encoder_bad_input_codec(self):
         with self.assertRaises(pyrana.errors.SetupError):
-            dec = pyrana.codec.BaseEncoder(0)
+            dec = pyrana.codec.BaseEncoder(0, {})
 
     def test_encoder_require_params(self):
         with self.assertRaises(pyrana.errors.SetupError):
