@@ -90,6 +90,8 @@ typedef struct AVFormatContext {
     /* ... */
 } AVFormatContext;
 
+AVStream *avformat_new_stream(AVFormatContext *s, const AVCodec *c);
+
 AVFormatContext *avformat_alloc_context(void);
 int avformat_alloc_output_context2(AVFormatContext **ctx, AVOutputFormat *oformat,
                                    const char *format_name, const char *filename);
