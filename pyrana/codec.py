@@ -5,12 +5,55 @@ This module is not part of the pyrana public API.
 
 from types import GeneratorType
 from contextlib import contextmanager
+from enum import IntEnum
 
 from .packet import Packet, raw_packet, bind_packet
 from .common import PY3, MediaType, to_media_type, to_str, AttrDict, strerror
 from .errors import PyranaError, ProcessingError, SetupError
 from .errors import NeedFeedError, EOSError, WrongParameterError
 from . import ff
+
+
+class CodecFlag(IntEnum):
+    """
+    wrapper for the (wannabe) enum in avcodec.h
+    CODEC_FLAG_*
+    """
+    UNALIGNED = 0x0001
+    QSCALE = 0x0002  # fixed qscale.
+    _4MV = 0x0004  # 4 MV per MB allowed
+    OUTPUT_CORRUPT = 0x0008
+    QPEL = 0x0010
+    GMC = 0x0020
+    MV0 = 0x0040  # try a MB with MV=<0,0>.
+    INPUT_PRESERVED = 0x0100
+    PASS1 = 0x0200
+    PASS2 = 0x0400
+    GRAY = 0x2000  # decode/encode grayscale.
+    PSNR = 0x8000
+    TRUNCATED = 0x00010000  # truncated at a random
+    NORMALIZE_AQP = 0x00020000
+    INTERLACED_DCT = 0x00040000
+    LOW_DELAY = 0x00080000
+    GLOBAL_HEADER = 0x00400000
+    BITEXACT = 0x00800000
+    AC_PRED = 0x01000000
+    LOOP_FILTER = 0x00000800
+    INTERLACED_ME = 0x20000000
+    CLOSED_GOP = 0x80000000
+
+
+class CodecFlag2(IntEnum):
+    """
+    wrapper for the (wannabe) enum in avcodec.h
+    CODEC_FLAG2_*
+    """
+    FAST = 0x00000001  # non spec compliant speedup
+    NO_OUTPUT = 0x00000004  # no bitstream encoding.
+    LOCAL_HEADER = 0x00000008  # global headers at every keyframe
+    IGNORE_CROP = 0x00010000
+    CHUNKS = 0x00008000  # bitstream truncated at a packet boundaries
+    SHOW_ALL = 0x00400000
 
 
 def decoder_for_stream(ctx, stream_id, vdec, adec):
@@ -31,6 +74,25 @@ def decoder_for_stream(ctx, stream_id, vdec, adec):
              MediaType.AVMEDIA_TYPE_AUDIO: adec.from_cdata}
     xdec = maker.get(ctx.codec_type, unsupported)
     return xdec(ctx)
+
+
+def make_encoder(ctx, codec, params, venc, aenc):
+    """
+    builds the right encoder for a given output codec
+    """
+    def unsupported(_):
+        """
+        adapter factory function of a stream type
+        not supported by pyrana.
+        """
+        msg = "unsupported type %s" % (output_codec)
+        raise ProcessingError(msg)
+
+    maker = {MediaType.AVMEDIA_TYPE_VIDEO: venc.from_cdata,
+             MediaType.AVMEDIA_TYPE_AUDIO: aenc.from_cdata}
+#    xenc = maker.get(codec.type, unsupported)
+    xenc = maker.get(ctx.codec_type, unsupported)
+    return xenc(ctx, params, codec)
 
 
 def _setup_av_ctx(ctx, params):
@@ -99,6 +161,10 @@ class CodecMixin(object):
                                  err, strerror(err, ffh)))
             self._got_data = ffh.ffi.new("int [1]")
         return self
+
+    @property
+    def media_type(self):
+        return self._ctx.codec_type
 
     @property
     def params(self):
@@ -286,18 +352,22 @@ def wire_decoder(dec, av_decode, new_frame, mtype):
     return dec
 
 
+def find_encoder(output_codec, ffh=None):
+    ffh = ff.get_handle() if ffh is None else ffh
+    if isinstance(output_codec, str):
+        name = output_codec.encode('utf-8')
+        return ffh.lavc.avcodec_find_encoder_by_name(name)
+    raise SetupError("not yet supported")
+
+
 class BaseEncoder(CodecMixin):
     """
     Encoder base class. Common both to audio and video encoders.
     """
-    def __init__(self, output_codec, params=None, delay_open=False):
+    def __init__(self, output_codec, params, delay_open=False):
         super(BaseEncoder, self).__init__(params)
         ffh = self._ff
-        if isinstance(output_codec, str):
-            name = output_codec.encode('utf-8')
-            self._codec = ffh.lavc.avcodec_find_encoder_by_name(name)
-        else:
-            raise SetupError("not yet supported")
+        self._codec = find_encoder(output_codec, ffh)
         self._ctx = ffh.lavc.avcodec_alloc_context3(self._codec)
         self._av_encode = _null_av_encode
         self._repr = "Encoder(output_codec=%s)"
@@ -340,6 +410,29 @@ class BaseEncoder(CodecMixin):
         Raises NeedFeedError if all the internal buffers are empty.
         """
         return self._encode_frame(self._ff.ffi.NULL)
+
+    @classmethod
+    def from_cdata(cls, ctx, params, codec=None):
+        """
+        builds a pyrana Encoder from (around) a (cffi-wrapped) libav*
+        decoder object.
+        The libav object must be already initialized and ready to go.
+        WARNING: raw access. Use with care.
+        """
+        ffh = ff.get_handle()
+        enc = object.__new__(cls)
+        CodecMixin.__init__(enc, params)  # MUST be explicit
+        if codec is None:
+            ctx.codec = ffh.lavc.avcodec_find_encoder(ctx.codec_id)
+        else:
+            ctx.codec = codec
+        setattr(enc, '_codec', ctx.codec)
+        setattr(enc, '_ctx', ctx)
+        setattr(enc, '_av_encode', _null_av_encode)
+        setattr(enc, '_got_data', None)
+        setattr(enc, '_mtype', "abstract")
+        setattr(enc, '_repr', "Encoder(output_codec=%s)")
+        return enc.open()
 
 
 class BaseDecoder(CodecMixin):

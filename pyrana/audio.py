@@ -321,6 +321,15 @@ class Encoder(BaseEncoder):
             # shortcut
             self._params["channels"] = count_channels(layout)
 
-    def __init__(self, output_codec, params=None):
+    def __init__(self, output_codec, params):
         super(Encoder, self).__init__(output_codec, params)
         self.wire(self)
+
+    @classmethod
+    def from_cdata(cls, ctx, params, codec=None):
+        """
+        builds a pyrana audio Encoder from (around) a (cffi-wrapped) liabv*
+        (audio) context.
+        WARNING: raw access. Use with care.
+        """
+        return cls.wire(BaseEncoder.from_cdata(ctx, params, codec))
