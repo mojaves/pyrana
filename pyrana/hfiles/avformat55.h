@@ -91,7 +91,10 @@ typedef struct AVFormatContext {
 } AVFormatContext;
 
 AVFormatContext *avformat_alloc_context(void);
+int avformat_alloc_output_context2(AVFormatContext **ctx, AVOutputFormat *oformat,
+                                   const char *format_name, const char *filename);
 void avformat_free_context(AVFormatContext *s);
+
 int avformat_open_input(AVFormatContext **ps, const char *filename,
                         AVInputFormat *fmt, AVDictionary **options);
 void avformat_close_input(AVFormatContext **s);
