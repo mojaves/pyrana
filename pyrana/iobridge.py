@@ -4,6 +4,7 @@ This module is not part of the pyrana public API.
 """
 
 from .packet import PKT_SIZE
+from .errors import UnsupportedError
 from . import ff
 
 
@@ -13,7 +14,6 @@ class Buffer(object):
     optimal usage by ffmpeg libraries.
     """
     def __init__(self, size=PKT_SIZE):
-        object.__init__(self)  # make pylint happy(er)
         self._ff = ff.get_handle()
         self._size = size
         self._data = self._ff.lavu.av_malloc(size)
@@ -31,7 +31,7 @@ class Buffer(object):
         self.data[key] = value
 
     def __delitem__(self, key):
-        raise NotImplementedError
+        raise UnsupportedError("cannot delete items from Buffers")
 
     def __repr__(self):
         return "Buffer(%i)" % self._size

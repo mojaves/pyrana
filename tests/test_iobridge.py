@@ -49,7 +49,7 @@ class TestBuffer(unittest.TestCase):
         assert self._buf[0] == b'\0'
 
     def test_item_cannot_del(self):
-        with self.assertRaises(NotImplementedError):
+        with self.assertRaises(pyrana.errors.UnsupportedError):
             del self._buf[0]
 
 
