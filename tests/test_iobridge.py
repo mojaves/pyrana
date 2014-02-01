@@ -53,36 +53,36 @@ class TestBuffer(unittest.TestCase):
             del self._buf[0]
 
 
-class TestIOSource(unittest.TestCase):
+class TestIOBridge(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         pyrana.setup()
 
     def test_new_empty(self):
         f = io.BytesIO(_BZ)
-        src = pyrana.iobridge.IOSource(f)
+        src = pyrana.iobridge.IOBridge(f)
         assert src
         assert repr(src)
 
     def test_new_empty_seekable(self):
         f = io.BytesIO(_BZ)
-        src = pyrana.iobridge.IOSource(f)
+        src = pyrana.iobridge.IOBridge(f)
         assert src.seekable
 
     def test_new_empty_not_seekable(self):
         f = io.BytesIO(_BZ)
-        src = pyrana.iobridge.IOSource(f, seekable=False)
+        src = pyrana.iobridge.IOBridge(f, seekable=False)
         assert not src.seekable
 
     def test_new_empty_not_seekable(self):
         f = io.BytesIO(_BZ)
-        src = pyrana.iobridge.IOSource(f, seekable=False)
+        src = pyrana.iobridge.IOBridge(f, seekable=False)
         assert src
 
     def test_new_empty_custom_size(self):
         f = io.BytesIO(_BZ)
         size = pyrana.iobridge.PKT_SIZE * 4
-        src = pyrana.iobridge.IOSource(f, bufsize=size)
+        src = pyrana.iobridge.IOBridge(f, bufsize=size)
         assert src
 
     @pytest.mark.skipif(sys.version_info < (3,),

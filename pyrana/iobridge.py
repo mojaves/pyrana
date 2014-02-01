@@ -72,15 +72,14 @@ def _read(handle, buf, buf_size):
     return ret if ret is not None else -1
 
 
-# not yet needed
-#def _write(handle, buf, buf_size):
-#    """
-#    libavformat write callback. Actually: wrapper. Do not use directly.
-#    """
-#    ffh = ff.get_handle()
-#    dst = ffh.ffi.from_handle(handle)
-#    wbuf = ffh.ffi.buffer(buf, buf_size)
-#    dst.write(wbuf)
+def _write(handle, buf, buf_size):
+    """
+    libavformat write callback. Actually: wrapper. Do not use directly.
+    """
+    ffh = ff.get_handle()
+    dst = ffh.ffi.from_handle(handle)
+    wbuf = ffh.ffi.buffer(buf, buf_size)
+    dst.write(wbuf)
 
 
 AVSEEK_SIZE = 0x10000
@@ -99,7 +98,7 @@ def _seek(handle, offset, whence):
     return ret
 
 
-class IOSource(object):
+class IOBridge(object):
     """
     wraps the avio handling.
     A separate classe is advisable because
@@ -107,13 +106,14 @@ class IOSource(object):
     2. you need o propelry av_free the avio once done
     which is enough (it is?) to build a class.
     """
-    def __init__(self, src, seekable=True, bufsize=PKT_SIZE, delay_open=False):
+    def __init__(self, fh, seekable=True, bufsize=PKT_SIZE, delay_open=False):
         self._ff = ff.get_handle()
         ffi = self._ff.ffi
+        self._fh = fh
         self.avio = ffi.NULL
         self._buf = Buffer(bufsize)
-        self._src = src
         self._read = ffi.callback("int(void *, uint8_t *, int)", _read)
+        self._write = ffi.callback("int(void *, uint8_t *, int)", _write)
         self._seek = ffi.NULL
         if seekable:
             self._seek = ffi.callback("int64_t(void *, int64_t, int)", _seek)
@@ -124,7 +124,7 @@ class IOSource(object):
         self.close()
 
     def __repr__(self):
-        return "IOSource(src=None, seekable=%i)" % (self.seekable)
+        return "IOBridge(src=None, seekable=%i)" % (self.seekable)
 
     def _alloc_buf(self, size):
         """
@@ -141,7 +141,7 @@ class IOSource(object):
     @property
     def seekable(self):
         """
-        is this IOSource seek-enabled?
+        is this IOBridge seek-enabled?
         """
         return self._seek != self._ff.ffi.NULL
 
@@ -153,9 +153,9 @@ class IOSource(object):
         self.avio = self._ff.lavf.avio_alloc_context(self._alloc_buf(PKT_SIZE),
                                                      PKT_SIZE,
                                                      0,
-                                                     ffi.new_handle(self._src),
+                                                     ffi.new_handle(self._fh),
                                                      self._read,
-                                                     ffi.NULL,
+                                                     self._write,
                                                      self._seek)
 
     def close(self):
