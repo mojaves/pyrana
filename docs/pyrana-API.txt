@@ -111,8 +111,6 @@ class Muxer(object): # (XXX!)
     def write_frame(self, packet):
         """requires an encoded frame enclosed in a Packet!"""
         pass
-    def get_pts(self, stream_id):
-        pass
     def flush(self):
         """flush() -> None"""
 

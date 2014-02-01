@@ -451,9 +451,6 @@ class Muxer(object):
         err = ffh.lavf.av_interleaved_write_frame(self._pctx[0], packet)
         _check_write(err, "frame")
 
-    def get_pts(self, stream_id):
-        return TS_NULL  # TODO
-
     def flush(self):
         """flush() -> None"""
         # TODO
