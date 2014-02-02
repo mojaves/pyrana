@@ -56,7 +56,7 @@ class CodecFlag2(IntEnum):
     SHOW_ALL = 0x00400000
 
 
-def decoder_for_stream(ctx, stream_id, vdec, adec):
+def make_decoder(vdec, adec, ctx, stream_id):
     """
     builds the right decoder for a given stream (by id)
     of an AVCodecContext.
@@ -76,18 +76,17 @@ def decoder_for_stream(ctx, stream_id, vdec, adec):
     return xdec(ctx)
 
 
-def make_encoder(ctx, codec, params, venc, aenc):
+def make_encoder(venc, aenc, ctx, codec, params):
     """
     builds the right encoder for a given output codec
     """
-    stream_id = STREAM_ANY
     def unsupported(_):
         """
         adapter factory function of a stream type
         not supported by pyrana.
         """
-        msg = "unsupported type %s for stream %i" \
-              % (to_media_type(ctx.codec_type), stream_id)
+        msg = "unsupported type %s for new stream" \
+              % (to_media_type(ctx.codec_type))
         raise ProcessingError(msg)
 
     maker = {MediaType.AVMEDIA_TYPE_VIDEO: venc.from_cdata,
