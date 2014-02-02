@@ -80,17 +80,18 @@ def make_encoder(ctx, codec, params, venc, aenc):
     """
     builds the right encoder for a given output codec
     """
+    stream_id = STREAM_ANY
     def unsupported(_):
         """
         adapter factory function of a stream type
         not supported by pyrana.
         """
-        msg = "unsupported type %s" % (output_codec)
+        msg = "unsupported type %s for stream %i" \
+              % (to_media_type(ctx.codec_type), stream_id)
         raise ProcessingError(msg)
 
     maker = {MediaType.AVMEDIA_TYPE_VIDEO: venc.from_cdata,
              MediaType.AVMEDIA_TYPE_AUDIO: aenc.from_cdata}
-#    xenc = maker.get(codec.type, unsupported)
     xenc = maker.get(ctx.codec_type, unsupported)
     return xenc(ctx, params, codec)
 
