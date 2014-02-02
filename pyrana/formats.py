@@ -11,7 +11,7 @@ from .common import MediaType, to_media_type, AttrDict
 from .common import find_source_format, get_field_int, strerror
 from .iobridge import IOBridge
 from .packet import Packet, _new_cpkt
-from .codec import make_decoder, make_encoder, find_encoder
+from .codec import make_codec, find_encoder
 from .codec import CodecFlag
 from . import audio  # see #1 below
 from . import video  # see #1 below
@@ -26,7 +26,7 @@ from . import ff, errors
 # graphs. We're just one step away from a cycle in the dependency
 # graph aka cyclic import, and that is not good.
 # the proper fix would probably be something like moving
-# make_decoder and friends in a separate module.
+# make_codec and friends in a separate module.
 
 # meh
 # pylint: disable=R0921
@@ -347,7 +347,7 @@ class Demuxer(object):
         self._ensure_ready()
         self._ensure_stream_id(stream_id)  # STREAM_ANY is not valid here
         ctx = self._pctx[0].streams[stream_id].codec
-        return make_decoder(video.Decoder, audio.Decoder, ctx, stream_id)
+        return make_codec(video.Decoder, audio.Decoder, stream_id, ctx)
 
     def _stream_info(self, stream):
         """
@@ -460,8 +460,8 @@ class Muxer(object):
         codec = find_encoder(output_codec, self._ff)
         st = self._register_stream(codec)
         self._adjust_flags(st)
-        return make_encoder(video.Encoder, audio.Encoder,
-                            st.codec, codec, params)
+        return make_codec(video.Encoder, audio.Encoder,
+                          "added", st.codec, codec, params)
 
     def add_stream(self, encoder):
         st = self._register_stream(encoder._codec)

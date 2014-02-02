@@ -151,9 +151,10 @@ class TestCodecFuncs(unittest.TestCase):
        with self.assertRaises(pyrana.errors.ProcessingError):
             ctx = MockAVCodecContext(MediaType.AVMEDIA_TYPE_NB)
             # this media type will always be invalid
-            dec = pyrana.codec.make_decoder(pyrana.video.Decoder,
-                                            pyrana.audio.Decoder,
-                                            ctx, 0)
+            dec = pyrana.codec.make_codec(pyrana.video.Decoder,
+                                          pyrana.audio.Decoder,
+                                          0, ctx)
+
     def test_fetcher_list(self):
         data = list(range(16))
         fetch = pyrana.codec.make_fetcher(data)

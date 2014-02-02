@@ -56,43 +56,24 @@ class CodecFlag2(IntEnum):
     SHOW_ALL = 0x00400000
 
 
-def make_decoder(vdec, adec, ctx, stream_id):
+def make_codec(vcodec, acodec, stream_id, ctx, *args):
     """
-    builds the right decoder for a given stream (by id)
+    builds the right decoder for a given stream
     of an AVCodecContext.
     """
-    def unsupported(_):
+    def unsupported(*args):
         """
         adapter factory function of a stream type
         not supported by pyrana.
         """
-        msg = "unsupported type %s for stream %i" \
+        msg = "unsupported type %s for stream %s" \
               % (to_media_type(ctx.codec_type), stream_id)
         raise ProcessingError(msg)
 
-    maker = {MediaType.AVMEDIA_TYPE_VIDEO: vdec.from_cdata,
-             MediaType.AVMEDIA_TYPE_AUDIO: adec.from_cdata}
-    xdec = maker.get(ctx.codec_type, unsupported)
-    return xdec(ctx)
-
-
-def make_encoder(venc, aenc, ctx, codec, params):
-    """
-    builds the right encoder for a given output codec
-    """
-    def unsupported(_):
-        """
-        adapter factory function of a stream type
-        not supported by pyrana.
-        """
-        msg = "unsupported type %s for new stream" \
-              % (to_media_type(ctx.codec_type))
-        raise ProcessingError(msg)
-
-    maker = {MediaType.AVMEDIA_TYPE_VIDEO: venc.from_cdata,
-             MediaType.AVMEDIA_TYPE_AUDIO: aenc.from_cdata}
-    xenc = maker.get(ctx.codec_type, unsupported)
-    return xenc(ctx, params, codec)
+    maker = {MediaType.AVMEDIA_TYPE_VIDEO: vcodec.from_cdata,
+             MediaType.AVMEDIA_TYPE_AUDIO: acodec.from_cdata}
+    xcodec = maker.get(ctx.codec_type, unsupported)
+    return xcodec(ctx, *args)
 
 
 def _setup_av_ctx(ctx, params):
