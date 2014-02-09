@@ -108,6 +108,7 @@ class TestBaseDecoder(unittest.TestCase):
     def test_new_empty_just_init(self):
         dec = BaseDecoder('mjpeg', delay_open=True)
         assert dec
+        assert dec.media_type == MediaType.AVMEDIA_TYPE_VIDEO
 
     def test_open_fail(self):
         dec = BaseDecoder('mjpeg', delay_open=True)
