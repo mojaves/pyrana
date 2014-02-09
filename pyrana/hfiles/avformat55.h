@@ -109,3 +109,8 @@ int av_seek_frame(AVFormatContext *s, int stream_index,
 int avformat_seek_file(AVFormatContext *s, int stream_index,
                        int64_t min_ts, int64_t ts, int64_t max_ts, int flags);
 
+int avformat_write_header(AVFormatContext *s, AVDictionary **options);
+int av_write_frame(AVFormatContext *s, AVPacket *pkt);
+int av_interleaved_write_frame(AVFormatContext *s, AVPacket *pkt);
+int av_write_trailer(AVFormatContext *s);
+

@@ -40,29 +40,44 @@ class TestDemuxer(unittest.TestCase):
 
     def test_open_empty_buf_fail(self):
         with self.assertRaises(pyrana.errors.SetupError), \
-                io.BytesIO(b'') as f:
+                io.BytesIO() as f:
             f.name = 'bio'  # XXX
             mux = pyrana.formats.Muxer(f)
             assert mux
 
     def test_open_empty_buf_autodetect(self):
-        with io.BytesIO(b'') as f:
+        with io.BytesIO() as f:
             f.name = 'bio_test.avi'  # XXX
             mux = pyrana.formats.Muxer(f)
             assert mux
 
     def test_open_empty_buf_named(self):
-        with io.BytesIO(b'') as f:
+        with io.BytesIO() as f:
             f.name = 'bio'  # XXX
             mux = pyrana.formats.Muxer(f, name='avi')
             assert mux
 
     def test_open_encoders(self):
-        with io.BytesIO(b'') as f:
+        with io.BytesIO() as f:
             f.name = 'bio'  # XXX
             mux = pyrana.formats.Muxer(f, name='avi')
             venc = mux.open_encoder('mjpeg', self.vparams)
             aenc = mux.open_encoder('mp2', self.aparams)
+
+    def test_write_header_no_streams(self):
+        with self.assertRaises(pyrana.errors.ProcessingError), \
+                io.BytesIO() as f:
+            f.name = 'bio'  # XXX
+            mux = pyrana.formats.Muxer(f, name='avi')
+            mux.write_header()
+
+    def test_write_header_only_video(self):
+        with io.BytesIO() as f:
+            f.name = 'bio'  # XXX
+            mux = pyrana.formats.Muxer(f, name='avi')
+            venc = mux.open_encoder('mjpeg', self.vparams)
+            mux.write_header()
+            assert f.tell() > 0
 
 
 if __name__ == "__main__":
