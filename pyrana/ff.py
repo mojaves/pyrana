@@ -119,11 +119,24 @@ def versions():
     """
     fetch the version of the FFMpeg libraries.
     """
-    lavu = ctypes.CDLL('libavutil.so')
-    lavc = ctypes.CDLL('libavcodec.so')
-    lavf = ctypes.CDLL('libavformat.so')
-    sws = ctypes.CDLL('libswscale.so')
-    swr = ctypes.CDLL('libswresample.so')
+    def _try_to_load(lib, vers):
+        """
+        load the first found version of the given library,
+        from most recent to less recent.
+        """
+        for ver in vers:
+            try:
+                return ctypes.CDLL('lib%s.so.%i' % (lib, ver))
+            except OSError:
+                continue
+        msg = "cannot find a supported %s (supported versions: %s)" % (
+                    lib, str(tuple(vers)))
+        raise LibraryVersionError(msg)
+    lavu = _try_to_load('avutil', (52, ))
+    lavc = _try_to_load('avcodec', (55, 54))
+    lavf = _try_to_load('avformat', (55, 54))
+    sws = _try_to_load('swscale', (2, ))
+    swr = _try_to_load('swresample', (0, ))
     return [av_version_unpack(v)
             for v in (lavu.avutil_version(),
                       lavc.avcodec_version(),
@@ -143,15 +156,17 @@ class FF(object):
 
     def __init__(self):
         # beware of singleton before to add parameters here
-        self._vers = versions()
+        vers = versions()
+        self._vers = vers
         _hl = HLoader(self._vers)
         self.ffi = cffi.FFI()
         self.ffi.cdef(_hl.decls)
-        self.lavc = self.ffi.dlopen("avcodec")
-        self.lavf = self.ffi.dlopen("avformat")
-        self.lavu = self.ffi.dlopen("avutil")
-        self.sws = self.ffi.dlopen("swscale")
-        self.swr = self.ffi.dlopen("swresample")
+        lavu, lavc, lavf, sws, swr = vers
+        self.lavc = self.ffi.dlopen("libavcodec.so.%i" % lavc[0])
+        self.lavf = self.ffi.dlopen("libavformat.so.%i" % lavf[0])
+        self.lavu = self.ffi.dlopen("libavutil.so.%i" % lavu[0])
+        self.sws = self.ffi.dlopen("libswscale.so.%i" % sws[0])
+        self.swr = self.ffi.dlopen("libswresample.so.%i" % swr[0])
 
     def setup(self):
         """
