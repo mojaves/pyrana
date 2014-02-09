@@ -79,7 +79,8 @@ def _write(handle, buf, buf_size):
     ffh = ff.get_handle()
     dst = ffh.ffi.from_handle(handle)
     wbuf = ffh.ffi.buffer(buf, buf_size)
-    dst.write(wbuf)
+    ret = dst.write(wbuf)
+    return ret
 
 
 AVSEEK_SIZE = 0x10000
@@ -152,7 +153,7 @@ class IOBridge(object):
         ffi = self._ff.ffi
         self.avio = self._ff.lavf.avio_alloc_context(self._alloc_buf(PKT_SIZE),
                                                      PKT_SIZE,
-                                                     0,
+                                                     1,
                                                      ffi.new_handle(self._fh),
                                                      self._read,
                                                      self._write,
