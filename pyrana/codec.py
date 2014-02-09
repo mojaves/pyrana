@@ -61,7 +61,7 @@ def make_codec(vcodec, acodec, stream_id, ctx, *args):
     builds the right decoder for a given stream
     of an AVCodecContext.
     """
-    def unsupported(*args):
+    def unsupported(ctx, *args):
         """
         adapter factory function of a stream type
         not supported by pyrana.
