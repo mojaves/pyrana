@@ -418,7 +418,7 @@ class Muxer(object):
     If the file format is_seekable but the file-like doesn't support
     seek, expect weird things.
     """
-    def __init__(self, sink, name=None, streaming=False):
+    def __init__(self, sink, name=None, streaming=True):
         """
         Muxer(sink, name="")
         Initialize a new muxer for the file type `name';
