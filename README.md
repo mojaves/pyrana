@@ -6,7 +6,7 @@ Pyrana - python package for simple manipulation of multimedia files
 
 
 [![Code Quality](https://landscape.io/github/mojaves/pyrana/master/landscape.png)](https://landscape.io/github/mojaves/pyrana/master)
-[![Build Status](https://travis-ci.org/mojaves/pyrana.png?branch=master)](https://travis-ci.org/mojaves/pyrana)
+<!-- [![Build Status](https://travis-ci.org/mojaves/pyrana.png?branch=master)](https://travis-ci.org/mojaves/pyrana) -->
 
 
 Overview
