@@ -169,8 +169,11 @@ class IOBridge(object):
         self.avio = self._ff.ffi.NULL
 
 
-def _seekable(streaming):
-    seekable = False if streaming is True else True
+def _seekable(streamable):
+    """
+    is the stream seekable? The opposite of streamable.
+    """
+    return not streamable
 
 
 def iosource(source, streaming, bufsize=PKT_SIZE, delay_open=False):
