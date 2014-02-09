@@ -145,6 +145,9 @@ class CodecMixin(object):
 
     @property
     def media_type(self):
+        """
+        the codec media type.
+        """
         return self._ctx.codec_type
 
     @property
@@ -403,10 +406,7 @@ class BaseEncoder(CodecMixin):
         ffh = ff.get_handle()
         enc = object.__new__(cls)
         CodecMixin.__init__(enc, params)  # MUST be explicit
-        if codec is None:
-            ctx.codec = ffh.lavc.avcodec_find_encoder(ctx.codec_id)
-        else:
-            ctx.codec = codec
+        ctx.codec = codec
         setattr(enc, '_codec', ctx.codec)
         setattr(enc, '_ctx', ctx)
         setattr(enc, '_av_encode', _null_av_encode)
