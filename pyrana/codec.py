@@ -403,7 +403,6 @@ class BaseEncoder(CodecMixin):
         The libav object must be already initialized and ready to go.
         WARNING: raw access. Use with care.
         """
-        ffh = ff.get_handle()
         enc = object.__new__(cls)
         CodecMixin.__init__(enc, params)  # MUST be explicit
         ctx.codec = codec
