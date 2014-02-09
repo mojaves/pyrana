@@ -107,9 +107,11 @@ class IOBridge(object):
     2. you need o propelry av_free the avio once done
     which is enough (it is?) to build a class.
     """
-    def __init__(self, fh, seekable=True, bufsize=PKT_SIZE, delay_open=False):
+    def __init__(self, fh, readwrite=True, seekable=True,
+                 bufsize=PKT_SIZE, delay_open=False):
         self._ff = ff.get_handle()
         ffi = self._ff.ffi
+        self._rw = readwrite
         self._fh = fh
         self.avio = ffi.NULL
         self._buf = Buffer(bufsize)
@@ -153,7 +155,7 @@ class IOBridge(object):
         ffi = self._ff.ffi
         self.avio = self._ff.lavf.avio_alloc_context(self._alloc_buf(PKT_SIZE),
                                                      PKT_SIZE,
-                                                     1,
+                                                     int(self._rw),
                                                      ffi.new_handle(self._fh),
                                                      self._read,
                                                      self._write,
@@ -165,3 +167,17 @@ class IOBridge(object):
         """
         self._ff.lavu.av_free(self.avio)
         self.avio = self._ff.ffi.NULL
+
+
+def _seekable(streaming):
+    seekable = False if streaming is True else True
+
+
+def iosource(source, streaming, bufsize=PKT_SIZE, delay_open=False):
+    return IOBridge(source, readwrite=False, seekable=_seekable(streaming),
+                    bufsize=bufsize, delay_open=delay_open)
+
+
+def iosink(sink, streaming, bufsize=PKT_SIZE, delay_open=False):
+    return IOBridge(sink, readwrite=True, seekable=_seekable(streaming),
+                    bufsize=bufsize, delay_open=delay_open)

@@ -9,7 +9,7 @@ from enum import IntEnum
 
 from .common import MediaType, AttrDict, to_media_type
 from .common import find_source_format, get_field_int, strerror
-from .iobridge import IOBridge
+from .iobridge import iosink, iosource
 from .packet import Packet, _new_cpkt
 from .codec import make_codec, find_encoder
 from .codec import CodecFlag
@@ -236,8 +236,7 @@ class Demuxer(object):
         # so we need to allocate a simple lone double pointer
         # to act as junction.
         self._tb_q = _time_base_q(ffh)
-        seekable = False if streaming is True else True
-        self._src = IOBridge(src, seekable)
+        self._src = iosource(src, streaming)
         self._pctx[0] = ffh.lavf.avformat_alloc_context()
         self._pctx[0].pb = self._src.avio
         self._pctx[0].flags |= FormatFlags.AVFMT_FLAG_CUSTOM_IO
@@ -435,8 +434,7 @@ class Muxer(object):
         # to act as junction.
         self._tb_q = _time_base_q(ffh)
         self._streams = []
-        seekable = False if streaming is True else True
-        self._sink = IOBridge(sink, seekable)
+        self._sink = iosink(sink, streaming)
         sink_name = bytes(sink.name.encode('utf-8'))
         err = ffh.lavf.avformat_alloc_output_context2(self._pctx,
                                                       ffh.ffi.NULL,
