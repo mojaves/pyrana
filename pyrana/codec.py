@@ -413,6 +413,7 @@ class BaseEncoder(CodecMixin):
         setattr(enc, '_got_data', None)
         setattr(enc, '_mtype', "abstract")
         setattr(enc, '_repr', "Encoder(output_codec=%s)")
+        enc._setup()
         return enc.open()
 
 
