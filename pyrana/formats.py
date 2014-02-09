@@ -7,7 +7,7 @@ import warnings
 from collections import OrderedDict
 from enum import IntEnum
 
-from .common import MediaType, to_media_type, AttrDict
+from .common import MediaType, AttrDict, to_media_type
 from .common import find_source_format, get_field_int, strerror
 from .iobridge import IOBridge
 from .packet import Packet, _new_cpkt
@@ -437,15 +437,17 @@ class Muxer(object):
         self._streams = []
         seekable = False if streaming is True else True
         self._sink = IOBridge(sink, seekable)
+        sink_name = bytes(sink.name.encode('utf-8'))
         err = ffh.lavf.avformat_alloc_output_context2(self._pctx,
                                                       ffh.ffi.NULL,
                                                       ffh.ffi.NULL,
-                                                      sink.name)
-        if self._pctx[0] == ffh.ffi.NULL:
+                                                      sink_name)
+        if self._pctx[0] == ffh.ffi.NULL and name is not None:
+            fmt_name = bytes(name.encode('utf-8'))
             err = ffh.lavf.avformat_alloc_output_context2(self._pctx,
                                                           ffh.ffi.NULL,
-                                                          name,
-                                                          sink.name)
+                                                          fmt_name,
+                                                          sink_name)
         if self._pctx[0] == ffh.ffi.NULL:
             raise errors.SetupError("open error=%i" % err)
 
@@ -461,7 +463,7 @@ class Muxer(object):
         st = self._register_stream(codec)
         self._adjust_flags(st)
         return make_codec(video.Encoder, audio.Encoder,
-                          "added", st.codec, codec, params)
+                          "added", st.codec, params, codec)
 
     def add_stream(self, encoder):
         st = self._register_stream(encoder._codec)
