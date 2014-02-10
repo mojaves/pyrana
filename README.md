@@ -67,7 +67,7 @@ Requirements
 ------------
 
 
-* [python](http://www.python.org) version 3.3, or 2.7.
+* [python](http://www.python.org) version 3.4.z, 3.3.z, or 2.7.z.
   The version 3.x is preferred, 2.7 is supported as legacy. Tested under CPython only (yet).
 
 * [ffmpeg](http://ffmpeg.org) version 1.2.x or 2.1.x.
