@@ -48,6 +48,21 @@ stable milestone is reached. The API WILL BE maintained stable
 in every major release.
 
 
+Supported systems
+-----------------
+
+
+* debian: main development host, require packages from deb-multimedia.org.
+
+* ubuntu: supported starting from Trusty Thar (14.04), work in progress.
+
+* fedora: supported starting from version 20, work in progress.
+
+* generic linux: see Requirements below.
+
+* others: see Requirements below. Patches welcome :)
+
+
 Requirements
 ------------
 
@@ -82,5 +97,4 @@ If pyrana does not fit your needs, you may want to try the following:
 
 * [pymedia](http://pymedia.org): is a Python module for wav, mp3, ogg, avi, divx, dvd, cdda etc files manipulations.
 * [pyffmpeg](http://code.google.com/p/pyffmpeg/): a ffmpeg wrapper.
-
 

@@ -28,6 +28,7 @@ Version 0.6.0 <- We are here!
 * 0.5.0: encoding audio/video.
 * muxing.
 * interoperability with numpy.
+* support for Fedora 20.
 
 
 Version 0.8.0
@@ -37,6 +38,7 @@ Version 0.8.0
 * sync facilities.
 * finish the player tutorial.
 * readthedocs page.
+* support for Ubuntu 14.04.
 
 
 Version 0.10.0
