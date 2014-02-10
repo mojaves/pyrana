@@ -338,7 +338,6 @@ class Demuxer(object):
 
     def open_decoder(self, stream_id):
         """
-        open_decoder(stream_id) -> Decoder instance
         create and returns a full-blown decoder Instance capable
         to decode the selected stream.
         Like doing things manually, just easily.
@@ -459,30 +458,48 @@ class Muxer(object):
         pass
 
     def _ensure_ready(self):
+        """
+        makes sure the Muxer is ready to accept operations.
+        """
         if not self._ready:
             raise errors.ProcessingError("trailer already written")
 
     def _require_header(self):
+        """
+        makes sure the stream has the header written into.
+        """
         if not self._has_header:
             raise errors.ProcessingError("write header first")
 
     def open_encoder(self, output_codec, params):
+        """
+        create and returns a full-blown enccoder Instance capable,
+        given the encoder parameters, already bound and registered
+        as stream in the Muxer.
+        """
         self._ensure_ready()
-        codec = find_encoder(output_codec, self._ff)
-        st = self._register_stream(codec)
-        self._adjust_flags(st)
+        enc = find_encoder(output_codec, self._ff)
+        strm = enc.register(self)
+        self._adjust_flags(strm)
         return make_codec(video.Encoder, audio.Encoder,
-                          "added", st.codec, params, codec)
+                          "added", strm.codec, params, enc)
 
     def add_stream(self, encoder):
+        """
+        register a new stream into the Muxer for the given
+        Encoder. XXX add more docs
+        """
         self._ensure_ready()
-        st = self._register_stream(encoder._codec)
+        strm = encoder.register(self)
         # hack: swap encoder context
-        self._ff.lavf.avformat_free_context(st.codec)
-        st.codec = encoder._ctx
-        self._adjust_flags(st)
+        self._ff.lavf.avformat_free_context(strm.codec)
+        strm.codec = encoder._ctx
+        self._adjust_flags(strm)
 
     def write_header(self):
+        """
+        Writes the header into the output stream.
+        """
         ffh = self._ff  # shortcut
         err = ffh.lavf.avformat_write_header(self._pctx[0],
                                              ffh.ffi.NULL)
@@ -490,6 +507,11 @@ class Muxer(object):
         self._has_header = True
 
     def write_trailer(self):
+        """
+        Writes the trailer (if any) into the output stream.
+        Requires the header to be written (and, likely, some data)
+        Must be the last operation before to release the Muxer.
+        """
         self._require_header()
         self._ensure_ready()
         ffh = self._ff  # shortcut
@@ -498,7 +520,10 @@ class Muxer(object):
         self._ready = False
 
     def write_frame(self, packet):
-        """requires an encoded frame enclosed in a Packet!"""
+        """
+        writes a data frame, enclosed into an encoded Packet,
+        in the stream.
+        """
         self._require_header()
         self._ensure_ready()
         ffh = self._ff  # shortcut
@@ -506,16 +531,16 @@ class Muxer(object):
             err = ffh.lavf.av_interleaved_write_frame(self._pctx[0], pkt)
         _check_write(err, "frame")
 
-    def _adjust_flags(self, st):
+    def _adjust_flags(self, strm):
         # XXX some formats needs this. May be too late
         if self._pctx[0].oformat.flags & AVFmtFlags.GLOBALHEADER:
-            st.codec.flags |= CodecFlag.GLOBAL_HEADER
+            strm.codec.flags |= CodecFlag.GLOBAL_HEADER
 
-    def _register_stream(self, codec):
-        st = self._ff.lavf.avformat_new_stream(self._pctx[0], codec)
-        st.id = self._pctx[0].nb_streams - 1
-        self._streams.append(st)
-        return st
+    def register_stream(self, codec):
+        strm = self._ff.lavf.avformat_new_stream(self._pctx[0], codec)
+        strm.id = self._pctx[0].nb_streams - 1
+        self._streams.append(strm)
+        return strm
 
 
 def _check_write(err, what):

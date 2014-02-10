@@ -122,7 +122,7 @@ class CodecMixin(object):
         cname = self._ff.lavc.avcodec_get_name(codec_id)
         return self._repr % (to_str(cname))
 
-    def _setup(self):
+    def setup(self):
         """
         Dispach the given parameters to the internal
         (FFmpeg) data structures.
@@ -360,7 +360,7 @@ class BaseEncoder(CodecMixin):
         self._av_encode = _null_av_encode
         self._repr = "Encoder(output_codec=%s)"
         self._mtype = "abstract"
-        self._setup()
+        self.setup()
         if not delay_open:
             self.open()
 
@@ -416,8 +416,11 @@ class BaseEncoder(CodecMixin):
         setattr(enc, '_got_data', None)
         setattr(enc, '_mtype', "abstract")
         setattr(enc, '_repr', "Encoder(output_codec=%s)")
-        enc._setup()
+        enc.setup()
         return enc.open()
+
+    def register(self, muxer):
+        return muxer.register_stream(self._codec)
 
 
 class BaseDecoder(CodecMixin):
