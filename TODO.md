@@ -26,9 +26,9 @@ Version 0.6.0 <- We are here!
 =============================
 
 * 0.5.0: encoding audio/video.
-* muxing.
-* interoperability with numpy.
+* 0.5.1: muxing.
 * support for Fedora 20.
+* interoperability with numpy.
 
 
 Version 0.8.0
