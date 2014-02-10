@@ -479,7 +479,7 @@ class Muxer(object):
         """
         self._ensure_ready()
         enc = find_encoder(output_codec, self._ff)
-        strm = enc.register(self)
+        strm = self.register_stream(enc)
         self._adjust_flags(strm)
         return make_codec(video.Encoder, audio.Encoder,
                           "added", strm.codec, params, enc)
