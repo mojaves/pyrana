@@ -451,12 +451,23 @@ class Muxer(object):
 
         self._pctx[0].pb = self._sink.avio
         self._pctx[0].flags |= FormatFlags.AVFMT_FLAG_CUSTOM_IO
+        self._has_header = False
+        self._ready = True
 
     def __del__(self):
         # TODO: free stream
         pass
 
+    def _ensure_ready(self):
+        if not self._ready:
+            raise errors.ProcessingError("trailer already written")
+
+    def _require_header(self):
+        if not self._has_header:
+            raise errors.ProcessingError("write header first")
+
     def open_encoder(self, output_codec, params):
+        self._ensure_ready()
         codec = find_encoder(output_codec, self._ff)
         st = self._register_stream(codec)
         self._adjust_flags(st)
@@ -464,8 +475,11 @@ class Muxer(object):
                           "added", st.codec, params, codec)
 
     def add_stream(self, encoder):
+        self._ensure_ready()
         st = self._register_stream(encoder._codec)
-        self._swap_ctx(st, encoder)  # XXX hack
+        # hack: swap encoder context
+        self._ff.lavf.avformat_free_context(st.codec)
+        st.codec = encoder._ctx
         self._adjust_flags(st)
 
     def write_header(self):
@@ -473,17 +487,23 @@ class Muxer(object):
         err = ffh.lavf.avformat_write_header(self._pctx[0],
                                              ffh.ffi.NULL)
         _check_write(err, "header")
+        self._has_header = True
 
     def write_trailer(self):
+        self._require_header()
+        self._ensure_ready()
         ffh = self._ff  # shortcut
-        err = ffh.lavf.avformat_write_trailer(self._pctx[0],
-                                              ffh.ffi.NULL)
+        err = ffh.lavf.av_write_trailer(self._pctx[0])
         _check_write(err, "trailer")
+        self._ready = False
 
     def write_frame(self, packet):
         """requires an encoded frame enclosed in a Packet!"""
+        self._require_header()
+        self._ensure_ready()
         ffh = self._ff  # shortcut
-        err = ffh.lavf.av_interleaved_write_frame(self._pctx[0], packet)
+        with packet.raw_pkt() as pkt:
+            err = ffh.lavf.av_interleaved_write_frame(self._pctx[0], pkt)
         _check_write(err, "frame")
 
     def _adjust_flags(self, st):
@@ -496,10 +516,6 @@ class Muxer(object):
         st.id = self._pctx[0].nb_streams - 1
         self._streams.append(st)
         return st
-
-    def _swap_ctx(self, st, encoder):
-        self._ff.lavf.avformat_free_context(st.codec)
-        st.codec = encoder._ctx
 
 
 def _check_write(err, what):
