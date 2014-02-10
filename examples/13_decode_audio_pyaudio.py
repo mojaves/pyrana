@@ -25,11 +25,10 @@ def process_file(srcname):
         adec = dmx.open_decoder(sid)
 
         p = pyaudio.PyAudio()
-        stream = p.open(
-                    format = p.get_format_from_width(2),  # FIXME
-                    channels = astream.channels,
-                    rate = astream.sample_rate,
-                    output = True)
+        stream = p.open(format=p.get_format_from_width(2),  # FIXME
+                        channels=astream.channels,
+                        rate=astream.sample_rate,
+                        output=True)
 
         while True:
             frame = adec.decode(dmx.stream(sid))
