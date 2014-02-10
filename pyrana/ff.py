@@ -130,7 +130,7 @@ def versions():
             except OSError:
                 continue
         msg = "cannot find a supported %s (supported versions: %s)" % (
-                    lib, str(tuple(vers)))
+              lib, str(tuple(vers)))
         raise LibraryVersionError(msg)
     lavu = _try_to_load('avutil', (52, ))
     lavc = _try_to_load('avcodec', (55, 54))

@@ -337,6 +337,10 @@ def wire_decoder(dec, av_decode, new_frame, mtype):
 
 
 def find_encoder(output_codec, ffh=None):
+    """
+    Finds a suitable encoder for the given output codec.
+    Raises SetupError if the codec isn't supported.
+    """
     ffh = ff.get_handle() if ffh is None else ffh
     if isinstance(output_codec, str):
         name = output_codec.encode('utf-8')

@@ -115,11 +115,12 @@ class IOBridge(object):
         self._fh = fh
         self.avio = ffi.NULL
         self._buf = Buffer(bufsize)
-        self._read = ffi.callback("int(void *, uint8_t *, int)", _read)
-        self._write = ffi.callback("int(void *, uint8_t *, int)", _write)
-        self._seek = ffi.NULL
+        read = ffi.callback("int(void *, uint8_t *, int)", _read)
+        write = ffi.callback("int(void *, uint8_t *, int)", _write)
+        seek = ffi.NULL
         if seekable:
-            self._seek = ffi.callback("int64_t(void *, int64_t, int)", _seek)
+            seek = ffi.callback("int64_t(void *, int64_t, int)", _seek)
+        self._refs = (read, write, seek)  # ensure the callbacks are ref'd
         if not delay_open:
             self.open()
 
@@ -146,20 +147,21 @@ class IOBridge(object):
         """
         is this IOBridge seek-enabled?
         """
-        return self._seek != self._ff.ffi.NULL
+        return self._refs[-1] != self._ff.ffi.NULL  # XXX
 
     def open(self):
         """
         open (really: allocate) the underlying avio
         """
         ffi = self._ff.ffi
+        read, write, seek = self._refs
         self.avio = self._ff.lavf.avio_alloc_context(self._alloc_buf(PKT_SIZE),
                                                      PKT_SIZE,
                                                      int(self._rw),
                                                      ffi.new_handle(self._fh),
-                                                     self._read,
-                                                     self._write,
-                                                     self._seek)
+                                                     read,
+                                                     write,
+                                                     seek)
 
     def close(self):
         """
@@ -177,10 +179,18 @@ def _seekable(streamable):
 
 
 def iosource(source, streaming, bufsize=PKT_SIZE, delay_open=False):
+    """
+    convenience function.
+    builds an IOBridge suitable as source of data.
+    """
     return IOBridge(source, readwrite=False, seekable=_seekable(streaming),
                     bufsize=bufsize, delay_open=delay_open)
 
 
 def iosink(sink, streaming, bufsize=PKT_SIZE, delay_open=False):
+    """
+    convenience function.
+    builds an IOBridge suitable as sink for data.
+    """
     return IOBridge(sink, readwrite=True, seekable=_seekable(streaming),
                     bufsize=bufsize, delay_open=delay_open)
