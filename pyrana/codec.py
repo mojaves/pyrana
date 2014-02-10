@@ -489,6 +489,7 @@ class BaseDecoder(CodecMixin):
         data is needed to reconstruct a full frame.
         """
         with packet.raw_pkt() as pkt:
+            # careful here: you need of save the pointer state
             while pkt.size > 0:
                 ret, frame = self._decode_pkt(pkt)
                 yield frame
