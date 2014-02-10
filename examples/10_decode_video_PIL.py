@@ -54,11 +54,11 @@ def _main(args):
         print(src_img)
         # now we can finally build the PIL image from the raw Image data.
         dst_img = PIL.Image.frombytes("RGBA",
-                                     (src_img.width, src_img.height),
-                                     bytes(src_img))
+                                      (src_img.width, src_img.height),
+                                      bytes(src_img))
         # ... and show it using the standard PIL methods.
         dst_img.show()
-        sys.stdin.read() # just wait for user acknowledgement
+        sys.stdin.read()  # dumbly wait for user acknowledgement
 
 
 if __name__ == "__main__":

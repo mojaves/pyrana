@@ -28,8 +28,8 @@ def copy_all_iter(src, dst):
     frames and not by chunks of bytes. And yes, for this very purposes this
     has exactly zero advantages over the raw byte copies. It's just a demo of
     the API.
-    `src' is an externally managed file-like. It must be open in read only mode,
-    and must returns bytes() when read.
+    `src' is an externally managed file-like. It must be open in read only
+    mode, and must returns bytes() when read.
     `dst' is an externally managed file-like too. It must be open in a
     write-compatible mode, and must handle bytes() writes.
     """
@@ -68,8 +68,8 @@ def _main(exe, args):
         # the stream trailer, if any.
         # use this code as reference, NOT as template code.
         with open(src, "rb") as fin, \
-             open(dst, 'wb') as fdst:
-            copy_all_iter(fin, fdst)
+                open(dst, 'wb') as fout:
+            copy_all_iter(fin, fout)
     except ValueError:
         sys.stderr.write("usage: %s source_file dest_file\n" % exe)
         sys.exit(1)

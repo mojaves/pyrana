@@ -58,7 +58,7 @@ class MediaInfo(object):
             except pyrana.errors.PyranaError:
                 self._info = ()
 
-    def __str__(self):  
+    def __str__(self):
         return \
             "Media(name=\"%s\")\n " % (self._path) + \
             "\n ".join(str(info) for info in self._info)

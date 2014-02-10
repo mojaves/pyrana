@@ -14,7 +14,8 @@ from pyrana.formats import MediaType
 
 
 # this code is also part of the pyrana player tutorial:
-# https://github.com/mojaves/writings/blob/master/articles/eng/2013-10-08-pyrana-player-tutorial-1.md
+# https://github.com/mojaves/writings/blob/master/articles/eng/ \
+#         2013-10-08-pyrana-player-tutorial-1.md
 
 
 def ppm_write(frame, seqno):

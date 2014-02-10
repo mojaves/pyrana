@@ -25,8 +25,8 @@ def extract_stream(src, sid, out):
     """
     extracts only the `sid' stream from the source and write it into the
     destination.
-    `src' is an externally managed file-like. It must be open in read only mode,
-    and must returns bytes() when read.
+    `src' is an externally managed file-like. It must be open in read only
+    mode, and must returns bytes() when read.
     `dst' is an externally managed file-like too. It must be open in a
     write-compatible mode, and must handle bytes() writes.
     """
