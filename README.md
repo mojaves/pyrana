@@ -20,8 +20,7 @@ Pyrana sets you free from the tyranny of [subprocess](http://docs.python.org/3/l
 Without pyrana, almost every piace of code which wanted to use the mighty
 FFmpeg, had to subprocess it. You had no choice.
 pyrana provides an powerful, pythonic alternative.
-If you *want* to subprocess() FFmpeg, fine, go ahead.
-If you *do not want* it, pyrana may be what you were looking for.
+If you *do want* to subprocess() FFmpeg, pyrana may be what you were looking for.
 
 Pyrana aims to be the spiritual successor of [pymedia](http://pymedia.org).
 The Pyrana API is insipired by the PyMedia API, but being compatible
@@ -52,11 +51,13 @@ Supported systems
 -----------------
 
 
-* debian: main development host, require packages from deb-multimedia.org.
-
-* ubuntu: supported starting from Trusty Thar (14.04), work in progress.
+* debian: main development host.
+          require FFmpeg packages from [deb-multimedia](http://deb-multimedia.org)
 
 * fedora: supported starting from version 20, work in progress.
+          require FFmpeg packages from [rpmfusion](http://rpmfusion.net).
+
+* ubuntu: supported starting from Trusty Thar (14.04), work in progress.
 
 * generic linux: see Requirements below.
 
