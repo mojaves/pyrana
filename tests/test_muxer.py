@@ -96,11 +96,29 @@ class TestMuxer(unittest.TestCase):
             mux.write_trailer()
             assert f.tell() > 0
 
+    def test_write_header_only_audio(self):
+        with io.BytesIO() as f:
+            f.name = 'bio'  # XXX
+            mux = pyrana.formats.Muxer(f, name='avi')
+            venc = mux.open_encoder('flac', self.aparams)
+            mux.write_header()
+            assert f.tell() > 0
+
+    def test_write_trailer_only_audio(self):
+        with io.BytesIO() as f:
+            f.name = 'bio'  # XXX
+            mux = pyrana.formats.Muxer(f, name='avi')
+            venc = mux.open_encoder('flac', self.aparams)
+            mux.write_header()
+            mux.write_trailer()
+            assert f.tell() > 0
+
     def test_write_trailer_requires_header(self):
         with io.BytesIO() as f:
             f.name = 'bio'  # XXX
             mux = pyrana.formats.Muxer(f, name='avi')
             venc = mux.open_encoder('mjpeg', self.vparams)
+            aenc = mux.open_encoder('flac', self.aparams)
             with self.assertRaises(pyrana.errors.ProcessingError):
                 mux.write_trailer()
 
@@ -122,8 +140,8 @@ class TestMuxer(unittest.TestCase):
             mux.write_header()
             pixfmt = pyrana.video.PixelFormat.AV_PIX_FMT_YUV420P
             vfrm = pyrana.video.Frame(self.vparams['width'],
-                                     self.vparams['height'],
-                                     pixfmt)
+                                      self.vparams['height'],
+                                      pixfmt)
             pyrana.video.fill_yuv420p(vfrm, 0)
             # hack, do no try this at home
             vfrm.cdata.format = self.pixfmt
@@ -131,6 +149,22 @@ class TestMuxer(unittest.TestCase):
             mux.write_frame(pkt)
             assert f.tell() > 0
 
+    def test_write_trailer_only_audio_twice_fails(self):
+        with io.BytesIO() as f:
+            f.name = 'bio'  # XXX
+            mux = pyrana.formats.Muxer(f, name='avi')
+            venc = mux.open_encoder('flac', self.aparams)
+            mux.write_header()
+            mux.write_trailer()
+            with self.assertRaises(pyrana.errors.ProcessingError):
+                mux.write_trailer()
+
+    def test_write_frame_audio(self):
+        with io.BytesIO() as f:
+            f.name = 'bio'  # XXX
+            mux = pyrana.formats.Muxer(f, name='avi')
+            venc = mux.open_encoder('flac', self.aparams)
+            # TODO FIXME
 
 if __name__ == "__main__":
     unittest.main()
