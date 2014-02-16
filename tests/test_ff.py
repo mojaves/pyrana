@@ -5,6 +5,7 @@ import unittest
 import pyrana.ff
 import pyrana.errors
 from pyrana.ff import singleton, HLoader
+from pyrana.ff import _try_to_load
 
 
 class TestHLoader(unittest.TestCase):
@@ -35,6 +36,19 @@ class TestFFSingleton(unittest.TestCase):
         h1 = pyrana.ff.setup()
         h2 = pyrana.ff.setup()
         assert(h1 is h2)
+
+
+class TestLibLoader(unittest.TestCase):
+    def test_no_versions(self):
+        with self.assertRaises(pyrana.errors.LibraryVersionError):
+            _try_to_load("c", ())
+        
+    def test_version_not_found(self):
+        with self.assertRaises(pyrana.errors.LibraryVersionError):
+            _try_to_load("c", (0,))
+
+    def found_at_first_try(self):
+        assert _try_to_load("c", (6,))
 
 
 if __name__ == "__main__":

@@ -115,23 +115,25 @@ class HLoader(object):
         self._vers = vers
 
 
+def _try_to_load(lib, vers):
+    """
+    load the first found version of the given library,
+    from most recent to less recent.
+    """
+    for ver in vers:
+        try:
+            return ctypes.CDLL('lib%s.so.%i' % (lib, ver))
+        except OSError:
+            continue
+    msg = "cannot find a supported %s (supported versions: %s)" % (
+          lib, str(tuple(vers)))
+    raise LibraryVersionError(msg)
+
+
 def versions():
     """
     fetch the version of the FFMpeg libraries.
     """
-    def _try_to_load(lib, vers):
-        """
-        load the first found version of the given library,
-        from most recent to less recent.
-        """
-        for ver in vers:
-            try:
-                return ctypes.CDLL('lib%s.so.%i' % (lib, ver))
-            except OSError:
-                continue
-        msg = "cannot find a supported %s (supported versions: %s)" % (
-              lib, str(tuple(vers)))
-        raise LibraryVersionError(msg)
     lavu = _try_to_load('avutil', (52, ))
     lavc = _try_to_load('avcodec', (55, 54))
     lavf = _try_to_load('avformat', (55, 54))
