@@ -14,7 +14,7 @@ from . import video
 from . import errors
 
 
-__version_tuple__ = (0, 5, 1)  # aka the 'Version:'
+__version_tuple__ = (0, 5, 2)  # aka the 'Version:'
 __version__ = '.'.join(str(ver) for ver in __version_tuple__)
 
 
