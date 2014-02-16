@@ -312,8 +312,8 @@ class Encoder(BaseEncoder):
                             ffh.lavc.avcodec_encode_audio2,
                             "audio")
 
-    def _setup(self):
-        super(Encoder, self)._setup()
+    def setup(self):
+        super(Encoder, self).setup()
         layout = self._params.get("channel_layout")
         if layout is not None:
             # this HAS to prevail on channels
