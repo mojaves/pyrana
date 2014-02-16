@@ -27,8 +27,9 @@ Version 0.6.0 <- We are here!
 
 * 0.5.0: encoding audio/video.
 * 0.5.1: muxing.
-* support for Fedora 20.
+* 0.5.2: support for Fedora 20.
 * interoperability with numpy.
+* more documentation (tutorial)
 
 
 Version 0.8.0
@@ -44,6 +45,7 @@ Version 0.8.0
 Version 0.10.0
 ==============
 
+* testsuite overhaul/cleanup
 * complete sphinx docs.
 * frame seek support.
 * compatibility with pypy 2.1+.
