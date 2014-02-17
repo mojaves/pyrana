@@ -492,7 +492,8 @@ class Muxer(object):
         self._ensure_ready()
         strm = encoder.register(self)
         # hack: swap encoder context
-        self._ff.lavf.avformat_free_context(strm.codec)
+        self._ff.lavc.avcodec_close(strm.codec)
+        self._ff.lavu.av_free(strm.codec)
         strm.codec = encoder._ctx
         self._adjust_flags(strm)
 
