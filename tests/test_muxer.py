@@ -67,7 +67,7 @@ class TestMuxer(unittest.TestCase):
 
     def test_write_header_no_streams(self):
         with self.assertRaises(pyrana.errors.ProcessingError):
-            mux = pyrana.formats.Muxer(self.f, name='avi')
+            mux = pyrana.formats.Muxer(self.f, name='matroska')
             mux.write_header()
 
     def test_write_trailer_no_streams(self):
@@ -84,7 +84,6 @@ class TestMuxer(unittest.TestCase):
             mux.write_header()
         return mux, xenc
 
-
     def test_write_header_only_video(self):
         self._open('avi', (('mjpeg', self.vparams),))
         assert self.f.tell() > 0
@@ -100,6 +99,27 @@ class TestMuxer(unittest.TestCase):
 
     def test_write_trailer_only_audio(self):
         mux, _ = self._open('avi', (('flac', self.aparams),))
+        mux.write_trailer()
+        assert self.f.tell() > 0
+
+    def test_write_header_only_video_reg(self):
+        mux = pyrana.formats.Muxer(self.f, name='matroska')
+        enc = pyrana.video.Encoder('mjpeg', self.vparams)
+        mux.add_stream(enc)
+        mux.write_header()
+        assert self.f.tell() > 0
+
+    def test_write_header_only_audio_reg(self):
+        mux = pyrana.formats.Muxer(self.f, name='matroska')
+        enc = pyrana.audio.Encoder('flac', self.aparams)
+        mux.add_stream(enc)
+        mux.write_header()
+        assert self.f.tell() > 0
+
+    def test_write_trailer(self):
+        mux, _ = self._open('matroska', (
+                            ('mjpeg', self.vparams),
+                            ('flac', self.aparams)))
         mux.write_trailer()
         assert self.f.tell() > 0
 
