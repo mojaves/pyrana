@@ -30,6 +30,8 @@ Version 0.6.0 <- We are here!
 * 0.5.2: support for Fedora 20.
 * interoperability with numpy.
 * more documentation (tutorial)
+* translate the docs to RST.
+* switch license to MIT.
 
 
 Version 0.8.0
