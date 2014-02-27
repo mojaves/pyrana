@@ -28,10 +28,10 @@ Version 0.6.0 <- We are here!
 * 0.5.0: encoding audio/video.
 * 0.5.1: muxing.
 * 0.5.2: support for Fedora 20.
+* 0.5.3: switch license to MIT.
 * interoperability with numpy.
 * more documentation (tutorial)
 * translate the docs to RST.
-* switch license to MIT.
 
 
 Version 0.8.0
