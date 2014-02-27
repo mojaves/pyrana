@@ -34,7 +34,7 @@ pymedia2-pyrana.
 License Notice
 --------------
 
-While Pyrana itself is licensed under the ZLIB license (see LICENSE),
+While Pyrana itself is licensed under the MIT license (see LICENSE),
 the package needs the FFmpeg libraries, which have different licenses
 (most notably LGPL and GPL) depending on the configuration.
 

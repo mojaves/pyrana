@@ -5,7 +5,7 @@ Summary: Package for simple manipulation of multimedia files
 Home-page: http://bitbucket.org/mojaves/pyrana
 Author: Francesco Romani
 Author-email: fromani@gmail.com
-License: zlib
+License: MIT
 Description: 
         Pyrana is a python package designed to provides simple access to
         multimedia files. Pyrana is based on the FFmpeg (http://ffmpeg.org)
@@ -15,7 +15,7 @@ Platform: posix
 Classifier: Development Status :: 3 - Alpha
 Classifier: Environment :: Other Environment
 Classifier: Intended Audience :: Developers
-Classifier: License :: OSI Approved :: zlib/libpng License
+Classifier: License :: OSI Approved :: MIT License
 Classifier: Operating System :: POSIX
 Classifier: Programming Language :: Python
 Classifier: Programming Language :: Python :: 3
