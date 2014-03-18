@@ -38,7 +38,7 @@ Version 0.8.0
 =============
 
 * code stabilization.
-* sync facilities.
+* higher-level API (based on moviepy).
 * finish the player tutorial.
 * readthedocs page.
 * support for Ubuntu 14.04.
@@ -49,7 +49,7 @@ Version 0.10.0
 
 * testsuite overhaul/cleanup
 * complete sphinx docs.
-* frame seek support.
+* better seek.
 * compatibility with pypy 2.1+.
 
 
