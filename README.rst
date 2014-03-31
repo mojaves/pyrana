@@ -52,11 +52,11 @@ Supported systems
 -----------------
 
 
-* debian: main development host.
-          require FFmpeg packages from deb-multimedia_.
-
-* fedora: supported starting from version 20, work in progress.
+* fedora: main development host since version 20.
           require FFmpeg packages from rpmfusion_.
+
+* debian: supported starting from version 7.4.
+          require FFmpeg packages from deb-multimedia_.
 
 * ubuntu: supported starting from Trusty Thar (14.04), work in progress.
 
