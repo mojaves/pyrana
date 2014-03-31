@@ -2,7 +2,7 @@
 Pyrana - python package for simple manipulation of multimedia files
 ===================================================================
 
-(C) 2010-2014 Francesco Romani < fromani | gmail : com >
+``(C) 2010-2014 Francesco Romani < fromani | gmail : com >``
 
 
 .. image:: https://landscape.io/github/mojaves/pyrana/master/landscape.png
@@ -88,7 +88,7 @@ Getting started
 Documentation
 -------------
 
-See the **docs/** and the **examples/** folder.
+See the ``docs/`` and the ``examples/`` folder.
 `This category of posts`_ on the author's techinical blog provide even more documentation.
 
 
