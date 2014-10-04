@@ -14,22 +14,23 @@ Pyrana - python package for simple manipulation of multimedia files
 Overview
 --------
 
-Pyrana is a python package designed to provides simple access to
+Pyrana is a python package designed to provide simple access to
 multimedia files. Pyrana is based on the FFmpeg_
 libraries, but provides an independent API.
 
 Pyrana sets you free from the tyranny of subprocess_.
-Without pyrana, almost every piace of code which wanted to use the mighty
-FFmpeg, had to subprocess it. You had no choice.
+Without pyrana, almost every piace of code which wants to use the mighty
+FFmpeg, has to subprocess it. You have no choice.
 pyrana provides an powerful, pythonic alternative.
-If you *do want* to subprocess() FFmpeg, pyrana may be what you were looking for.
 
 Pyrana aims to be the spiritual successor of pymedia_.
-The Pyrana API is insipired by the PyMedia API, but being compatible
+The Pyrana API is insipired by the PyMedia API, but compatibility
 with the latter is not a main objective (yet).
+
 The two projects share a similar objective but no code and they
 are full independent. However, for the reasons just outlined it is
-indexed and advertised on pypi_ as pymedia2-pyrana.
+indexed and advertised on pypi_ as pymedia2-pyrana (and also because
+the 'pyrana' name was already taken :) ).
 
 
 License Notice
@@ -62,6 +63,8 @@ Supported systems
 
 * generic linux: see Requirements below.
 
+* windows: best effort. May break without notice. See Requirements below.
+
 * others: see Requirements below. Patches welcome :)
 
 
@@ -73,7 +76,7 @@ Requirements
   The version 3.x is preferred, 2.7 is supported as legacy. Tested under CPython only (yet).
 
 * ffmpeg_  version 1.2.x or 2.1.x.
-  libav_ any version, is unsupported. May or may not work.
+  libav_ any version, is unsupported. May or may not work. May break without notice.
 
 * cffi_ version 0.7.x (x >= 2). Previous versions, most notably the 0.6
   shipped with pypy 2.0, are unsupported.
@@ -89,7 +92,7 @@ Documentation
 -------------
 
 See the ``docs/`` and the ``examples/`` folder.
-`This category of posts`_ on the author's techinical blog provide even more documentation.
+`This category of posts`_ on the author's technical blog provides even more documentation.
 
 
 See also

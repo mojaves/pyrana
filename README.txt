@@ -1,3 +1,3 @@
 this is just a placeholder.
-See README.md for the documentation index.
+See README.rst for the documentation index.
 
