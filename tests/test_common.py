@@ -153,6 +153,18 @@ class TestCommonData(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             pyrana._enforce_platform(MockPlat(vers=(2,6)))
 
+    def test_platform_linux(self):
+        pyrana._enforce_platform(MockPlat(osname='Linux'))
+        assert(True)
+
+    def test_platform_windows(self):
+        pyrana._enforce_platform(MockPlat(osname='Windows'))
+        assert(True)
+
+    def test_platform_other(self):
+        with self.assertRaises(RuntimeError):
+            pyrana._enforce_platform(MockPlat(osname='Other'))
+
 
 if __name__ == "__main__":
     unittest.main()

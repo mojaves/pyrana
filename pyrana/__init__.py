@@ -36,6 +36,9 @@ def _enforce_platform(plat):
         if fail:
             msg = "CPython < %i.%i not supported" % (major, minor)
             raise RuntimeError(msg)
+    os = plat.system()
+    if os not in ('Linux', 'Windows'):
+        raise RuntimeError("OS %s not supported" % os)
 
 
 _enforce_platform(platform)

@@ -188,15 +188,19 @@ class MockAVCodecContext:
  
 
 class MockPlat:
-    def __init__(self, impl='CPython', vers=(3,3)):
+    def __init__(self, impl='CPython', vers=(3,3), osname='Linux'):
         self._impl = impl
         self._vers = tuple(str(v) for v in vers)
+        self._osname = osname
 
     def python_implementation(self):
         return self._impl
  
     def python_version_tuple(self):
         return self._vers
+
+    def system(self):
+        return self._osname
 
 
 def av_version_pack(major, minor, micro):

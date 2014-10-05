@@ -5,6 +5,7 @@ This module is not part of the pyrana public API.
 
 from functools import wraps
 import ctypes
+import platform
 import os
 import os.path
 import glob
@@ -120,9 +121,10 @@ def _try_to_load(lib, vers):
     load the first found version of the given library,
     from most recent to less recent.
     """
+    tmpl = _library_name()
     for ver in vers:
         try:
-            return ctypes.CDLL('lib%s.so.%i' % (lib, ver))
+            return ctypes.CDLL(tmpl % (lib, ver))
         except OSError:
             continue
     msg = "cannot find a supported %s (supported versions: %s)" % (
@@ -158,23 +160,24 @@ class FF(object):
 
     def __init__(self):
         # beware of singleton before to add parameters here
+        tmpl = _library_name()
         vers = versions()
         self._vers = vers
         _hl = HLoader(self._vers)
         self.ffi = cffi.FFI()
         self.ffi.cdef(_hl.decls)
         lavu, lavc, lavf, sws, swr = vers
-        self.lavc = self.ffi.dlopen("libavcodec.so.%i" % lavc[0])
-        self.lavf = self.ffi.dlopen("libavformat.so.%i" % lavf[0])
-        self.lavu = self.ffi.dlopen("libavutil.so.%i" % lavu[0])
-        self.sws = self.ffi.dlopen("libswscale.so.%i" % sws[0])
-        self.swr = self.ffi.dlopen("libswresample.so.%i" % swr[0])
+        self.lavc = self.ffi.dlopen(tmpl % ("avcodec", lavc[0]))
+        self.lavf = self.ffi.dlopen(tmpl % ("avformat", lavf[0]))
+        self.lavu = self.ffi.dlopen(tmpl % ("avutil", lavu[0]))
+        self.sws = self.ffi.dlopen(tmpl % ("swscale", sws[0]))
+        self.swr = self.ffi.dlopen(tmpl % ("swresample", swr[0]))
 
     def setup(self):
         """
         initialize the FFMpeg libraries.
         """
-        # note: libav* already protects against multiple calls.
+        # note: libav* already protects itself against multiple calls.
         self.lavc.avcodec_register_all()
         self.lavf.av_register_all()
         return self.versions()
@@ -204,3 +207,9 @@ def setup():
     ffh = FF()
     ffh.setup()
     return ffh
+
+
+def _library_name(plat=platform):
+    return ('%s-%i.dll'
+            if plat.system() == 'Windows'
+            else 'lib%s.so.%i')
