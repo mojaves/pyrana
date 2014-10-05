@@ -78,7 +78,7 @@ Requirements
 * ffmpeg_  version 1.2.x or 2.1.x.
   libav_ any version, is unsupported. May or may not work. May break without notice.
 
-* cffi_ version 0.7.x (x >= 2). Previous versions, most notably the 0.6
+* cffi_ version >= 0.7.x (x >= 2). Previous versions, most notably the 0.6
   shipped with pypy 2.0, are unsupported.
 
 
@@ -92,7 +92,14 @@ Documentation
 -------------
 
 See the ``docs/`` and the ``examples/`` folder.
-`This category of posts`_ on the author's technical blog provides even more documentation.
+You can browse the pyrana documentation through the `readthedocs pyrana page`_.
+
+
+Contribute
+----------
+
+File issues or open pull requests using bitbucket_.
+Patches always welcome!
 
 
 See also
@@ -117,5 +124,7 @@ If pyrana does not fit your needs, you may want to try the following:
 .. _This category of posts: http://mojaves.github.io/category/pyrana.html
 .. _cffi: http://cffi.readthedocs.org
 .. _See here for details: http://docs.python.org/install/index.html
+.. _readthedocs pyrana page: http://pyrana.readthedocs.org/en/latest/index.html
+.. _bitbucket: https://bitbucket.org/mojaves/pyrana
 .. _pymedia: http://pymedia.org
 .. _pyffmpeg: http://code.google.com/p/pyffmpeg
