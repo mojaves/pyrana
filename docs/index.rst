@@ -17,9 +17,10 @@ Contents
    Tutorial: write a simple media player with pyrana <tutorial/index.rst>
 
    The exception hierarchy of pyrana <errors>
+   Types and flags <enums>
+   More flags and enumerations for audio <ac3>
    The fundamental unit in encoded media streams <packets>
    How to deal with media formats <formats>
-   Common codec interface <codec>
    Decoding and encoding audio streams <audio>
    Decoding and encoding video streams <video>
 
