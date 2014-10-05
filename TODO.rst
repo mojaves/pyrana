@@ -30,6 +30,7 @@ Version 0.6.0 <- We are here!
 * 0.5.2: support for Fedora 20.
 * 0.5.3: switch license to MIT.
 * 0.5.4: translate the docs to RST.
+* 0.5.5: platform abastraction.
 * readthedocs page.
 
 
