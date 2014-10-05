@@ -3,42 +3,18 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-.. include:: ../README.rst
+.. include:: pyrana-intro.rst
 
 Contents:
 
 .. toctree::
    :maxdepth: 2
 
-errors
-------
-
-.. automodule:: pyrana.errors
-   :members:
-
-packets
--------
-
-.. automodule:: pyrana.packet
-   :members:
-
-formats
--------
-
-.. automodule:: pyrana.formats
-   :members:
-
-audio
------
-
-.. automodule:: pyrana.audio
-   :members:
-
-video
------
-
-.. automodule:: pyrana.video
-   :members:
+   The exception hierarchy of pyrana <errors>
+   The fundamental unit in encoded media streams <packets>
+   How to deal with media formats <formats>
+   Decoding and encoding audio streams <audio>
+   Decoding and encoding video streams <video>
 
 Indices and tables
 ==================
