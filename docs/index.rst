@@ -3,15 +3,42 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to pyrana's documentation!
-==================================
+.. include:: ../README.rst
 
 Contents:
 
 .. toctree::
    :maxdepth: 2
 
+errors
+------
 
+.. automodule:: pyrana.errors
+   :members:
+
+packets
+-------
+
+.. automodule:: pyrana.packet
+   :members:
+
+formats
+-------
+
+.. automodule:: pyrana.formats
+   :members:
+
+audio
+-----
+
+.. automodule:: pyrana.audio
+   :members:
+
+video
+-----
+
+.. automodule:: pyrana.video
+   :members:
 
 Indices and tables
 ==================
