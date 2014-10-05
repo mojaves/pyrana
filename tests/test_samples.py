@@ -11,7 +11,7 @@ import pyrana.codec
 import pyrana.audio
 from pyrana.audio import ChannelLayout, SampleFormat
 
-from tests.mockslib import MockFF, MockFrame, MockLavu, MockSwr
+from tests import fakes
 
 
 def _new_frame(smpfmt):  # FIXME naming
@@ -40,17 +40,17 @@ class TestSamples(unittest.TestCase):
 
     def test_cannot_create_swr_context(self):
         smpfmt = pyrana.audio.SampleFormat.AV_SAMPLE_FMT_FLTP
-        frame = MockFrame(smpfmt)
-        ffh = MockFF(faulty=True)
+        frame = fakes.Frame(smpfmt)
+        ffh = fakes.FF(faulty=True)
         with self.assertRaises(pyrana.errors.ProcessingError):
             pyrana.audio._samples_from_frame(ffh, None, frame, smpfmt)
         assert(ffh.swr.ctx_allocs == 1)
 
     def test_cannot_init_swr_context(self):
         smpfmt = pyrana.audio.SampleFormat.AV_SAMPLE_FMT_FLTP
-        frame = MockFrame(smpfmt)
-        ffh = MockFF(faulty=False)
-        ffh.swr = MockSwr(faulty=False, bad_smp_fmt=smpfmt)
+        frame = fakes.Frame(smpfmt)
+        ffh = fakes.FF(faulty=False)
+        ffh.swr = fakes.Swr(faulty=False, bad_smp_fmt=smpfmt)
         with self.assertRaises(pyrana.errors.ProcessingError):
             pyrana.audio._samples_from_frame(ffh, None, frame, smpfmt)
         assert(ffh.swr.ctx_allocs == 1)
@@ -58,9 +58,9 @@ class TestSamples(unittest.TestCase):
 
     def test_cannot_alloc_samples(self):
         smpfmt = pyrana.audio.SampleFormat.AV_SAMPLE_FMT_FLTP
-        frame = MockFrame(smpfmt)
-        ffh = MockFF(faulty=False)
-        ffh.lavu = MockLavu(faulty=True)
+        frame = fakes.Frame(smpfmt)
+        ffh = fakes.FF(faulty=False)
+        ffh.lavu = fakes.Lavu(faulty=True)
         with self.assertRaises(pyrana.errors.ProcessingError):
             pyrana.audio._samples_from_frame(ffh, None, frame, smpfmt)
         assert(ffh.swr.ctx_allocs == 1)
@@ -69,8 +69,8 @@ class TestSamples(unittest.TestCase):
 
     def test_cannot_convert_samples(self):
         smpfmt = pyrana.audio.SampleFormat.AV_SAMPLE_FMT_FLTP
-        frame = MockFrame(smpfmt)
-        ffh = MockFF(faulty=False)
+        frame = fakes.Frame(smpfmt)
+        ffh = fakes.FF(faulty=False)
         with self.assertRaises(pyrana.errors.ProcessingError):
             pyrana.audio._samples_from_frame(ffh, None, frame, smpfmt)
         assert(ffh.swr.ctx_allocs == 1)

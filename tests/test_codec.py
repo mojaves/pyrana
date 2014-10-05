@@ -6,7 +6,7 @@ from pyrana.codec import CodecMixin, BaseDecoder, BaseFrame, Payload
 import pyrana.audio
 import pyrana.video
 
-from tests.mockslib import MockAVCodecContext, MockFF
+from tests import fakes
 
 
 class TestCommonData(unittest.TestCase):
@@ -112,7 +112,7 @@ class TestBaseDecoder(unittest.TestCase):
 
     def test_open_fail(self):
         dec = BaseDecoder('mjpeg', delay_open=True)
-        ffh = MockFF(faulty=True)
+        ffh = fakes.FF(faulty=True)
         with self.assertRaises(pyrana.errors.SetupError):
             dec.open(ffh)
 
@@ -150,7 +150,7 @@ class TestBaseDecoder(unittest.TestCase):
 class TestCodecFuncs(unittest.TestCase):
     def test_builder_unsupported(self):
        with self.assertRaises(pyrana.errors.ProcessingError):
-            ctx = MockAVCodecContext(MediaType.AVMEDIA_TYPE_NB)
+            ctx = fakes.AVCodecContext(MediaType.AVMEDIA_TYPE_NB)
             # this media type will always be invalid
             dec = pyrana.codec.make_codec(pyrana.video.Decoder,
                                           pyrana.audio.Decoder,

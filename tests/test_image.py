@@ -10,7 +10,7 @@ import pyrana.errors
 import pyrana.codec
 import pyrana.video
 
-from tests.mockslib import MockFF, MockFrame, MockLavu, MockSws
+from tests import fakes
 
 
 def _new_frame(pixfmt):  # FIXME naming
@@ -30,26 +30,26 @@ class TestImage(unittest.TestCase):
 
     def test_cannot_create_sws_context(self):
         pixfmt = pyrana.video.PixelFormat.AV_PIX_FMT_RGB24
-        frame = MockFrame(pixfmt)
-        ffh = MockFF(faulty=True)
+        frame = fakes.Frame(pixfmt)
+        ffh = fakes.FF(faulty=True)
         with self.assertRaises(pyrana.errors.ProcessingError):
             pyrana.video._image_from_frame(ffh, None, frame, pixfmt)
 
     def test_cannot_alloc_av_image(self):
         pixfmt = pyrana.video.PixelFormat.AV_PIX_FMT_RGB24
-        frame = MockFrame(pixfmt)
-        ffh = MockFF(faulty=False)
+        frame = fakes.Frame(pixfmt)
+        ffh = fakes.FF(faulty=False)
         # inject only a faulty lavu
-        ffh.lavu = MockLavu(faulty=True)
+        ffh.lavu = fakes.Lavu(faulty=True)
         with self.assertRaises(pyrana.errors.ProcessingError):
             pyrana.video._image_from_frame(ffh, None, frame, pixfmt)
         assert(ffh.lavu.img_allocs == 1)
 
     def test_cannot_convert(self):
         pixfmt = pyrana.video.PixelFormat.AV_PIX_FMT_YUV420P  # 0
-        frame = MockFrame(pixfmt)
-        ffh = MockFF(faulty=False)
-        ffh.sws = MockSws(False, True, pixfmt)
+        frame = fakes.Frame(pixfmt)
+        ffh = fakes.FF(faulty=False)
+        ffh.sws = fakes.Sws(False, True, pixfmt)
         with self.assertRaises(pyrana.errors.ProcessingError):
             pyrana.video._image_from_frame(ffh, None, frame, pixfmt)
         assert(ffh.sws.scale_done == 1)

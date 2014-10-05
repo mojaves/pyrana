@@ -7,7 +7,7 @@ import pyrana.ff
 import pyrana.errors
 import pyrana.packet
 from pyrana.common import blob, get_field_int, AttrDict, strerror
-from tests.mockslib import MockPlat
+from tests import fakes
 
 
 @contextmanager
@@ -138,32 +138,32 @@ class TestCommonData(unittest.TestCase):
         pyrana.setup()
 
     def test_platform_CPy3x(self):
-        pyrana._enforce_platform(MockPlat())
+        pyrana._enforce_platform(fakes.Plat())
         assert(True)
 
     def test_platform_CPy31(self):
         with self.assertRaises(RuntimeError):
-            pyrana._enforce_platform(MockPlat(vers=(3,1)))
+            pyrana._enforce_platform(fakes.Plat(vers=(3,1)))
 
     def test_platform_CPy2x(self):
-        pyrana._enforce_platform(MockPlat(vers=(2,7)))
+        pyrana._enforce_platform(fakes.Plat(vers=(2,7)))
         assert(True)
 
     def test_platform_CPy26(self):
         with self.assertRaises(RuntimeError):
-            pyrana._enforce_platform(MockPlat(vers=(2,6)))
+            pyrana._enforce_platform(fakes.Plat(vers=(2,6)))
 
     def test_platform_linux(self):
-        pyrana._enforce_platform(MockPlat(osname='Linux'))
+        pyrana._enforce_platform(fakes.Plat(osname='Linux'))
         assert(True)
 
     def test_platform_windows(self):
-        pyrana._enforce_platform(MockPlat(osname='Windows'))
+        pyrana._enforce_platform(fakes.Plat(osname='Windows'))
         assert(True)
 
     def test_platform_other(self):
         with self.assertRaises(RuntimeError):
-            pyrana._enforce_platform(MockPlat(osname='Other'))
+            pyrana._enforce_platform(fakes.Plat(osname='Other'))
 
 
 if __name__ == "__main__":

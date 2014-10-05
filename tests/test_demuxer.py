@@ -11,8 +11,7 @@ import hashlib
 import os
 import os.path
 
-# FIXME
-from tests.mockslib import MockLavf, MockFF, MockAVFormatContext
+from tests import fakes
 
 
 _uB = b'\0' * 64
@@ -89,14 +88,14 @@ class TestDemuxer(unittest.TestCase):
             assert len(pkt)
 
     def test_read_faulty(self):
-        ffh = MockFF(faulty=True)
-        ctx = MockAVFormatContext()
+        ffh = fakes.FF(faulty=True)
+        ctx = fakes.AVFormatContext()
         with self.assertRaises(pyrana.errors.ProcessingError):
             pyrana.formats._read_frame(ffh, ctx, mock_new_pkt, 0)
 
     def test_read_empty(self):
-        ffh = MockFF(faulty=False)
-        ctx = MockAVFormatContext()
+        ffh = fakes.FF(faulty=False)
+        ctx = fakes.AVFormatContext()
         with self.assertRaises(pyrana.errors.EOSError):
             pyrana.formats._read_frame(ffh, ctx, mock_new_pkt, 0)
 

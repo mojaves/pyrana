@@ -10,7 +10,7 @@ import pyrana.errors
 import pyrana.codec
 import pyrana.audio
 
-from tests.mockslib import MockFF, MockFrame, MockLavu, MockSwr
+from tests import fakes
 
 
 BBB_SAMPLE = os.path.join('tests', 'data', 'bbb_sample.ogg')

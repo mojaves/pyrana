@@ -3,7 +3,7 @@
 #TODO: learn the mock package
 
 
-class MockFrame:
+class Frame:
     def __init__(self, fmt,
                  width=320, height=200,
                  sample_rate=44100,
@@ -18,7 +18,7 @@ class MockFrame:
         self.linesize = []
 
 
-class MockSws:
+class Sws:
     def __init__(self, faulty, supported=True, bad_pix_fmt=0):
         self.faulty = faulty
         self.supported = supported
@@ -47,7 +47,7 @@ class MockSws:
         return -1 if self.faulty or self.bad_pix_fmt == self.dst_pix_fmt else 0
 
 
-class MockSwr:
+class Swr:
     def __init__(self, faulty, bad_smp_fmt=0):
         self.faulty = faulty
         self.bad_smp_fmt = bad_smp_fmt
@@ -78,7 +78,7 @@ class MockSwr:
         return -1  # if self.faulty else 0
 
 
-class MockLavc:
+class Lavc:
     @staticmethod
     def av_init_packet(pkt):
         pass
@@ -105,14 +105,14 @@ class MockLavc:
 
     @staticmethod
     def avcodec_alloc_frame():
-        return MockFrame(0)  # XXX
+        return Frame(0)  # XXX
 
     @staticmethod
     def avcodec_free_frame(frame):
         pass
 
 
-class MockLavf:
+class Lavf:
     def __init__(self, faulty):
         self.faulty = faulty
 
@@ -124,7 +124,7 @@ class MockLavf:
         return -1
 
 
-class MockLavu:
+class Lavu:
     def __init__(self, faulty):
         self.faulty = faulty
         self.img_allocs = 0
@@ -150,7 +150,7 @@ class MockLavu:
         return "N/A"
 
 
-class MockCFFI:
+class CFFI:
     def __init__(self):
         self.NULL = None
 
@@ -166,28 +166,28 @@ class MockCFFI:
         return Sink()
 
 
-class MockFF:
+class FF:
     def __init__(self, faulty):
-        self.ffi = MockCFFI()
-        self.lavc = MockLavc()
-        self.lavf = MockLavf(faulty)
-        self.lavu = MockLavu(faulty)
-        self.sws = MockSws(faulty)
-        self.swr = MockSwr(faulty)
+        self.ffi = CFFI()
+        self.lavc = Lavc()
+        self.lavf = Lavf(faulty)
+        self.lavu = Lavu(faulty)
+        self.sws = Sws(faulty)
+        self.swr = Swr(faulty)
 
 
-class MockAVFormatContext:
+class AVFormatContext:
     def __init__(self):
         self.pb = None
 
 
-class MockAVCodecContext:
+class AVCodecContext:
     def __init__(self, codec_type=None, codec=None):
         self.codec_type = codec_type
         self.codec = codec
  
 
-class MockPlat:
+class Plat:
     def __init__(self, impl='CPython', vers=(3,3), osname='Linux'):
         self._impl = impl
         self._vers = tuple(str(v) for v in vers)
@@ -210,7 +210,7 @@ def av_version_pack(major, minor, micro):
     return (major << 16 | minor << 8 | micro)
 
 
-class MockHandle:
+class Handle:
     def __init__(self, lavu, lavc, lavf, sws, swr):
         self._lavf = av_version_pack(*lavf)
         self._lavu = av_version_pack(*lavu)
@@ -223,6 +223,6 @@ class MockHandle:
                 self._sws, self._swr)
 
 
-class MockHandleFaulty:
+class HandleFaulty:
     def versions(self):
         raise OSError("will always fail!")

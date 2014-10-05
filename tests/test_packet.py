@@ -5,8 +5,8 @@ import unittest
 import pytest
 import pyrana.packet
 import pyrana.errors
-from tests.mockslib import MockFF
 
+from tests import fakes
 
 _B = b'A'
 
@@ -19,22 +19,22 @@ class TestPacket(unittest.TestCase):
             self.fail("failed creation from simple string: %s" % x)
 
     def test_faulty_alloc(self):
-        ffh = MockFF(faulty=True)
+        ffh = fakes.FF(faulty=True)
         with self.assertRaises(pyrana.errors.ProcessingError):
             pyrana.packet._new_cpkt(ffh, 128)
 
     def test_zero_alloc(self):
-        ffh = MockFF(faulty=True)
+        ffh = fakes.FF(faulty=True)
         pkt = pyrana.packet._new_cpkt(ffh, 0)
         assert(pkt.size == 0)
 
     def test_zero_alloc_bound(self):
-        ffh = MockFF(faulty=True)
+        ffh = fakes.FF(faulty=True)
         with pyrana.packet.bind_packet(ffh, 0) as pkt:
             assert(pkt.size == 0)
 
     def test_zero_alloc_bound_excp(self):
-        ffh = MockFF(faulty=True)
+        ffh = fakes.FF(faulty=True)
         try:
             with pyrana.packet.bind_packet(ffh, 0) as pkt:
                 assert(pkt.size == 0)

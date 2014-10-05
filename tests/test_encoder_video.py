@@ -10,8 +10,6 @@ import pyrana.errors
 import pyrana.codec
 import pyrana.video
 
-from tests.mockslib import MockFF, MockFrame, MockLavu, MockSws
-
 
 class TestEncoderVideo(unittest.TestCase):
     @classmethod
